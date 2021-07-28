@@ -11,15 +11,18 @@ build:
 
 requirements:
   build:
+    - lxml
     - python
     - pytest
     - setuptools
     - numpy
     - openmm
+    - pdbfixer
     - pyparsing
     - packmol
     - parmed
   run:
+    - lxml
     - python
     - pytest
     - setuptools

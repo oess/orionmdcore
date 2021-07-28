@@ -16,6 +16,4 @@
 # or its use.
 
 
-__author__ = "Gaetano Calabro"
-__email__ = "gcalabro@eyesopen.com"
-__version__ = "0.0.0"
+from .mdrecord import MDDataRecord

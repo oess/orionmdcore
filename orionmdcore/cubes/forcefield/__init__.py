@@ -15,7 +15,4 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
-
-__author__ = "Gaetano Calabro"
-__email__ = "gcalabro@eyesopen.com"
-__version__ = "0.0.0"
+from .cubes import *

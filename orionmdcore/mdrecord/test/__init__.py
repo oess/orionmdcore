@@ -1,4 +1,4 @@
-# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2020 OpenEye Scientific Software Inc. All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
 # provided to current licensees or subscribers of OpenEye products or
@@ -14,8 +14,3 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
-
-
-__author__ = "Gaetano Calabro"
-__email__ = "gcalabro@eyesopen.com"
-__version__ = "0.0.0"
