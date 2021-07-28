@@ -21,15 +21,16 @@ from simtk.openmm import app
 
 import simtk
 
-from MDOrion.MDEngines.utils import MDSimulations, md_keys_converter
+from orionmdcore.cubes.mdengines.utils import MDSimulations, md_keys_converter
 
 import numpy as np
 
-from MDOrion.MDEngines.Gromacs.gromacs_templates import (
+from orionmdcore.cubes.mdengines.gromacs.gromacs_templates import (
     gromacs_minimization,
     gromacs_nvt_npt,
     gromacs_pos_restraints,
 )
+
 import subprocess
 
 import parmed
@@ -50,7 +51,7 @@ import itertools
 
 from collections import OrderedDict
 
-from MDOrion.Standards import MDEngines
+from orionmdcore.standards import MDEngines
 
 from subprocess import STDOUT, PIPE, Popen, DEVNULL
 

@@ -23,18 +23,18 @@ from floe.test import CubeTestRunner
 
 import pytest
 
-from MDOrion.MDEngines.cubes import MDMinimizeCube, MDNvtCube, MDNptCube
+from orionmdcore.cubes.mdengines import MDMinimizeCube, MDNvtCube, MDNptCube
 
-import MDOrion
+import orionmdcore
 
 from datarecord import read_records
 
 from openeye import oechem
 
-from MDOrion.Standards import Fields
+from orionmdcore.standards import Fields
 
 
-PACKAGE_DIR = os.path.dirname(os.path.dirname(MDOrion.__file__))
+PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 FILE_DIR = os.path.join(PACKAGE_DIR, "tests", "data")
 
 

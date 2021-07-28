@@ -23,9 +23,7 @@ from floe.test import CubeTestRunner
 
 import pytest
 
-from MDOrion.MDEngines.cubes import MDMinimizeCube, MDNvtCube, MDNptCube
-
-from orionmdcore.cubes.mdengines import
+from orionmdcore.cubes.mdengines import MDMinimizeCube, MDNvtCube, MDNptCube
 
 from simtk import unit, openmm
 

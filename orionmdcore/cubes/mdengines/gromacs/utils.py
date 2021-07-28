@@ -25,7 +25,7 @@ import tarfile
 
 import os
 
-from MDOrion.MDEngines.Gromacs.standards import Gromacs
+from orionmdcore.cubes.mdengines.gromacs.standards import Gromacs
 
 from orionclient.session import in_orion, APISession
 
@@ -33,7 +33,7 @@ from orionclient.types import File
 
 from os import environ
 
-from MDOrion.MDEngines.Gromacs.standards import Fields
+from orionmdcore.cubes.mdengines.gromacs.standards import Fields
 
 
 def upload_file(filename, orion_ui_name="OrionFile", tag="Trajectory"):

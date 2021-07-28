@@ -28,6 +28,7 @@ import orionmdcore
 
 PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 
+
 @task
 def setversion(ctx, new_version):
     """
@@ -36,29 +37,34 @@ def setversion(ctx, new_version):
 
     clean(ctx)
 
-    fn = os.path.join(PACKAGE_DIR, 'orionmdcore', "__init__.py")
+    fn = os.path.join(PACKAGE_DIR, "orionmdcore", "__init__.py")
 
     with open(fn, "r") as f:
         lines = f.readlines()
 
-    lines = ["__version__ = '{}'\n".format(new_version) if '__version__' in line else line for line in lines]
+    lines = [
+        "__version__ = '{}'\n".format(new_version) if "__version__" in line else line
+        for line in lines
+    ]
 
     with open(fn, "w") as f:
         f.writelines(lines)
 
-
-    fn = os.path.join(PACKAGE_DIR, 'devtools/conda-recipe', "meta.yaml")
+    fn = os.path.join(PACKAGE_DIR, "devtools/conda-recipe", "meta.yaml")
 
     with open(fn, "r") as f:
         lines = f.readlines()
 
-    lines = ["version: '{}'\n".format(new_version) if 'version' in line else line for line in lines]
+    lines = [
+        "version: '{}'\n".format(new_version) if "version" in line else line
+        for line in lines
+    ]
 
     with open(fn, "w") as f:
         f.writelines(lines)
 
     importlib.reload(orionmdcore)
-    
+
 
 @task
 def version(ctx):
@@ -103,7 +109,7 @@ def clean_pycache(ctx):
     """
     for dirpath, dirs, files in os.walk(os.getcwd()):
         for dir in dirs:
-            if dir == '__pycache__':
+            if dir == "__pycache__":
                 del_dir = os.path.join(dirpath, dir)
                 shutil.rmtree(del_dir)
 

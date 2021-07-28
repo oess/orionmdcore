@@ -46,9 +46,9 @@ from orionclient.session import APISession
 
 from datarecord import OEWriteRecord
 
-from MDOrion.MDEngines.Gromacs.standards import Fields, Gromacs
+from orionmdcore.cubes.mdengines.gromacs.standards import Fields, Gromacs
 
-from MDOrion.MDEngines.Gromacs.utils import gmx_run, gmx_steps
+from orionmdcore.cubes.mdengines.gromacs.utils import gmx_run, gmx_steps
 
 
 class InputGromacs(SourceCube):
