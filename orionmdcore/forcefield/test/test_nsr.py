@@ -1,6 +1,6 @@
 from openeye import oechem
 
-from oemdtoolbox.ForceField import nsr_template_generator
+from orionmdcore.forcefield import nsr_template_generator
 
 from oeommtools.utils import oemol_to_openmmTop
 

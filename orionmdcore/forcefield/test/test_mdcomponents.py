@@ -2,9 +2,9 @@ from openeye import oechem
 
 from datarecord import read_records
 
-from MDOrion.Standards.standards import Fields
+from orionmdcore.standards import Fields
 
-from oemdtoolbox.ForceField.md_components import MDComponents
+from orionmdcore.forcefield import MDComponents
 
 import unittest
 

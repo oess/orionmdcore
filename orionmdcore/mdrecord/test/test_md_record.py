@@ -1,18 +1,14 @@
 import unittest
 
-import MDOrion
+import orionmdcore
 
 import os
 
 from openeye import oechem
 
-from datarecord import (OERecord,
-                        OEField,
-                        Types)
+from datarecord import OERecord, OEField, Types
 
-from MDOrion.Standards import (Fields,
-                               MDFileNames,
-                               MDStageTypes)
+from orionmdcore.standards import Fields, MDFileNames, MDStageTypes
 
 import pytest
 
@@ -22,12 +18,11 @@ import tarfile
 
 import pickle
 
-
-from MDOrion.Standards.mdrecord import MDDataRecord
+from orionmdcore.mdrecord import MDDataRecord
 
 from datarecord import read_records
 
-PACKAGE_DIR = os.path.dirname(os.path.dirname(MDOrion.__file__))
+PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 FILE_DIR = os.path.join(PACKAGE_DIR, "tests", "data")
 
 
@@ -35,6 +30,7 @@ class MDRecordTests(unittest.TestCase):
     """
     Testing MD Record API
     """
+
     def setUp(self):
         fname = os.path.join(FILE_DIR, "mdrecord.oedb")
         ifs = oechem.oeifstream(fname)
@@ -132,7 +128,7 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.local
     def test_get_title(self):
         title = self.mdrecord.get_value(Fields.title)
-        self.assertEqual(title, 'pPRT_ltoluene')
+        self.assertEqual(title, "pPRT_ltoluene")
 
     @pytest.mark.travis
     @pytest.mark.local
@@ -143,32 +139,34 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.local
     def test_set_title(self):
         self.mdrecord.set_title("Pippo")
-        self.assertEqual(self.mdrecord.get_title, 'Pippo')
+        self.assertEqual(self.mdrecord.get_title, "Pippo")
 
     @pytest.mark.travis
     @pytest.mark.local
     def test_get_last_stage(self):
         last_stage = self.mdrecord.get_last_stage
-        self.assertEqual(last_stage.get_value(Fields.stage_name), 'Production')
-        self.assertEqual(last_stage.get_value(Fields.stage_type), 'NPT')
+        self.assertEqual(last_stage.get_value(Fields.stage_name), "Production")
+        self.assertEqual(last_stage.get_value(Fields.stage_type), "NPT")
 
     @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_by_name(self):
         last_stage = self.mdrecord.get_stage_by_name()
-        self.assertEqual(last_stage.get_value(Fields.stage_name), 'Production')
-        self.assertEqual(last_stage.get_value(Fields.stage_type), 'NPT')
+        self.assertEqual(last_stage.get_value(Fields.stage_name), "Production")
+        self.assertEqual(last_stage.get_value(Fields.stage_type), "NPT")
 
-        param_stage = self.mdrecord.get_stage_by_name(stg_name='Flask Parametrization')
-        self.assertEqual(param_stage.get_value(Fields.stage_name), 'Flask Parametrization')
-        self.assertEqual(param_stage.get_value(Fields.stage_type), 'SETUP')
+        param_stage = self.mdrecord.get_stage_by_name(stg_name="Flask Parametrization")
+        self.assertEqual(
+            param_stage.get_value(Fields.stage_name), "Flask Parametrization"
+        )
+        self.assertEqual(param_stage.get_value(Fields.stage_type), "SETUP")
 
-        param_stage = self.mdrecord.get_stage_by_name(stg_name='Flask Minimization')
-        self.assertEqual(param_stage.get_value(Fields.stage_name), 'Flask Minimization')
-        self.assertEqual(param_stage.get_value(Fields.stage_type), 'MINIMIZATION')
+        param_stage = self.mdrecord.get_stage_by_name(stg_name="Flask Minimization")
+        self.assertEqual(param_stage.get_value(Fields.stage_name), "Flask Minimization")
+        self.assertEqual(param_stage.get_value(Fields.stage_type), "MINIMIZATION")
 
         with self.assertRaises(ValueError):
-            self.mdrecord.get_stage_by_name('Error')
+            self.mdrecord.get_stage_by_name("Error")
 
     # @pytest.mark.local
     # def test_delete_stage_by_name(self):
@@ -183,15 +181,18 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.travis
     @pytest.mark.local
     def test_has_stage_name(self):
-        self.assertTrue(self.mdrecord.has_stage_name('Production'))
-        self.assertFalse(self.mdrecord.has_stage_name('Error'))
+        self.assertTrue(self.mdrecord.has_stage_name("Production"))
+        self.assertFalse(self.mdrecord.has_stage_name("Error"))
 
     @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_by_idx(self):
         with self.assertRaises(ValueError):
             self.mdrecord.get_stage_by_idx(5)
-        self.assertEqual(self.mdrecord.get_stage_by_idx(0).get_value(Fields.stage_name), 'Flask Parametrization')
+        self.assertEqual(
+            self.mdrecord.get_stage_by_idx(0).get_value(Fields.stage_name),
+            "Flask Parametrization",
+        )
 
     @pytest.mark.travis
     @pytest.mark.local
@@ -208,12 +209,19 @@ class MDRecordTests(unittest.TestCase):
 
             state_fn = os.path.join(out_directory, MDFileNames.state)
 
-            with open(state_fn, 'rb') as f:
+            with open(state_fn, "rb") as f:
                 md_state = pickle.load(f)
 
-        self.assertEqual(md_state.get_positions(), self.mdrecord.get_stage_state().get_positions())
-        self.assertEqual(md_state.get_velocities(), self.mdrecord.get_stage_state().get_velocities())
-        self.assertEqual(md_state.get_box_vectors(), self.mdrecord.get_stage_state().get_box_vectors())
+        self.assertEqual(
+            md_state.get_positions(), self.mdrecord.get_stage_state().get_positions()
+        )
+        self.assertEqual(
+            md_state.get_velocities(), self.mdrecord.get_stage_state().get_velocities()
+        )
+        self.assertEqual(
+            md_state.get_box_vectors(),
+            self.mdrecord.get_stage_state().get_box_vectors(),
+        )
 
     @pytest.mark.travis
     @pytest.mark.local
@@ -235,7 +243,7 @@ class MDRecordTests(unittest.TestCase):
             with oechem.oemolistream(topology_fn) as ifs:
                 oechem.OEReadMolecule(ifs, topology_mol)
 
-        topology = self.mdrecord.get_stage_topology(stg_name='Flask Parametrization')
+        topology = self.mdrecord.get_stage_topology(stg_name="Flask Parametrization")
 
         for mol_at, top_at in zip(topology_mol.GetAtoms(), topology.GetAtoms()):
             self.assertEqual(mol_at.GetAtomicNum(), top_at.GetAtomicNum())
@@ -248,10 +256,12 @@ class MDRecordTests(unittest.TestCase):
 
         self.assertEqual(info, self.mdrecord.get_stage_logs())
 
-        min_stage = self.mdrecord.get_stage_by_name(stg_name='Flask Minimization')
+        min_stage = self.mdrecord.get_stage_by_name(stg_name="Flask Minimization")
         info = min_stage.get_value(Fields.log_data)
 
-        self.assertEqual(info, self.mdrecord.get_stage_logs(stg_name='Flask Minimization'))
+        self.assertEqual(
+            info, self.mdrecord.get_stage_logs(stg_name="Flask Minimization")
+        )
 
     @pytest.mark.travis
     @pytest.mark.local
@@ -267,17 +277,21 @@ class MDRecordTests(unittest.TestCase):
         topology = self.mdrecord.get_stage_topology()
         md_state = self.mdrecord.get_stage_state()
 
-        self.assertTrue(new_mdrecord.add_new_stage("Testing",
-                                                   MDStageTypes.FEC,
-                                                   topology,
-                                                   md_state,
-                                                   "test.tar.gz",
-                                                   log='TestingLogs'))
+        self.assertTrue(
+            new_mdrecord.add_new_stage(
+                "Testing",
+                MDStageTypes.FEC,
+                topology,
+                md_state,
+                "test.tar.gz",
+                log="TestingLogs",
+            )
+        )
 
         self.assertEqual(len(new_mdrecord.get_value(Fields.md_stages)), 4)
-        new_last_stage = new_mdrecord.get_stage_by_name(stg_name='Testing')
+        new_last_stage = new_mdrecord.get_stage_by_name(stg_name="Testing")
 
-        self.assertEqual(new_last_stage.get_value(Fields.stage_name), 'Testing')
+        self.assertEqual(new_last_stage.get_value(Fields.stage_name), "Testing")
         self.assertEqual(new_last_stage.get_value(Fields.stage_type), MDStageTypes.FEC)
 
     @pytest.mark.travis
@@ -289,7 +303,7 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.travis
     @pytest.mark.local
     def test_get_stages_names(self):
-        ls_names = ['Flask Parametrization', 'Flask Minimization', 'Production']
+        ls_names = ["Flask Parametrization", "Flask Minimization", "Production"]
         stg_names = self.mdrecord.get_stages_names
         self.assertEqual(stg_names, ls_names)
 
@@ -301,7 +315,7 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.travis
     @pytest.mark.local
     def test_get_parmed(self):
-        pmd = self.mdrecord.get_parmed(sync_stage_name='last')
+        pmd = self.mdrecord.get_parmed(sync_stage_name="last")
         self.assertEqual(len(pmd.atoms), 30439)
         self.assertEqual((len(pmd.residues)), 9446)
         self.assertEqual((len(pmd.bonds)), 21178)
@@ -319,7 +333,7 @@ class MDRecordTests(unittest.TestCase):
         new_mdrecord.delete_field(Fields.pmd_structure)
         self.assertFalse(new_mdrecord.has_parmed)
 
-        new_mdrecord.set_parmed(pmd, sync_stage_name='last')
+        new_mdrecord.set_parmed(pmd, sync_stage_name="last")
         self.assertTrue(new_mdrecord.has_parmed)
 
     @pytest.mark.travis
@@ -340,7 +354,7 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.local
     def test_protein_traj(self):
 
-        oetraj_record = self.record.get_value(OEField('OETraj', Types.Record))
+        oetraj_record = self.record.get_value(OEField("OETraj", Types.Record))
 
         prot_mol = oetraj_record.get_value(Fields.protein_traj_confs)
 
@@ -353,7 +367,7 @@ class MDRecordTests(unittest.TestCase):
     @pytest.mark.travis
     @pytest.mark.local
     def test_set_protein_traj(self):
-        oetraj_record = self.record.get_value(OEField('OETraj', Types.Record))
+        oetraj_record = self.record.get_value(OEField("OETraj", Types.Record))
 
         prot_mol = oetraj_record.get_value(Fields.protein_traj_confs)
 

@@ -22,10 +22,10 @@ import orionmdcore
 
 PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 COFACTOR_DIR = os.path.join(
-    PACKAGE_DIR, "oemdtoolbox/ForceField/ff_library", "cofactors"
+    PACKAGE_DIR, "orionmdcore/forcefield/ff_library", "cofactors"
 )
 EXT_FORCEFIELD_DIR = os.path.join(
-    PACKAGE_DIR, "oemdtoolbox/ForceField/ff_library", "ext_forcefield"
+    PACKAGE_DIR, "orionmdcore/forcefield/ff_library", "ext_forcefield"
 )
 
 proteinff = {
