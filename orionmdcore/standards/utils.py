@@ -22,7 +22,7 @@ import pickle
 
 import parmed
 
-from orionmdcore.cubes.mdengines.utils import MDState
+from orionmdcore.mdengine.utils import MDState
 
 from orionmdcore.forcefield import MDComponents
 

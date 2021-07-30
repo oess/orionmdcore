@@ -31,7 +31,7 @@ from orionmdcore.mdrecord import MDDataRecord
 
 from orionmdcore.standards.utils import check_filename
 
-from orionmdcore.cubes.mdengines.utils import MDState
+from orionmdcore.mdengine.utils import MDState
 
 from openeye import oechem
 

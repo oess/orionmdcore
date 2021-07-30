@@ -16,4 +16,11 @@
 # or its use.
 
 
-from .standards import *
+from .standards import (
+    Fields,
+    MDFileNames,
+    MDEngines,
+    MDStageNames,
+    MDStageTypes,
+    CollectionsNames,
+)

@@ -19,13 +19,15 @@ from orionmdcore import __version__
 
 from setuptools import setup, find_packages
 
-if sys.argv[-1] == 'setup.py':
+if sys.argv[-1] == "setup.py":
     print("To install, run 'python setup.py install'")
     print()
 
 if sys.version_info[:3] < (3, 0):
-    print("OEOMMTools requires Python 3.0 or later (%d.%d detected)." %
-          sys.version_info[:2])
+    print(
+        "OEOMMTools requires Python 3.0 or later (%d.%d detected)."
+        % sys.version_info[:2]
+    )
     sys.exit(-1)
 
 
@@ -34,15 +36,15 @@ Core functionalities for MD developing in OpenEye Orion
 """
 
 setup(
-    name                 ='orionmdcore',
-    version              =__version__,
-    description          ='OpenEye Orion Molecular Dynamics Core',
-    long_description     =descr,
-    url                  ='https://github.com/oess/orionmdcore',
-    author               ='Gaetano Calabro and Christopher Bayly',
-    author_email         ='gcalabro -at- eyesopen.com',
-    platforms            =['Linux-64', 'Mac OSX-64', 'Unix-64'],
-    packages             =find_packages()+['tests'],
-    include_package_data = True,
-    zip_safe             = False
+    name="orionmdcore",
+    version=__version__,
+    description="OpenEye Orion Molecular Dynamics Core",
+    long_description=descr,
+    url="https://github.com/oess/orionmdcore",
+    author="Gaetano Calabro and Christopher Bayly",
+    author_email="gcalabro -at- eyesopen.com",
+    platforms=["Linux-64", "Mac OSX-64", "Unix-64"],
+    packages=find_packages() + ["tests"],
+    include_package_data=True,
+    zip_safe=False,
 )
