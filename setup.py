@@ -19,13 +19,14 @@ from orionmdcore import __version__
 
 from setuptools import setup, find_packages
 
+
 if sys.argv[-1] == "setup.py":
     print("To install, run 'python setup.py install'")
     print()
 
 if sys.version_info[:3] < (3, 0):
     print(
-        "OEOMMTools requires Python 3.0 or later (%d.%d detected)."
+        "ORIONMDCORE requires Python 3.0 or later (%d.%d detected)."
         % sys.version_info[:2]
     )
     sys.exit(-1)

@@ -1,6 +1,6 @@
 package:
   name: orionmdcore
-version: '0.0.0'
+  version: '0.0.0'
 
 source:
   path: ../../
@@ -10,28 +10,48 @@ build:
   number: 0
 
 requirements:
+  pin_depends: strict
   build:
-    - lxml
-    - python
+    - bs4
+    - lxml==4.6.0
+    - numpy==1.18.5
+    - mdtraj==1.9.3
+    - oeommtools==0.1.17
+    - openeye-toolkits
+    - openforcefield==0.8.4
+    - openforcefields==1.3.0
+    - openmm==7.5
+    - openmoltools==0.8.7
+    - packmol==20.010
+    - parmed==3.2.0
+    - pdbfixer==1.6
+    - pip==21.1.1
+    - pyparsing==2.4.7
+    - python ==3.7.7
     - pytest
+    - requests-toolbelt
     - setuptools
-    - numpy
-    - openmm
-    - pdbfixer
-    - pyparsing
-    - packmol
-    - parmed
-  run:
-    - lxml
-    - python
-    - pytest
-    - setuptools
-    - numpy
-    - openmm
-    - pyparsing
-    - packmol
-    - parmed
 
+  run:
+    - bs4
+    - lxml
+    - numpy
+    - mdtraj
+    - oeommtools
+    - openeye-toolkits
+    - openforcefield
+    - openforcefields
+    - openmm
+    - openmoltools
+    - packmol
+    - parmed
+    - pdbfixer
+    - pip
+    - pyparsing
+    - python
+    - pytest
+    - requests-toolbelt
+    - setuptools
 test:
   requires:
     - pytest
