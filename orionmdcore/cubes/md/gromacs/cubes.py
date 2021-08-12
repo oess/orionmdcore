@@ -15,36 +15,41 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from orionplatform.mixins import RecordPortsMixin
+
+    from orionplatform.ports import RecordOutputPort, RecordInputPort
+
+    from floe.api import ParallelMixin, ComputeCube, SourceCube, SinkCube
+
+    from datarecord import OERecord
+
+    from orionclient.utils import TemporaryPath
+
+    from floe.api import parameters
+
+    from openeye import oechem
+
+    from orionplatform.parameters import DatasetInputParameter, FileInputParameter
+
+    from orionclient.types import Dataset
+
+    from orionclient.session import APISession
+
+    from orionclient.session import in_orion
+
+    from datarecord import OEWriteRecord
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 import traceback
-
-from orionplatform.mixins import RecordPortsMixin
-
-from orionplatform.ports import RecordOutputPort, RecordInputPort
-
-from floe.api import ParallelMixin, ComputeCube, SourceCube, SinkCube
-
-from datarecord import OERecord
-from orionclient.utils import TemporaryPath
-
-from floe.api import parameters
-
-from orionplatform.parameters import DatasetInputParameter, FileInputParameter
-
-from openeye import oechem
 
 import os
 
 from os import environ
 
-from orionclient.session import in_orion
-
 import tempfile
-
-from orionclient.types import Dataset
-
-from orionclient.session import APISession
-
-from datarecord import OEWriteRecord
 
 from orionmdcore.cubes.md.gromacs.standards import Fields, Gromacs
 

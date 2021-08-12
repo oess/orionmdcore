@@ -15,11 +15,20 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from floe.test import CubeTestRunner
+
+    from datarecord import read_records
+
+    from openeye import oechem
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
+
 import unittest
 
 import os
-
-from floe.test import CubeTestRunner
 
 import pytest
 
@@ -30,10 +39,6 @@ from simtk import unit, openmm
 from simtk.openmm import app
 
 import orionmdcore
-
-from datarecord import read_records
-
-from openeye import oechem
 
 from orionmdcore.mdrecord import MDDataRecord
 

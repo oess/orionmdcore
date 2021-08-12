@@ -15,11 +15,19 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from orionplatform.mixins import RecordPortsMixin
+
+    from floe.api import ParallelMixin, parameters, ComputeCube
+
+    from openeye import oechem
+
+    from snowball.utils.log_params import LogFieldParam
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 import traceback
-
-from orionplatform.mixins import RecordPortsMixin
-
-from floe.api import ParallelMixin, parameters, ComputeCube
 
 from orionmdcore.forcefield import ff_library
 
@@ -33,15 +41,11 @@ from orionmdcore.standards.utils import check_filename
 
 from orionmdcore.mdengine.utils import MDState
 
-from openeye import oechem
-
 from simtk.openmm import app
 
 from simtk import unit
 
 import os
-
-from snowball.utils.log_params import LogFieldParam
 
 
 class ForceFieldCube(RecordPortsMixin, ComputeCube):

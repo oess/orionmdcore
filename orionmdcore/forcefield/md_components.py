@@ -7,7 +7,19 @@
 # PLEASE CONTACT OPENEYE AT LEGAL@EYESOPEN.COM IF YOU HAVE ANY QUESTIONS
 # ABOUT THIS WARNING.
 
-from openeye import oechem
+try:
+    from openeye import oechem
+
+    from oeommtools import utils as oeommutils
+
+    from oeommtools import data_utils
+
+    from oeommtools.utils import sanitizeOEMolecule
+
+    from openeye import oespruce
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 
 from orionmdcore.forcefield.utils import ff_library
@@ -18,21 +30,14 @@ from orionmdcore.forcefield.utils import (
     clean_tags,
 )
 
-from oeommtools import utils as oeommutils
-
-from oeommtools import data_utils
 
 from simtk.openmm import app
-
-from openeye import oespruce
 
 import parmed
 
 from orionmdcore.forcefield import nsr_template_generator
 
 from io import StringIO
-
-from oeommtools.utils import sanitizeOEMolecule
 
 import copy
 

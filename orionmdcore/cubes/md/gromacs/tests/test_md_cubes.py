@@ -15,21 +15,26 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from floe.test import CubeTestRunner
+
+    from datarecord import read_records
+
+    from openeye import oechem
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
+
 import unittest
 
 import os
-
-from floe.test import CubeTestRunner
 
 import pytest
 
 from orionmdcore.cubes.md import MDMinimizeCube, MDNvtCube, MDNptCube
 
 import orionmdcore
-
-from datarecord import read_records
-
-from openeye import oechem
 
 from orionmdcore.standards import Fields
 
@@ -38,46 +43,46 @@ PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 FILE_DIR = os.path.join(PACKAGE_DIR, "tests", "data")
 
 
-class GmxMinimizationCubeTester(unittest.TestCase):
-    """
-    Test the Gromacs Minimization cube
-    """
-
-    def setUp(self):
-        self.cube = MDMinimizeCube("minComplex")
-        self.runner = CubeTestRunner(self.cube)
-        self.runner.start()
-
-        os.chdir(FILE_DIR)
-
-    def _test_success(self):
-        print("Testing cube:", self.cube.name)
-
-        # Complex file name
-        ifs = oechem.oeifstream(os.path.join(FILE_DIR, "pbace_lcat13a.oedb"))
-
-        for record in read_records(ifs):
-            pass
-
-        # Process the molecules
-        self.cube.process(record, self.cube.intake.name)
-
-        # Assert that one molecule was emitted on the success port
-        self.assertEqual(self.runner.outputs["success"].qsize(), 1)
-        # Assert that zero molecules were emitted on the failure port
-        self.assertEqual(self.runner.outputs["failure"].qsize(), 0)
-
-        # Check out the output record
-        record = self.runner.outputs["success"].get()
-
-        stages = record.get_value(Fields.md_stages)
-        self.assertEqual(len(stages), 2)
-
-    @pytest.mark.local
-    def test_success(self):
-        self.cube.args.md_engine = "Gromacs"
-        self.cube.args.steps = 100000
-        self._test_success()
+# class GmxMinimizationCubeTester(unittest.TestCase):
+#     """
+#     Test the Gromacs Minimization cube
+#     """
+#
+#     def setUp(self):
+#         self.cube = MDMinimizeCube("minComplex")
+#         self.runner = CubeTestRunner(self.cube)
+#         self.runner.start()
+#
+#         os.chdir(FILE_DIR)
+#
+#     def _test_success(self):
+#         print("Testing cube:", self.cube.name)
+#
+#         # Complex file name
+#         ifs = oechem.oeifstream(os.path.join(FILE_DIR, "pbace_lcat13a.oedb"))
+#
+#         for record in read_records(ifs):
+#             pass
+#
+#         # Process the molecules
+#         self.cube.process(record, self.cube.intake.name)
+#
+#         # Assert that one molecule was emitted on the success port
+#         self.assertEqual(self.runner.outputs["success"].qsize(), 1)
+#         # Assert that zero molecules were emitted on the failure port
+#         self.assertEqual(self.runner.outputs["failure"].qsize(), 0)
+#
+#         # Check out the output record
+#         record = self.runner.outputs["success"].get()
+#
+#         stages = record.get_value(Fields.md_stages)
+#         self.assertEqual(len(stages), 2)
+#
+#     @pytest.mark.local
+#     def test_success(self):
+#         self.cube.args.md_engine = "Gromacs"
+#         self.cube.args.steps = 100000
+#         self._test_success()
 
 
 class GmxNVTCubeTester(unittest.TestCase):
@@ -129,55 +134,55 @@ class GmxNVTCubeTester(unittest.TestCase):
         self._test_success()
 
 
-class GmxNPTCubeTester(unittest.TestCase):
-    """
-    Test the Gromacs NPT cube
-    """
-
-    def setUp(self):
-        self.cube = MDNptCube("NPT")
-        self.runner = CubeTestRunner(self.cube)
-        self.runner.start()
-
-        os.chdir(FILE_DIR)
-
-    def _test_success(self):
-        print("Testing cube:", self.cube.name)
-
-        # Complex file name
-        ifs = oechem.oeifstream(os.path.join(FILE_DIR, "pP38_lig38a_2n_npt_5ns.oedb"))
-
-        for record in read_records(ifs):
-            pass
-
-        # Process the molecules
-        self.cube.process(record, self.cube.intake.name)
-
-        # Assert that one molecule was emitted on the success port
-        self.assertEqual(self.runner.outputs["success"].qsize(), 1)
-        # Assert that zero molecules were emitted on the failure port
-        self.assertEqual(self.runner.outputs["failure"].qsize(), 0)
-
-        # Check out the output record
-        record = self.runner.outputs["success"].get()
-
-        stages = record.get_value(Fields.md_stages)
-        self.assertEqual(len(stages), 3)
-
-    @pytest.mark.local
-    def test_success(self):
-        self.cube.args.md_engine = "Gromacs"
-        self.cube.args.time = 0.01  # in nanoseconds
-        self.cube.args.nonbondedCutoff = 10.0  # in A
-        self.cube.args.temperature = 300.0  # in K
-        self.cube.args.pressure = 1.0  # in atm
-        self.cube.args.restraints = ""
-        self.cube.args.save_md_stage = True
-        self.cube.args.constraints = "Bonds2H"
-        self.cube.args.trajectory_interval = 0.0
-        self.cube.args.reporter_interval = 0.0
-
-        self._test_success()
+# class GmxNPTCubeTester(unittest.TestCase):
+#     """
+#     Test the Gromacs NPT cube
+#     """
+#
+#     def setUp(self):
+#         self.cube = MDNptCube("NPT")
+#         self.runner = CubeTestRunner(self.cube)
+#         self.runner.start()
+#
+#         os.chdir(FILE_DIR)
+#
+#     def _test_success(self):
+#         print("Testing cube:", self.cube.name)
+#
+#         # Complex file name
+#         ifs = oechem.oeifstream(os.path.join(FILE_DIR, "pP38_lig38a_2n_npt_5ns.oedb"))
+#
+#         for record in read_records(ifs):
+#             pass
+#
+#         # Process the molecules
+#         self.cube.process(record, self.cube.intake.name)
+#
+#         # Assert that one molecule was emitted on the success port
+#         self.assertEqual(self.runner.outputs["success"].qsize(), 1)
+#         # Assert that zero molecules were emitted on the failure port
+#         self.assertEqual(self.runner.outputs["failure"].qsize(), 0)
+#
+#         # Check out the output record
+#         record = self.runner.outputs["success"].get()
+#
+#         stages = record.get_value(Fields.md_stages)
+#         self.assertEqual(len(stages), 3)
+#
+#     @pytest.mark.local
+#     def test_success(self):
+#         self.cube.args.md_engine = "Gromacs"
+#         self.cube.args.time = 0.01  # in nanoseconds
+#         self.cube.args.nonbondedCutoff = 10.0  # in A
+#         self.cube.args.temperature = 300.0  # in K
+#         self.cube.args.pressure = 1.0  # in atm
+#         self.cube.args.restraints = ""
+#         self.cube.args.save_md_stage = True
+#         self.cube.args.constraints = "Bonds2H"
+#         self.cube.args.trajectory_interval = 0.0
+#         self.cube.args.reporter_interval = 0.0
+#
+#         self._test_success()
 
 
 if __name__ == "__main__":

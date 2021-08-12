@@ -14,6 +14,16 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
 # liable for any damages or liability in connection with the Sample Code
 
+try:
+    from datarecord import read_record
+
+    from openeye import oechem
+
+    from floe.test import CubeTestRunner
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 
 import unittest
 
@@ -21,15 +31,10 @@ import orionmdcore
 
 from orionmdcore.cubes.forcefield import ForceFieldCube
 
-from floe.test import CubeTestRunner
-
 import os
 
 import pytest
 
-from datarecord import read_record
-
-from openeye import oechem
 
 PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 FILE_DIR = os.path.join(PACKAGE_DIR, "tests", "data")

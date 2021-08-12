@@ -1,6 +1,10 @@
-from datarecord import Types, OEField, OEFieldMeta, Meta
 
-from orionclient.session import in_orion
+try:
+    from datarecord import Types, OEField, OEFieldMeta, Meta
+    from orionclient.session import in_orion
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 # Orion Hidden meta data options
 _metaHidden = OEFieldMeta(options=[Meta.Display.Hidden])

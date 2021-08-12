@@ -15,7 +15,11 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
-from floe.api.orion import in_orion
+try:
+    from floe.api.orion import in_orion
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 from orionmdcore.standards.utils import (
     ParmedData,

@@ -15,8 +15,13 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from oeommtools import utils as oeommutils
 
-from oeommtools import utils as oeommutils
+    from openeye import oechem, oequacpac, oeomega
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 import numpy as np
 
@@ -39,8 +44,6 @@ from openforcefield.typing.engines.smirnoff import ForceField
 from pkg_resources import resource_filename
 
 from openforcefield.topology import Topology, Molecule
-
-from openeye import oechem, oequacpac, oeomega
 
 from orionmdcore.forcefield.ff_library import ff_library
 

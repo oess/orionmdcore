@@ -7,11 +7,16 @@
 # PLEASE CONTACT OPENEYE AT LEGAL@EYESOPEN.COM IF YOU HAVE ANY QUESTIONS
 # ABOUT THIS WARNING.
 
+try:
+    from openeye import oechem
+
+    from openeye import oespruce
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
+
 from orionmdcore.forcefield import ff_library
-
-from openeye import oechem
-
-from openeye import oespruce
 
 from orionmdcore.forcefield.utils import ParamMolStructure
 

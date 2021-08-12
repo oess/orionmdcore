@@ -15,35 +15,39 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from orionplatform.mixins import RecordPortsMixin
+
+    from orionplatform.ports import (
+        RecordInputPort,
+    )
+
+    from snowball.utils.log_params import LogFieldParam
+
+    from floe.api import ParallelMixin, parameters, ComputeCube
+
+    from orionclient.types import ShardCollection
+
+    from orionclient.session import in_orion, APISession
+
+    from openeye import oechem
+
+    from oeommtools import packmol
+
+    from oeommtools import data_utils as pack_utils
+
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 
 from orionmdcore.cubes.flask.utils import get_human_readable
 
-from orionplatform.mixins import RecordPortsMixin
-
-from orionplatform.ports import (
-    RecordInputPort,
-)
-
-from snowball.utils.log_params import LogFieldParam
-
-from floe.api import ParallelMixin, parameters, ComputeCube
-
-from oeommtools import packmol
-
-
-from orionclient.types import ShardCollection
-
-from orionclient.session import in_orion, APISession
-
 from os import environ
-
-from oeommtools import data_utils as pack_utils
 
 import traceback
 
 from orionmdcore.standards import Fields
-
-from openeye import oechem
 
 from orionmdcore.forcefield import MDComponents
 

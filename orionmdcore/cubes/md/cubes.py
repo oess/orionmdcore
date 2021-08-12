@@ -15,12 +15,17 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from orionplatform.mixins import RecordPortsMixin
+
+    from floe.api import ParallelMixin, parameters, ComputeCube
+
+    from orionplatform.ports import RecordInputPort, RecordOutputPort
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 import traceback
-
-from orionplatform.mixins import RecordPortsMixin
-
-from floe.api import ParallelMixin, parameters, ComputeCube
 
 from orionmdcore.standards.standards import (
     MDStageTypes,
@@ -29,7 +34,6 @@ from orionmdcore.standards.standards import (
     Fields,
 )
 
-from orionplatform.ports import RecordInputPort, RecordOutputPort
 
 from orionmdcore.mdrecord.mdrecord import MDDataRecord
 

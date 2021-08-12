@@ -12,6 +12,7 @@ build:
 requirements:
   pin_depends: strict
   build:
+    - invoke==1.2.0
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3
@@ -29,6 +30,7 @@ requirements:
     - pytest==3.10.1
     - setuptools
   run:
+    - invoke==1.2.0
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3

@@ -15,6 +15,13 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from orionclient.session import in_orion, APISession
+    from orionclient.types import File
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 import subprocess
 
 from subprocess import STDOUT, PIPE, Popen, DEVNULL
@@ -26,10 +33,6 @@ import tarfile
 import os
 
 from orionmdcore.cubes.md.gromacs.standards import Gromacs
-
-from orionclient.session import in_orion, APISession
-
-from orionclient.types import File
 
 from os import environ
 

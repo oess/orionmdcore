@@ -16,15 +16,17 @@
 # or its use.
 
 
-from openeye import oechem
+try:
+    from oeommtools import utils as oeommutils
+    from oeommtools import data_utils
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 
 from simtk.openmm import app
 
 import numpy as np
-
-from oeommtools import utils as oeommutils
-
-from oeommtools import data_utils
 
 from pdbfixer import PDBFixer
 

@@ -14,21 +14,25 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
 # liable for any damages or liability in connection with the Sample Code
 
-from datarecord import OERecord
+try:
+    from datarecord import OERecord
+
+    from floe.test import CubeTestRunner
+
+    from openeye import oechem
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 import unittest
 
 from orionmdcore.cubes.ligprep import ParallelLigandChargeCube
-
-from floe.test import CubeTestRunner
 
 import os
 
 import orionmdcore
 
 from orionmdcore.standards import Fields
-
-from openeye import oechem
 
 import pytest
 

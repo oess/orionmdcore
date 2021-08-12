@@ -15,6 +15,13 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+
+try:
+    from oeommtools import utils as oeommutils
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 from simtk import unit
 
 from simtk.openmm import app
@@ -38,8 +45,6 @@ import subprocess
 import parmed
 
 import copy
-
-from oeommtools import utils as oeommutils
 
 import tarfile
 

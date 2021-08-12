@@ -15,9 +15,11 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
-
-from orionclient.session import in_orion
-
+try:
+    from orionclient.session import in_orion
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 import time
 

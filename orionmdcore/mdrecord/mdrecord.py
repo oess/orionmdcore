@@ -1,3 +1,37 @@
+# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+#
+# TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
+# provided to current licensees or subscribers of OpenEye products or
+# SaaS offerings (each a "Customer").
+# Customer is hereby permitted to use, copy, and modify the Sample Code,
+# subject to these terms. OpenEye claims no rights to Customer's
+# modifications. Modification of Sample Code is at Customer's sole and
+# exclusive risk. Sample Code may require Customer to have a then
+# current license or subscription to the applicable OpenEye offering.
+# THE SAMPLE CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED.  OPENEYE DISCLAIMS ALL WARRANTIES, INCLUDING, BUT
+# NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
+# liable for any damages or liability in connection with the Sample Code
+# or its use.
+
+try:
+    from openeye import oechem
+
+    from datarecord import Meta, OEFieldMeta, OEField, OERecord
+
+    from orionclient.types import ShardCollection, Shard
+
+    from orionclient.session import in_orion, OrionSession, get_session
+
+    from orionclient.helpers.collections import (
+        try_hard_to_create_shard,
+        try_hard_to_download_shard,
+    )
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
 from orionmdcore.standards import Fields, MDFileNames, MDEngines, MDStageTypes
 
 from orionmdcore.standards import utils
@@ -14,24 +48,11 @@ import tempfile
 
 from tempfile import TemporaryDirectory
 
-from datarecord import Meta, OEFieldMeta, OEField, OERecord
-
-from openeye import oechem
-
 import pickle
 
 import shutil
 
-from orionclient.types import ShardCollection, Shard
-
-from orionclient.session import in_orion, OrionSession, get_session
-
 import glob
-
-from orionclient.helpers.collections import (
-    try_hard_to_create_shard,
-    try_hard_to_download_shard,
-)
 
 from orionmdcore.forcefield import MDComponents
 

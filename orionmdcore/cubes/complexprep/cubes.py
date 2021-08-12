@@ -16,22 +16,29 @@
 # or its use.
 
 
+try:
+    from openeye import oechem
+
+    from datarecord import OERecord
+
+    from floe.api import ComputeCube
+
+    from orionplatform.mixins import RecordPortsMixin
+
+    from orionplatform.ports import RecordInputPort
+
+    from snowball.utils.log_params import LogFieldParam
+
+    from oeommtools import utils as oeommutils
+
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
+
 import traceback
 
-from datarecord import OERecord
-
-from oeommtools import utils as oeommutils
-
 from orionmdcore.standards import Fields
-
-from floe.api import ComputeCube
-
-from orionplatform.mixins import RecordPortsMixin
-from orionplatform.ports import RecordInputPort
-
-from snowball.utils.log_params import LogFieldParam
-
-from openeye import oechem
 
 from orionmdcore.cubes.complexprep.utils import clash_detection
 

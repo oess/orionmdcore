@@ -15,8 +15,25 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+try:
+    from datarecord import CustomHandler
 
-from datarecord import CustomHandler
+    from orionclient.session import in_orion, OrionSession, get_session
+
+    from orionclient.types import File
+
+    from orionclient.types import Shard, ShardCollection
+
+    from orionclient.helpers.collections import (
+        try_hard_to_create_shard,
+        try_hard_to_download_shard,
+    )
+
+    from openeye import oechem
+
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
 
 import pickle
 
@@ -28,23 +45,9 @@ from orionmdcore.forcefield import MDComponents
 
 import copy
 
-from orionclient.session import in_orion, OrionSession, get_session
-
-from orionclient.types import File
-
 from os import environ
 
 import os
-
-from orionclient.types import Shard, ShardCollection
-
-from orionclient.helpers.collections import (
-    try_hard_to_create_shard,
-    try_hard_to_download_shard,
-)
-
-
-from openeye import oechem
 
 
 class ParmedData(CustomHandler):

@@ -16,6 +16,14 @@
 # or its use.
 
 
+try:
+    from oeommtools import utils as oeommutils
+    from floe.api.orion import in_orion
+except ImportError:
+    from orionmdcore import __installation__error__
+    raise ImportError(__installation__error__)
+
+
 import mdtraj
 
 import numpy as np
@@ -26,15 +34,13 @@ from simtk import unit, openmm
 
 from simtk.openmm import app
 
-from oeommtools import utils as oeommutils
-
 from platform import uname
 
 import os
 
 import copy
 
-from floe.api.orion import in_orion
+
 
 try:
     import bz2
