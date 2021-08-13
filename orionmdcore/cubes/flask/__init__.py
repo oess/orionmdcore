@@ -21,6 +21,7 @@ from .cubes import (
     SolvationCube,
     RecordSizeCheck,
     MDComponentCube,
+    BoundUnboundSwitchCube,
     ParallelSolvationCube,
     ParallelRecordSizeCheck,
 )

@@ -20,6 +20,7 @@ try:
 
     from orionplatform.ports import (
         RecordInputPort,
+        RecordOutputPort
     )
 
     from snowball.utils.log_params import LogFieldParam
@@ -702,6 +703,64 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
             record.set_value(self.args.log_field, msg)
             self.log.error(traceback.format_exc())
             # Return failed mol
+            self.failure.emit(record)
+
+        return
+
+
+class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
+    title = "Bound and UnBound Switching Cube"
+
+    classification = [["Simulation Flask Preparation"]]
+    tags = ['Simulation', 'Complex', 'Protein', 'Ligand']
+    description = """
+    This cube emits complexes on the bound port and non-complexes on
+    the standard out port. The Flask ids are re-set
+    """
+
+    uuid = "80e656e8-33c5-4560-99b5-95e4f69c1701"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Prohibited"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1}  # 1 molecule at a time
+    }
+
+    bound_port = RecordOutputPort("bound_port", initializer=False)
+
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt['Logger'] = self.log
+        self.count = 0
+
+    def process(self, record, port):
+
+        try:
+            if not record.has_value(Fields.md_components):
+                raise ValueError("MD Components Field is missing")
+
+            md_components = record.get_value(Fields.md_components)
+
+            if not record.has_value(Fields.flaskid):
+                record.set_value(Fields.flaskid, self.count)
+                self.count += 1
+
+            if md_components.has_protein:
+                if not record.has_value(Fields.FEC.RBFEC.thd_leg_type):
+                    record.set_value(Fields.FEC.RBFEC.thd_leg_type, "Bound_OPLMD")
+                self.bound_port.emit(record)
+            else:
+                if not record.has_value(Fields.FEC.RBFEC.thd_leg_type):
+                    record.set_value(Fields.FEC.RBFEC.thd_leg_type, "UnBound_OPLMD")
+                self.success.emit(record)
+
+        except Exception as e:
+
+            print("Failed to complete", str(e), flush=True)
+            self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
+            self.log.error(traceback.format_exc())
             self.failure.emit(record)
 
         return
