@@ -30,7 +30,7 @@ from simtk.openmm.app.forcefield import NonbondedGenerator
 
 
 def nsr_template_generator(
-    protein, omm_topology, omm_forcefield, openff="openff_unconstrained-1.3.0.offxml"
+    protein, omm_topology, omm_forcefield, openff=ff_library.Default.ligandff
 ):
     """
     This function is able to parametrize a protein containing

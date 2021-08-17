@@ -78,7 +78,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         "gpu_count": {"default": 1},
         "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -347,7 +347,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
         "gpu_count": {"default": 1},
         "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -662,7 +662,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
         "gpu_count": {"default": 1},
         "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -1119,14 +1119,43 @@ class ParallelMDMinimizeCube(ParallelMixin, MDMinimizeCube):
     description = "(Parallel) " + MDMinimizeCube.description
     uuid = "24ed6b12-a426-4e0d-bbac-99b9e34cca5c"
 
+    parameter_overrides = {
+        "gpu_count": {"default": 1},
+        "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
 
 class ParallelMDNvtCube(ParallelMixin, MDNvtCube):
     title = "Parallel " + MDNvtCube.title
     description = "(Parallel) " + MDNvtCube.description
     uuid = "1cff32be-9b10-4070-a4d2-f7370cc8be96"
 
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "gpu_count": {"default": 1},
+        "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
 
 class ParallelMDNptCube(ParallelMixin, MDNptCube):
     title = "Parallel " + MDNptCube.title
     description = "(Parallel) " + MDNptCube.description
     uuid = "94728422-e840-49ba-9006-f6170dad54ba"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "gpu_count": {"default": 1},
+        "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }

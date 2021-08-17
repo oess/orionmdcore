@@ -1,4 +1,4 @@
-# (C) 2020 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
 # provided to current licensees or subscribers of OpenEye products or
@@ -322,7 +322,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -771,8 +771,24 @@ class ParallelSolvationCube(ParallelMixin, SolvationCube):
     description = "(Parallel) " + SolvationCube.description
     uuid = "568ffd29-23e0-4d35-b37c-727596bedf92"
 
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
 
 class ParallelRecordSizeCheck(ParallelMixin, RecordSizeCheck):
     title = "Parallel " + RecordSizeCheck.title
     description = "(Parallel) " + RecordSizeCheck.description
     uuid = "f93acfba-a9e8-482b-bcf7-e181e6cb6b09"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 32000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+

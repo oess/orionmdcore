@@ -39,17 +39,18 @@ from simtk.openmm.app import AmberInpcrdFile, AmberPrmtopFile
 
 from simtk.openmm import app
 
-from openforcefield.typing.engines.smirnoff import ForceField
+from openff.toolkit.typing.engines.smirnoff import ForceField
 
-from pkg_resources import resource_filename
-
-from openforcefield.topology import Topology, Molecule
+from openff.toolkit.topology import Topology, Molecule
 
 from orionmdcore.forcefield.ff_library import ff_library
 
 import mdtraj.utils
 
 import subprocess
+
+from importlib.machinery import PathFinder
+
 
 # TODO TEMPORARY SOLUTION FOR OPENMOLTOOLS BUG
 # https://github.com/choderalab/openmoltools/issues/299
@@ -365,6 +366,7 @@ class ParamMolStructure(object):
         return is_charged
 
     def getSmirnoffStructure(self, molecule=None):
+
         if not molecule:
             molecule = self.molecule
 
@@ -374,10 +376,12 @@ class ParamMolStructure(object):
 
         if self.forcefield == ff_library.ligandff["Smirnoff99Frosst"]:
 
-            fffn = resource_filename(
-                "openforcefield",
-                os.path.join("data", "test_forcefields/" + self.forcefield),
-            )
+            fffn = os.path.join(PathFinder().find_spec("openff").submodule_search_locations._path[0], "toolkit/data/test_forcefields/" + self.forcefield)
+
+            # fffn = resource_filename(
+            #     "openff-toolkit",
+            #     os.path.join("toolkit", "data", "test_forcefields/" + self.forcefield),
+            # )
 
             if not os.path.exists(fffn):
                 raise ValueError(
@@ -389,12 +393,9 @@ class ParamMolStructure(object):
             with open(fffn) as ffxml:
                 ff = ForceField(ffxml, allow_cosmetic_attributes=True)
 
-        elif self.forcefield in [
-            ff_library.ligandff["OpenFF_1.1.1"],
-            ff_library.ligandff["OpenFF_1.2.1"],
-            ff_library.ligandff["OpenFF_1.3.0"],
-            ff_library.ligandff["OpenFF_1.3.1a1"],
-        ]:
+        elif self.forcefield in [v for k, v in ff_library.ligandff.items() if k not in ["Smirnoff99Frosst",
+                                                                                        "Gaff_1.81",
+                                                                                        "Gaff_2.11"]]:
 
             ff = ForceField(self.forcefield, allow_cosmetic_attributes=True)
 
@@ -522,13 +523,9 @@ class ParamMolStructure(object):
 
     def parameterize(self):
 
-        if self.forcefield in [
-            ff_library.ligandff["OpenFF_1.1.1"],
-            ff_library.ligandff["OpenFF_1.2.1"],
-            ff_library.ligandff["OpenFF_1.3.0"],
-            ff_library.ligandff["OpenFF_1.3.1a1"],
-            ff_library.ligandff["Smirnoff99Frosst"],
-        ]:
+        ligandff = [v for k, v in ff_library.ligandff.items() if k not in ["Gaff_1.81", "Gaff_2.11"]]
+
+        if self.forcefield in ligandff:
 
             structure = self.getSmirnoffStructure()
 

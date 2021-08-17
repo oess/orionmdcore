@@ -1,3 +1,5 @@
+# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+#
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
 # provided to current licensees or subscribers of OpenEye products or
 # SaaS offerings (each a "Customer").
@@ -26,7 +28,7 @@ if sys.argv[-1] == "setup.py":
 
 if sys.version_info[:3] < (3, 0):
     print(
-        "ORIONMDCORE requires Python 3.0 or later (%d.%d detected)."
+        "OrionMDCore requires Python 3.0 or later (%d.%d detected)."
         % sys.version_info[:2]
     )
     sys.exit(-1)
@@ -45,7 +47,7 @@ setup(
     author="Gaetano Calabro and Christopher Bayly",
     author_email="gcalabro -at- eyesopen.com",
     platforms=["Linux-64", "Mac OSX-64", "Unix-64"],
-    packages=find_packages() + ["tests"],
+    packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
     zip_safe=False,
 )

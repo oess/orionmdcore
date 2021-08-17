@@ -41,11 +41,13 @@ ligandff = {
     "Smirnoff99Frosst": "smirnoff99Frosst_reference_0_2_spec.offxml",
     "OpenFF_1.1.1": "openff_unconstrained-1.1.1.offxml",
     "OpenFF_1.2.1": "openff_unconstrained-1.2.1.offxml",
-    "OpenFF_1.3.0": "openff_unconstrained-1.3.0.offxml",
-    "OpenFF_1.3.1a1": os.path.join(
-        EXT_FORCEFIELD_DIR, "openff_unconstrained-1.3.1-alpha.1.offxml"
-    ),
+    "OpenFF_1.3.1": "openff_unconstrained-1.3.1.offxml",
+    "OpenFF_2.0.0rc2": os.path.join(
+        EXT_FORCEFIELD_DIR, "openff_unconstrained-2.0.0-rc.2.offxml"
+    )
 }
+
+otherff = ligandff
 
 solventff = {"Tip3p": "tip3p.xml"}
 
@@ -62,7 +64,24 @@ lipids_ff = {"Lipids": "amber14/lipid17.xml"}
 
 nucleics_ff = {"Nucleics": "amber14-all.xml"}
 
-otherff = ligandff
+
+class Default:
+    class _Record:
+
+        def __init__(self, name, offxml):
+            self.name = name
+            self.offxml = offxml
+
+    proteinff = _Record("Amber14SB", "amber14/protein.ff14SB.xml")
+    ligandff = _Record("OpenFF_1.3.1",  "openff_unconstrained-1.3.1.offxml")
+    otherff = _Record("OpenFF_1.3.1",  "openff_unconstrained-1.3.1.offxml")
+    solventff = _Record("Tip3p", "tip3p.xml")
+    counter_ionsff = _Record("Counter_ions", "amber14/tip3p.xml")
+    metals_ff = _Record("Metals", "amber14/tip3p.xml")
+    excipients_ff = _Record("Excipients", "amber14/tip3p.xml")
+    cofactors_ff = _Record("Cofactors", os.path.join(COFACTOR_DIR, "cofactors.xml"))
+    lipids_ff = _Record("Lipids", "amber14/lipid17.xml")
+    nucleics_ff = _Record("Nucleics", "amber14-all.xml")
 
 
 protein_standard_residue_names = [

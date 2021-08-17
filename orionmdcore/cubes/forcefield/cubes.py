@@ -81,7 +81,7 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -286,3 +286,12 @@ class ParallelForceFieldCube(ParallelMixin, ForceFieldCube):
     title = "Parallel " + ForceFieldCube.title
     description = "(Parallel) " + ForceFieldCube.description
     uuid = "deb6b453-0ddf-4f1c-a709-cda1f3c47af1"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+

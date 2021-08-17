@@ -1,4 +1,4 @@
-# (C) 2020 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
 # provided to current licensees or subscribers of OpenEye products or
@@ -56,7 +56,7 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -264,7 +264,11 @@ class ParallelLigandChargeCube(ParallelMixin, LigandChargeCube):
     description = "(Parallel) " + LigandChargeCube.description
     uuid = "5f26ca60-301b-4488-9eec-dfb5a760be26"
 
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
 
-# class ParallelLigandSetting(ParallelMixin, LigandSetting):
-#     title = "Parallel " + LigandSetting.title
-#     description = "(Parallel) " + LigandSetting.description

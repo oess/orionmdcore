@@ -19,6 +19,7 @@ try:
     from openeye import oespruce
 except ImportError:
     from orionmdcore import __installation__error__
+
     raise ImportError(__installation__error__)
 
 
@@ -63,20 +64,6 @@ class MDComponents:
             )
 
         # MD allowed components
-        self._protein = None
-        self._ligand = None
-        self._other_ligands = None
-        self._counter_ions = None
-        self._metals = None
-        self._excipients = None
-        self._solvent = None
-        self._water = None
-        self._cofactors = None
-        self._other_cofactors = None
-        self._lipids = None
-        self._nucleics = None
-        self._other_nucleics = None
-
         self._component_names = [
             "protein",
             "ligand",
@@ -128,6 +115,16 @@ class MDComponents:
             comp_name = pair[0]
             comp_id = du.GetComponentID(comp_name)
 
+            if comp_name in self._components:
+                continue
+            elif comp_name not in self._component_names:
+                print(
+                    "WARNING: The following component is not currently supported: {}".format(
+                        comp_name
+                    )
+                )
+                continue
+
             # comp = pair[1]
             mask = oechem.OEGetDesignUnitComponentID(comp_name)
             comp = oechem.OEMol()
@@ -150,82 +147,30 @@ class MDComponents:
                     oechem.OEAssignMDLHydrogens(nbr)
                 R_group = True
             if R_group:
-                if comp.GetMaxAtomIdx() != 1:  # Monatomic ions are skipped
-                    oechem.OEAddExplicitHydrogens(comp)
+                oechem.OEAddExplicitHydrogens(comp)
 
             # Reset Comp Order
             oechem.OEPDBOrderAtoms(comp, False)
 
-            if comp_id == oechem.OEDesignUnitComponents_Protein:
-                if "protein" not in self._components:
-                    self._protein = comp
-                    self._components["protein"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Ligand:
-                if "ligand" not in self._components:
-                    self._ligand = comp
-                    self._components["ligand"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_OtherLigands:
-                if "other_ligands" not in self._components:
-                    self._other_ligands = comp
-                    self._components["other_ligands"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_CounterIons:
-                if "counter_ions" not in self._components:
-                    self._counter_ions = comp
-                    self._components["counter_ions"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Metals:
-                if "metals" not in self._components:
-                    self._metals = comp
-                    self._components["metals"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Excipients:
-                if "excipients" not in self._components:
-                    self._excipients = comp
-                    self._components["excipients"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Solvent:
-                if "solvent" not in self._components:
-                    # Separate Water from Spruce Solvent
-                    pred_water = oechem.OEIsWater(checkHydrogens=True)
-                    water = oechem.OEMol()
-                    oechem.OESubsetMol(water, comp, pred_water)
-                    if water.NumAtoms():
-                        self._water = water
-                        self._components["water"] = water
-                        pred_not_water = oechem.OENotAtom(
-                            oechem.OEIsWater(checkHydrogens=True)
-                        )
-                        solvent_not_water = oechem.OEMol()
-                        oechem.OESubsetMol(solvent_not_water, comp, pred_not_water)
-                        if solvent_not_water.NumAtoms():
-                            self._solvent = solvent_not_water
-                            self._components["solvent"] = solvent_not_water
-                    else:
-                        self._solvent = comp
-                        self._components["solvent"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Cofactors:
-                if "cofactors" not in self._components:
-                    self._cofactors = comp
-                    self._components["cofactors"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_OtherCofactors:
-                if "other_cofactors" not in self._components:
-                    self._other_cofactors = comp
-                    self._components["other_cofactors"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Lipids:
-                if "lipids" not in self._components:
-                    self._lipids = comp
-                    self._components["lipids"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_Nucleic:
-                if "nucleics" not in self._components:
-                    self._nucleics = comp
-                    self._components["nucleics"] = comp
-            elif comp_id == oechem.OEDesignUnitComponents_OtherNucleics:
-                if "other_nucleics" not in self._components:
-                    self._other_nucleics = comp
-                    self._components["other_nucleics"] = comp
-            else:
-                print(
-                    "WARNING: The following component is not currently supported: {}".format(
-                        comp_name
+            if comp_id == oechem.OEDesignUnitComponents_Solvent:
+                # Separate Water from Spruce Solvent
+                pred_water = oechem.OEIsWater(checkHydrogens=True)
+                water = oechem.OEMol()
+                oechem.OESubsetMol(water, comp, pred_water)
+                if water.IsValid():
+                    self._components["water"] = water
+                    pred_not_water = oechem.OENotAtom(
+                        oechem.OEIsWater(checkHydrogens=True)
                     )
-                )
+                    solvent_not_water = oechem.OEMol()
+                    oechem.OESubsetMol(solvent_not_water, comp, pred_not_water)
+                    if solvent_not_water.NumAtoms():
+                        self._components["solvent"] = solvent_not_water
+                else:
+                    self._components["solvent"] = comp
+            elif comp_name in self._component_names:
+                self._components[comp_name] = comp
+
         if not self._components:
             raise ValueError("None of the DU components cannot recognized")
 
@@ -270,11 +215,8 @@ class MDComponents:
 
         du_list = []
 
-        try:
-            for du in oespruce.OEMakeDesignUnits(molecules, du_meta_data, du_opts):
-                du_list.append(du)
-        except Exception as e:
-            du_list = []
+        for du in oespruce.OEMakeDesignUnits(molecules, du_meta_data, du_opts):
+            du_list.append(du)
 
         # Take the first du from the list if available
         if du_list:
@@ -294,52 +236,48 @@ class MDComponents:
                 excipients,
             ) = oeommutils.split(molecules, ligand_res_name="LIG")
 
+            # Split the complex in components
+            #  protein, ligand, water, excipients = oeommutils.split(molecules, ligand_res_name='LIG')
+
             if protein.NumAtoms():
                 protein = clean_tags(protein)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(protein, False)
-                self._protein = protein
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
                 ligand = sanitizeOEMolecule(ligand)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(ligand, False)
-                self._ligand = ligand
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(water, False)
-                self._water = water
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(excipients)
                 cofactors = sanitizeOEMolecule(cofactors)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(cofactors, False)
-                self._cofactors = cofactors
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(lipids, False)
-                self._lipids = lipids
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(metals, False)
-                self._metals = metals
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
                 # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(excipients, False)
-                self._excipients = excipients
                 self._components["excipients"] = excipients
 
             print("Design Unit Built from Molecule")
@@ -351,43 +289,60 @@ class MDComponents:
                 )
             )
 
+    def _convert_to_du(self, du):
+
+        du.Clear()
+        du.SetTitle(self._components_title)
+        impl = du.GetImpl()
+
+        for comp_name, comp in self._components:
+            if comp_name == "water":  # Special casing unique type from this object
+                component_id = oechem.OEDesignUnitComponents_Solvent
+            else:
+                component_id = oechem.OEGetDesignUnitComponentID(comp_name)
+            if component_id & oechem.OEDesignUnitComponents_MolComponents:
+                if not impl.HasComponent(component_id):
+                    impl.SetComponent(component_id, comp)
+                else:
+                    existing_component = oechem.OEGraphMol()
+                    impl.GetComponent(existing_component, component_id)
+                    oechem.OEAddMols(existing_component, comp)
+                    impl.SetComponent(component_id, existing_component)
+            else:
+                numparts, parts = oechem.OEDetermineComponents(comp)
+                pred = oechem.OEPartPredAtom(parts)
+
+                for i in range(1, numparts + 1):
+                    pred.SelectPart(i)
+                    partmol = oechem.OEMol()
+                    oechem.OESubsetMol(partmol, comp, pred)
+                    impl.SetComponent(component_id, partmol)
+
+        # This call forces a finalize design unit call on inside the DU object
+        oechem.OEUpdateDesignUnit(
+            du, self._components["protein"], oechem.OEDesignUnitComponents_Protein
+        )
+
     def __getstate__(self):
         def mol_to_bytes(mol):
             return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
 
-        state = dict(
-            protein=mol_to_bytes(self._protein) if self._protein else None,
-            ligand=mol_to_bytes(self._ligand) if self._ligand else None,
-            other_ligands=mol_to_bytes(self._other_ligands)
-            if self._other_ligands
-            else None,
-            counter_ions=mol_to_bytes(self._counter_ions)
-            if self._counter_ions
-            else None,
-            metals=mol_to_bytes(self._metals) if self._metals else None,
-            excipients=mol_to_bytes(self._excipients) if self._excipients else None,
-            solvent=mol_to_bytes(self._solvent) if self._solvent else None,
-            water=mol_to_bytes(self._water) if self._water else None,
-            cofactors=mol_to_bytes(self._cofactors) if self._cofactors else None,
-            other_cofactors=mol_to_bytes(self._other_cofactors)
-            if self._other_cofactors
-            else None,
-            lipids=mol_to_bytes(self._lipids) if self._lipids else None,
-            nucleics=mol_to_bytes(self._nucleics) if self._nucleics else None,
-            other_nucleics=mol_to_bytes(self._other_nucleics)
-            if self._other_nucleics
-            else None,
-            components_title=self._components_title,
-            box_vectors=data_utils.encodePyObj(self._box_vectors)
-            if self._box_vectors
-            else None,
+        state = dict()
+        for name in self._component_names:
+            if name in self._components:
+                state[name] = mol_to_bytes(self._components[name])
+            else:
+                state[name] = None
+        state["components_title"] = self._components_title
+        state["box_vectors"] = (
+            data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
         )
 
         return state
 
     def __setstate__(self, state):
 
-        # Supported component Names
+        # MD allowed components
         self._component_names = [
             "protein",
             "ligand",
@@ -426,38 +381,12 @@ class MDComponents:
                     self._box_vectors = None
                 continue
 
-            mol = mol_from_bytes(comp) if comp else None
-
-            if comp_name == "protein":
-                self._protein = mol
-            elif comp_name == "ligand":
-                self._ligand = mol
-            elif comp_name == "other_ligands":
-                self._other_ligands = mol
-            elif comp_name == "counter_ions":
-                self._counter_ions = mol
-            elif comp_name == "metals":
-                self._metals = mol
-            elif comp_name == "excipients":
-                self._excipients = mol
-            elif comp_name == "solvent":
-                self._solvent = mol
-            elif comp_name == "water":
-                self._water = mol
-            elif comp_name == "cofactors":
-                self._cofactors = mol
-            elif comp_name == "other_cofactors":
-                self._other_cofactors = mol
-            elif comp_name == "lipids":
-                self._lipids = mol
-            elif comp_name == "nucleics":
-                self._nucleics = mol
-            elif comp_name == "other_nucleics":
-                self._other_nucleics = mol
-            else:
+            if comp_name not in self._component_names:
                 raise ValueError("Cannot Deserialize Component {}".format(comp_name))
 
-            if mol:
+            mol = mol_from_bytes(comp) if comp else None
+
+            if mol is not None and mol.IsValid():
                 self._components[comp_name] = mol
 
     @property
@@ -527,286 +456,234 @@ class MDComponents:
 
     @property
     def get_protein(self):
-        if self._protein is not None:
-            return self._protein
+        if "protein" in self._components:
+            return self._components["protein"]
         else:
             raise ValueError("Protein Component has not been found")
 
     def set_protein(self, protein):
-        if protein is None:
-            if "protein" in self._components:
-                del self._components["protein"]
-        else:
-            self._protein = protein
-            self._components["protein"] = self._protein
+        if protein is not None and protein.IsValid():
+            self._components["protein"] = protein
 
     @property
     def has_protein(self):
-        if self._protein is not None:
+        if "protein" in self._components:
             return True
         else:
             return False
 
     @property
     def get_ligand(self):
-        if self._ligand is not None:
-            return self._ligand
+        if "ligand" in self._components:
+            return self._components["ligand"]
         else:
             raise ValueError("Ligand Component has not been found")
 
     def set_ligand(self, ligand):
-        if ligand is None:
-            if "ligand" in self._components:
-                del self._components["ligand"]
-        else:
-            self._ligand = ligand
-            self._components["ligand"] = self._ligand
+        if ligand is not None and ligand.IsValid():
+            self._components["ligand"] = ligand
 
     @property
     def has_ligand(self):
-        if self._ligand is not None:
+        if "ligand" in self._components:
             return True
         else:
             return False
 
     @property
     def get_other_ligands(self):
-        if self._other_ligands is not None:
-            return self._other_ligands
+        if "other_ligands" in self._components:
+            return self._components["other_ligands"]
         else:
             raise ValueError("Other Ligand Component has not been found")
 
     def set_other_ligands(self, other_ligands):
-        if other_ligands is None:
-            if "other_ligands" in self._components:
-                del self._components["other_ligands"]
-        else:
-            self._other_ligands = other_ligands
-            self._components["other_ligands"] = self._other_ligands
+        if other_ligands is not None and other_ligands.IsValid():
+            self._components["other_ligands"] = other_ligands
 
     @property
     def has_other_ligands(self):
-        if self._other_ligands is not None:
+        if "other_ligands" in self._components:
             return True
         else:
             return False
 
     @property
     def get_counter_ions(self):
-        if self._counter_ions is not None:
-            return self._counter_ions
+        if "counter_ions" in self._components:
+            return self._components["counter_ions"]
         else:
             raise ValueError("Counter Ions Component has not been found")
 
     def set_counter_ions(self, counter_ions):
-        if counter_ions is None:
-            if "counter_ions" in self._components:
-                del self._components["counter_ions"]
-        else:
-            self._counter_ions = counter_ions
-            self._components["counter_ions"] = self._counter_ions
+        if counter_ions is not None and counter_ions.IsValid():
+            self._components["counter_ions"] = counter_ions
 
     @property
     def has_counter_ions(self):
-        if self._counter_ions is not None:
+        if "counter_ions" in self._components:
             return True
         else:
             return False
 
     @property
     def get_metals(self):
-        if self._metals is not None:
-            return self._metals
+        if "metals" in self._components:
+            return self._components["metals"]
         else:
             raise ValueError("Metals Component has not been found")
 
     def set_metals(self, metals):
-        if metals is None:
-            if "metals" in self._components:
-                del self._components["metals"]
-        else:
-            self._metals = metals
-            self._components["metals"] = self._metals
+        if metals is not None and metals.IsValid():
+            self._components["metals"] = metals
 
     @property
     def has_metals(self):
-        if self._metals is not None:
+        if "metals" in self._components:
             return True
         else:
             return False
 
     @property
     def get_excipients(self):
-        if self._excipients is not None:
-            return self._excipients
+        if "excipients" in self._components:
+            return self._components["excipients"]
         else:
-            raise ValueError("Excipients Component has not been found")
+            raise ValueError("Excipients Ligand Component has not been found")
 
     def set_excipients(self, excipients):
-        if excipients is None:
-            if "excipients" in self._components:
-                del self._components["excipients"]
-        else:
-            self._excipients = excipients
-            self._components["excipients"] = self._excipients
+        if excipients is not None and excipients.IsValid():
+            self._components["excipients"] = excipients
 
     @property
     def has_excipients(self):
-        if self._excipients is not None:
+        if "excipients" in self._components:
             return True
         else:
             return False
 
     @property
     def get_solvent(self):
-        if self._solvent is not None:
-            return self._solvent
+        if "solvent" in self._components:
+            return self._components["solvent"]
         else:
             raise ValueError("Solvent Component has not been found")
 
     def set_solvent(self, solvent):
-        if solvent is None:
-            if "solvent" in self._components["solvent"]:
-                del self._components["solvent"]
-        else:
-            self._solvent = solvent
-            self._components["solvent"] = self._solvent
+        if solvent is not None and solvent.IsValid():
+            self._components["solvent"] = solvent
 
     @property
     def has_solvent(self):
-        if self._solvent is not None:
+        if "solvent" in self._components:
             return True
         else:
             return False
 
     @property
     def get_water(self):
-        if self._water is not None:
-            return self._water
+        if "water" in self._components:
+            return self._components["water"]
         else:
             raise ValueError("Water Component has not been found")
 
     def set_water(self, water):
-        if water is None:
-            if "water" in self._components:
-                del self._components["water"]
-        else:
-            self._water = water
-            self._components["water"] = self._water
+        if water is not None and water.IsValid():
+            self._components["water"] = water
 
     @property
     def has_water(self):
-        if self._water is not None:
+        if "water" in self._components:
             return True
         else:
             return False
 
     @property
     def get_cofactors(self):
-        if self._cofactors is not None:
-            return self._cofactors
+        if "cofactors" in self._components:
+            return self._components["cofactors"]
         else:
             raise ValueError("Cofactors Component has not been found")
 
     def set_cofactors(self, cofactors):
-        if cofactors is None:
-            if "cofactors" in self._components:
-                del self._components["cofactors"]
-        else:
-            self._cofactors = cofactors
-            self._components["cofactors"] = self._cofactors
+        if cofactors is not None and cofactors.IsValid():
+            self._components["cofactors"] = cofactors
 
     @property
     def has_cofactors(self):
-        if self._cofactors is not None:
+        if "cofactors" in self._components:
             return True
         else:
             return False
 
     @property
     def get_other_cofactors(self):
-        if self._other_cofactors is not None:
-            return self._other_cofactors
+        if "other_cofactors" in self._components:
+            return self._components["other_cofactors"]
         else:
             raise ValueError("Other Cofactors Component has not been found")
 
     def set_other_cofactors(self, other_cofactors):
-        if other_cofactors is None:
-            if "other_cofactors" in self._components:
-                del self._components["other_cofactors"]
-        else:
-            self._other_cofactors = other_cofactors
-            self._components["other_cofactors"] = self._other_cofactors
+        if other_cofactors is not None and other_cofactors.IsValid():
+            self._components["other_cofactors"] = other_cofactors
 
     @property
     def has_other_cofactors(self):
-        if self._other_cofactors is not None:
+        if "other_cofactors" in self._components:
             return True
         else:
             return False
 
     @property
     def get_lipids(self):
-        if self._lipids is not None:
-            return self._lipids
+        if "lipids" in self._components:
+            return self._components["lipids"]
         else:
             raise ValueError("Lipids Component has not been found")
 
     def set_lipids(self, lipids):
-        if lipids is None:
-            if "lipids" in self._components:
-                del self._components["lipids"]
-        else:
-            self._lipids = lipids
-            self._components["lipids"] = self._lipids
+        if lipids is not None and lipids.IsValid():
+            self._components["lipids"] = lipids
 
     @property
     def has_lipids(self):
-        if self._lipids is not None:
+        if "lipids" in self._components:
             return True
         else:
             return False
 
     @property
     def get_nucleics(self):
-        if self._nucleics is not None:
-            return self._nucleics
+        if "nucleics" in self._components:
+            return self._components["nucleics"]
         else:
             raise ValueError("Nucleics Component has not been found")
 
     def set_nucleics(self, nucleics):
-        if nucleics is None:
-            if "nucleics" in self._components:
-                del self._components["nucleics"]
-        else:
-            self._nucleics = nucleics
-            self._components["nucleics"] = self._nucleics
+        if nucleics is not None and nucleics.IsValid():
+            self._components["nucleics"] = nucleics
 
     @property
-    def has_nucleids(self):
-        if self._nucleics is not None:
+    def has_nucleics(self):
+        if "nucleics" in self._components:
             return True
         else:
             return False
 
     @property
     def get_other_nucleics(self):
-        if self._other_nucleics is not None:
-            return self._other_nucleics
+        if "other_nucleics" in self._components:
+            return self._components["other_nucleics"]
         else:
             raise ValueError("Other Nucleics Component has not been found")
 
     def set_other_nucleics(self, other_nucleics):
-        if other_nucleics is None:
-            if "other_nucleics" in self._components:
-                del self._components["other_nucleics"]
-        else:
-            self._other_nucleics = other_nucleics
-            self._components["other_nucleics"] = self._other_nucleics
+        if other_nucleics is not None and other_nucleics.IsValid():
+            self._components["other_nucleics"] = other_nucleics
 
     @property
-    def has_other_nucleids(self):
-        if self._other_nucleics is not None:
+    def has_other_nucleics(self):
+        if "other_nucleics" in self._components:
             return True
         else:
             return False
@@ -852,37 +729,14 @@ class MDComponents:
                     comp_name, self._component_names
                 )
             )
-        self._components[comp_name] = comp
-
-        if comp_name == "protein":
-            self._protein = comp
-        elif comp_name == "ligand":
-            self._ligand = comp
-        elif comp_name == "other_ligands":
-            self._other_ligands = comp
-        elif comp_name == "counter_ions":
-            self._counter_ions = comp
-        elif comp_name == "metals":
-            self._metals = comp
-        elif comp_name == "excipients":
-            self._excipients = comp
-        elif comp_name == "solvent":
-            self._solvent = comp
-        elif comp_name == "water":
-            self._water = comp
-        elif comp_name == "cofactors":
-            self._cofactors = comp
-        elif comp_name == "other_cofactors":
-            self._other_cofactors = comp
-        elif comp_name == "lipids":
-            self._lipids = comp
-        elif comp_name == "nucleics":
-            self._nucleics = comp
-        elif comp_name == "other_nucleics":
-            self._other_nucleics = comp
+        if comp is not None:
+            self._components[comp_name] = comp
 
     def parametrize_components(
-        self, protein_ff="Amber14SB", ligand_ff="OpenFF_1.3.0", other_ff="OpenFF_1.3.0"
+        self,
+        protein_ff=ff_library.Default.proteinff.name,
+        ligand_ff=ff_library.Default.ligandff.name,
+        other_ff=ff_library.Default.otherff.name,
     ):
 
         ParamMDComp = ParametrizeMDComponents(self, protein_ff, ligand_ff, other_ff)
@@ -900,9 +754,9 @@ class ParametrizeMDComponents:
     def __init__(
         self,
         md_component,
-        protein_ff="Amber14SB",
-        ligand_ff="OpenFF_1.3.0",
-        other_ff="OpenFF_1.3.0",
+        protein_ff=ff_library.Default.proteinff.name,
+        ligand_ff=ff_library.Default.ligandff.name,
+        other_ff=ff_library.Default.otherff.name,
     ):
 
         # MD Components
@@ -917,13 +771,13 @@ class ParametrizeMDComponents:
         # self.protein_extended_ff = ff_library.protein_extended_ff[protein_ff]
 
         # Force Field to use: Default
-        self.counter_ions_ff = ff_library.counter_ionsff["Counter_ions"]
-        self.metals_ff = ff_library.metals_ff["Metals"]
-        self.excipients_ff = ff_library.excipients_ff["Excipients"]
-        self.solvent_ff = ff_library.solventff["Tip3p"]
-        self.cofactors_ff = ff_library.cofactors_ff["Cofactors"]
-        self.lipids_ff = ff_library.lipids_ff["Lipids"]
-        self.nucleics_ff = ff_library.nucleics_ff["Nucleics"]
+        self.counter_ions_ff = ff_library.Default.counter_ionsff.offxml
+        self.metals_ff = ff_library.Default.metals_ff.offxml
+        self.excipients_ff = ff_library.Default.excipients_ff.offxml
+        self.solvent_ff = ff_library.Default.solventff.offxml
+        self.cofactors_ff = ff_library.Default.cofactors_ff.offxml
+        self.lipids_ff = ff_library.Default.lipids_ff.offxml
+        self.nucleics_ff = ff_library.Default.nucleics_ff.offxml
 
     @staticmethod
     def _check_formal_vs_partial_charge(comp_name, component, pmd_component, ths=0.01):
@@ -1050,7 +904,7 @@ class ParametrizeMDComponents:
                     protein,
                     topology,
                     forcefield,
-                    openff=ff_library.ligandff["OpenFF_1.3.0"],
+                    openff=ff_library.Default.ligandff.offxml,
                 )
 
                 for ffxml_template in ffxml_nsr_template_list:
