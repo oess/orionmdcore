@@ -49,5 +49,9 @@ setup(
     platforms=["Linux-64", "Mac OSX-64", "Unix-64"],
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
     include_package_data=True,
+    entry_points='''
+        [console_scripts]
+        mdocli=orionmdcore.mdocli.command_line:main
+    ''',
     zip_safe=False,
 )
