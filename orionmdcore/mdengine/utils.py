@@ -8,6 +8,8 @@ from simtk import unit
 
 import itertools
 
+from orionmdcore.mdengine import data_utils
+
 
 class MDState(object):
     def __init__(self, parmed_structure):
@@ -33,6 +35,42 @@ class MDState(object):
             self.__box_vectors__ = None
         else:
             self.__box_vectors__ = parmed_structure.box_vectors
+
+    def __getstate__(self):
+        state = dict()
+        state["positions"] = data_utils.encodePyObj(self.__positions__)
+
+        state["box_vectors"] = (
+            data_utils.encodePyObj(self.__box_vectors__)
+            if self.__box_vectors__
+            else None
+        )
+
+        state["velocities"] = (
+            data_utils.encodePyObj(self.__velocities__) if self.__velocities__ else None
+        )
+
+        return state
+
+    def __setstate__(self, state):
+        for state_name, state_val in state.items():
+            if state_name == "positions":
+                positions = data_utils.decodePyObj(state_val)
+                self.__positions__ = positions
+
+            if state_name == "box_vectors":
+                if state_val is not None:
+                    box_vec = data_utils.decodePyObj(state_val)
+                    self.__box_vectors__ = box_vec
+                else:
+                    self.__box_vectors__ = None
+
+            if state_name == "velocities":
+                if state_val is not None:
+                    velocities = data_utils.decodePyObj(state_val)
+                    self.__velocities__ = velocities
+                else:
+                    self.__velocities__ = None
 
     def get_positions(self):
         return self.__positions__
