@@ -299,7 +299,7 @@ class MDComponentsTest(unittest.TestCase):
             protein_ff="AmberFB15", ligand_ff="OpenFF_1.3.1", other_ff="OpenFF_1.3.1"
         )
 
-    def test_protein_force_field_amber_SB14_OFF_2_0_0rc2(self):
+    def test_protein_force_field_amber_SB14_OFF_2_0_0(self):
 
         fn = os.path.join(FILE_DIR, "6puq_solvated.oedb")
 
@@ -318,5 +318,27 @@ class MDComponentsTest(unittest.TestCase):
         print(md_components)
 
         md_components.parametrize_components(
-            protein_ff="Amber14SB", ligand_ff="OpenFF_2.0.0rc2", other_ff="OpenFF_2.0.0rc2"
+            protein_ff="Amber14SB", ligand_ff="OpenFF_2.0.0", other_ff="OpenFF_2.0.0"
+        )
+
+    def test_protein_force_field_amber_fb15_OFF_2_0_0(self):
+
+        fn = os.path.join(FILE_DIR, "6puq_solvated.oedb")
+
+        ifs = oechem.oeifstream(fn)
+
+        records = []
+
+        for rec in read_records(ifs):
+            records.append(rec)
+        ifs.close()
+
+        record = records[0]
+
+        md_components = record.get_value(Fields.md_components)
+
+        print(md_components)
+
+        md_components.parametrize_components(
+            protein_ff="AmberFB15", ligand_ff="OpenFF_2.0.0", other_ff="OpenFF_2.0.0"
         )

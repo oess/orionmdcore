@@ -42,9 +42,7 @@ ligandff = {
     "OpenFF_1.1.1": "openff_unconstrained-1.1.1.offxml",
     "OpenFF_1.2.1": "openff_unconstrained-1.2.1.offxml",
     "OpenFF_1.3.1": "openff_unconstrained-1.3.1.offxml",
-    "OpenFF_2.0.0rc2": os.path.join(
-        EXT_FORCEFIELD_DIR, "openff_unconstrained-2.0.0-rc.2.offxml"
-    )
+    "OpenFF_2.0.0": "openff_unconstrained-2.0.0.offxml"
 }
 
 otherff = ligandff
@@ -73,8 +71,8 @@ class Default:
             self.offxml = offxml
 
     proteinff = _Record("Amber14SB", "amber14/protein.ff14SB.xml")
-    ligandff = _Record("OpenFF_1.3.1",  "openff_unconstrained-1.3.1.offxml")
-    otherff = _Record("OpenFF_1.3.1",  "openff_unconstrained-1.3.1.offxml")
+    ligandff = _Record("OpenFF_2.0.0",  "openff_unconstrained-2.0.0.offxml")
+    otherff = _Record("OpenFF_2.0.0",  "openff_unconstrained-2.0.0.offxml")
     solventff = _Record("Tip3p", "tip3p.xml")
     counter_ionsff = _Record("Counter_ions", "amber14/tip3p.xml")
     metals_ff = _Record("Metals", "amber14/tip3p.xml")

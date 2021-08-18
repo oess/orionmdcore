@@ -29,3 +29,10 @@ pip install OpenEye-orionplatform[artemis]==4.0.0 OpenEye-snowball==0.21.0
 
 In case of issues please contact the OpenEye support
 """
+
+# try:
+#     import openeye
+#     import snowball
+#     import orionplatform
+# except ImportError:
+#     raise ImportError(__installation__error__)
