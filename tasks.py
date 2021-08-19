@@ -56,7 +56,7 @@ def setversion(ctx, new_version):
         lines = f.readlines()
 
     lines = [
-        "version: '{}'\n".format(new_version) if "version" in line else line
+        "  version: '{}'\n".format(new_version) if "version" in line else line
         for line in lines
     ]
 
