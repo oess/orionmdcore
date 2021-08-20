@@ -72,6 +72,30 @@ def version(ctx):
 
 
 @task
+def anaconda_upload(ctx, username, label="Orion"):
+    conda_build_path = os.environ['CONDA_PREFIX'].split('envs')[0] + "conda-bld/noarch/"
+    fn = orionmdcore.__name__ + "-" + orionmdcore.__version__ + "-py_0.tar.bz2"
+
+    full_path = os.path.join(conda_build_path, fn)
+
+    if not os.path.isfile(full_path):
+        try:
+            print("\n>>>>>>>>>>> Building the conda recipe <<<<<<<<<<<<<\n")
+            pkg_meta_file = os.path.join(os.path.dirname(orionmdcore.__path__[0]), "devtools/conda-recipe/meta.yaml")
+            run("conda build {} -c conda-forge -c omnia -c OpenEye/label/Orion".format(pkg_meta_file))
+            print("\n>>>>>>>>>>> End building the conda recipe <<<<<<<<<<<<<\n")
+        except Exception as e:
+            if not os.path.isfile(full_path):
+                raise ValueError("Something went wrong during the conda Building {}".format(str(e)))
+    try:
+        print("\nAnaconda Uploading....\n")
+        run("anaconda upload --user {} -l {} {}".format(username, label, full_path))
+        print("\nDone\n")
+    except Exception as e:
+        raise IOError("It was not possible to upload the file: {}".format(str(e)))
+
+
+@task
 def clean(ctx):
     """
     Clean up doc and package builds
