@@ -5,7 +5,8 @@ cat << EOF >> ${PREFIX}/.messages.txt
 
 **************************************************************************
 WARNING: The ORIOMDCORE package requires to work the manual installation
-of the OpenEye orionplatform and snowball packages.
+of the OpenEye orionplatform and snowball packages in their working conda
+environment.
 
 Customers that have access and correctly set their local pip credentials
 can have them installed by typing:

@@ -58,3 +58,6 @@ test:
 
 about:
   home: https://github.com/oess/orionmdcore
+  license: OpenEye proprietary
+  summary: Orion MD core package
+   

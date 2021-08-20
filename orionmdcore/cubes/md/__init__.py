@@ -15,7 +15,7 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
-from .cubes import (
+from orionmdcore.cubes.md.cubes import (
     MDMinimizeCube,
     MDNvtCube,
     MDNptCube,

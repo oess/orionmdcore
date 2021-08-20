@@ -15,4 +15,4 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
-from .cubes import ComplexPrepCube
+from orionmdcore.cubes.complexprep.cubes import ComplexPrepCube
