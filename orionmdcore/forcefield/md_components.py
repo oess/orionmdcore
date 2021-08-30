@@ -929,18 +929,28 @@ class ParametrizeMDComponents:
     def parametrize_ligand(self):
 
         if self.md_components.has_ligand:
+
+            # Try to check if the ligand is present in the cofactor library first
+            topology, positions = oeommutils.oemol_to_openmmTop(self.md_components.get_ligand)
+
+            forcefield = app.ForceField()
+            forcefield.loadFile(self.cofactors_ff)
+            unmatched_res_list = forcefield.getUnmatchedResidues(topology)
+
+            if not unmatched_res_list:
+                omm_components = forcefield.createSystem(topology, rigidWater=False, constraints=None)
+                ligand_pmd = parmed.openmm.load_topology(topology, omm_components, xyz=positions)
+                self._check_formal_vs_partial_charge("ligand", self.md_components.get_ligand, ligand_pmd)
+                print("Ligand Parametrized by using the ff: {}".format(self.cofactors_ff))
+                return ligand_pmd
+
             print("Ligand Parametrized by using the ff: {}".format(self.ligand_ff))
-            prefix_name = "LIG"
+            prefix_name = 'LIG'
 
-            # for oe_at in self.md_components.get_ligand.GetAtoms():
-            #     print(oe_at)
-
-            pmd = ParamMolStructure(
-                self.md_components.get_ligand,
-                self.ligand_ff,
-                prefix_name=prefix_name,
-                recharge=False,
-            )
+            pmd = ParamMolStructure(self.md_components.get_ligand,
+                                    self.ligand_ff,
+                                    prefix_name=prefix_name,
+                                    recharge=False)
 
             ligand_pmd = pmd.parameterize()
 
@@ -949,9 +959,7 @@ class ParametrizeMDComponents:
 
             ligand_pmd.residues[0].name = prefix_name
 
-            self._check_formal_vs_partial_charge(
-                "ligand", self.md_components.get_ligand, ligand_pmd
-            )
+            self._check_formal_vs_partial_charge("ligand", self.md_components.get_ligand, ligand_pmd)
 
             return ligand_pmd
         else:
@@ -959,16 +967,28 @@ class ParametrizeMDComponents:
 
     @property
     def parametrize_other_ligands(self):
-        print("Other Ligands Parametrized by using the ff: {}".format(self.ligand_ff))
         if self.md_components.has_other_ligands:
 
-            other_ligand_pmd = parametrize_component(
-                self.md_components.get_other_ligands, self.protein_ff, self.ligand_ff
-            )
+            # Try to check if the ligand is present in the cofactor library first
+            topology, positions = oeommutils.oemol_to_openmmTop(self.md_components.get_other_ligands)
 
-            self._check_formal_vs_partial_charge(
-                "other ligands", self.md_components.get_other_ligands, other_ligand_pmd
-            )
+            forcefield = app.ForceField()
+            forcefield.loadFile(self.cofactors_ff)
+            unmatched_res_list = forcefield.getUnmatchedResidues(topology)
+
+            if not unmatched_res_list:
+                omm_components = forcefield.createSystem(topology, rigidWater=False, constraints=None)
+                other_ligand_pmd = parmed.openmm.load_topology(topology, omm_components, xyz=positions)
+                self._check_formal_vs_partial_charge("ligand", self.md_components.get_other_ligands, other_ligand_pmd)
+                print("Other Ligands Parametrized by using the ff: {}".format(self.cofactors_ff))
+                return other_ligand_pmd
+
+            print("Other Ligands Parametrized by using the ff: {}".format(self.ligand_ff))
+            other_ligand_pmd = parametrize_component(self.md_components.get_other_ligands,
+                                                     self.protein_ff,
+                                                     self.ligand_ff)
+
+            self._check_formal_vs_partial_charge("other ligands", self.md_components.get_other_ligands, other_ligand_pmd)
 
             return other_ligand_pmd
         else:

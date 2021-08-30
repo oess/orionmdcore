@@ -155,14 +155,8 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
         a copy of the original molecule with assigned atomic partial charges
     """
 
-    def generate_conformers(
-        molecule,
-        max_confs=800,
-        strictStereo=True,
-        ewindow=15.0,
-        rms_threshold=1.0,
-        strictTypes=True,
-    ):
+    def generate_conformers(molecule, max_confs=800, strictStereo=True, ewindow=15.0, rms_threshold=1.0,
+                            strictTypes=True):
         """Generate conformations for the supplied molecule
 
         Parameters
@@ -197,12 +191,10 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
         omega.SetCanonOrder(False)
 
         omega.SetSampleHydrogens(
-            True
-        )  # Word to the wise: skipping this step can lead to significantly different charges!
+            True)  # Word to the wise: skipping this step can lead to significantly different charges!
         omega.SetEnergyWindow(ewindow)
         omega.SetRMSThreshold(
-            rms_threshold
-        )  # Word to the wise: skipping this step can lead to significantly different charges!
+            rms_threshold)  # Word to the wise: skipping this step can lead to significantly different charges!
 
         omega.SetStrictStereo(strictStereo)
         omega.SetStrictAtomTypes(strictTypes)
@@ -224,16 +216,14 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
     # be generated
     if not mol_copy_charged.GetMaxConfIdx() > 200:
         # Generate up to max_confs conformers
-        mol_copy_charged = generate_conformers(
-            mol_copy_charged, max_confs=max_confs, strictStereo=strictStereo
-        )
+        mol_copy_charged = generate_conformers(mol_copy_charged, max_confs=max_confs, strictStereo=strictStereo)
 
     # Assign MMFF Atom types
     if not oechem.OEMMFFAtomTypes(mol_copy_charged):
         raise RuntimeError("MMFF atom type assignment returned errors")
 
     # Check for Carboxylic Acid patterns in the molecule
-    smarts = "(O=)[C][O,S][H]"
+    smarts = '(O=)[C][O,S][H]'
     ss = oechem.OESubSearch(smarts)
 
     oechem.OEPrepareSearch(mol_copy_charged, ss)
@@ -253,39 +243,36 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
 
         for i in range(0, len(a_match_list), 4):
 
-            chunk = a_match_list[i : i + 4]
+            chunk = a_match_list[i:i + 4]
 
             for conf in mol_copy_charged.GetConfs():
 
-                conf.SetTorsion(chunk[0], chunk[1], chunk[2], chunk[3], 0.0)
+                conf.SetTorsion(chunk[0],
+                                chunk[1],
+                                chunk[2],
+                                chunk[3], 0.0)
 
     # Try to calculate the ELF10 charges for the molecule
-    quacpac_status = oequacpac.OEAssignCharges(
-        mol_copy_charged, oequacpac.OEAM1BCCELF10Charges()
-    )
+    quacpac_status = oequacpac.OEAssignCharges(mol_copy_charged, oequacpac.OEAM1BCCELF10Charges())
 
     if not quacpac_status:
-        opt["Logger"].warn(
-            "OEAM1BCCELF10 charge assignment failed downgrading "
-            "to OEAM1BCC charge assignment for this molecule: {}".format(
-                mol_copy_charged.GetTitle()
-            )
-        )
+        print("WARNING: OEAM1BCCELF10 charge assignment failed downgrading "
+              "to OEAM1BCC charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()))
 
-        quacpac_status = oequacpac.OEAssignCharges(
-            mol_copy_charged, oequacpac.OEAM1BCCCharges()
-        )
+        quacpac_status = oequacpac.OEAssignCharges(mol_copy_charged, oequacpac.OEAM1BCCCharges())
+
+        if not quacpac_status:
+            print("WARNING: OEAM1BCC charge assignment failed downgrading "
+                  "to MMFF94 charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()))
+
+        quacpac_status = oequacpac.OEAssignCharges(mol_copy_charged, oequacpac.OEMMFF94Charges())
 
     if not quacpac_status:
-        raise RuntimeError(
-            "OEAssignCharges returned error code {}".format(quacpac_status)
-        )
+        raise RuntimeError("OEAssignCharges returned error code {}".format(quacpac_status))
 
     # Copy back the charges to a molecule copy
     # without any conformers information
-    map_charges = {
-        at.GetIdx(): at.GetPartialCharge() for at in mol_copy_charged.GetAtoms()
-    }
+    map_charges = {at.GetIdx(): at.GetPartialCharge() for at in mol_copy_charged.GetAtoms()}
 
     mol_copy = oechem.OEMol(molecule)
 
@@ -302,11 +289,8 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
         mol_copy_partial_charge += at.GetPartialCharge()
 
     if abs(mol_copy_formal_charge - mol_copy_partial_charge) > 0.01:
-        raise ValueError(
-            "Molecule Formal charge and Molecule Partial charge mismatch: {} vs {}".format(
-                mol_copy_formal_charge, mol_copy_partial_charge
-            )
-        )
+        raise ValueError("Molecule Formal charge and Molecule Partial charge mismatch: {} vs {}".format(
+            mol_copy_formal_charge, mol_copy_partial_charge))
 
     return mol_copy
 

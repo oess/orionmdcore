@@ -8,8 +8,8 @@ WARNING: The ORIOMDCORE package requires to work the manual installation
 of the OpenEye orionplatform and snowball packages in their working conda
 environment.
 
-Customers that have access and correctly set their local pip credentials
-can have them installed by typing:
+Customers that have access to OpenEye MagPie repository and correctly set
+their local pip credentials can have them installed by typing:
 
 pip install OpenEye-orionplatform[artemis]==4.0.0 OpenEye-snowball==0.21.0
 

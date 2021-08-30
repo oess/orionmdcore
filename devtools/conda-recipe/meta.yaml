@@ -9,6 +9,7 @@ build:
   noarch: python
   preserve_egg_dir: True
   number: 0
+  string: py_0
 
 requirements:
   pin_depends: strict
@@ -17,7 +18,7 @@ requirements:
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3
-    - oeommtools==0.1.17
+    - oeommtools==0.1.18
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5
@@ -36,7 +37,7 @@ requirements:
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3
-    - oeommtools==0.1.17
+    - oeommtools==0.1.18
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5
