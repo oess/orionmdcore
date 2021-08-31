@@ -748,12 +748,12 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
                 self.count += 1
 
             if md_components.has_protein:
-                if not record.has_value(Fields.FEC.RBFEC.thd_leg_type):
-                    record.set_value(Fields.FEC.RBFEC.thd_leg_type, "Bound_OPLMD")
+                if not record.has_value(Fields.bound_unbound_type):
+                    record.set_value(Fields.bound_unbound_type, "Bound_OPLMD")
                 self.bound_port.emit(record)
             else:
-                if not record.has_value(Fields.FEC.RBFEC.thd_leg_type):
-                    record.set_value(Fields.FEC.RBFEC.thd_leg_type, "UnBound_OPLMD")
+                if not record.has_value(Fields.bound_unbound_type):
+                    record.set_value(Fields.bound_unbound_type, "UnBound_OPLMD")
                 self.success.emit(record)
 
         except Exception as e:

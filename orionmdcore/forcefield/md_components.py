@@ -76,8 +76,8 @@ class MDComponents:
             "cofactors",
             "other_cofactors",
             "lipids",
-            "nucleics",
-            "other_nucleics",
+            "nucleic",
+            "other_nucleic",
         ]
 
         # Components found in the system_representation
@@ -355,8 +355,8 @@ class MDComponents:
             "cofactors",
             "other_cofactors",
             "lipids",
-            "nucleics",
-            "other_nucleics",
+            "nucleic",
+            "other_nucleic",
         ]
 
         def mol_from_bytes(mol_bytes):
@@ -653,37 +653,37 @@ class MDComponents:
             return False
 
     @property
-    def get_nucleics(self):
-        if "nucleics" in self._components:
-            return self._components["nucleics"]
+    def get_nucleic(self):
+        if "nucleic" in self._components:
+            return self._components["nucleic"]
         else:
-            raise ValueError("Nucleics Component has not been found")
+            raise ValueError("Nucleic Component has not been found")
 
-    def set_nucleics(self, nucleics):
-        if nucleics is not None and nucleics.IsValid():
-            self._components["nucleics"] = nucleics
+    def set_nucleic(self, nucleic):
+        if nucleic is not None and nucleic.IsValid():
+            self._components["nucleic"] = nucleic
 
     @property
-    def has_nucleics(self):
-        if "nucleics" in self._components:
+    def has_nucleic(self):
+        if "nucleic" in self._components:
             return True
         else:
             return False
 
     @property
-    def get_other_nucleics(self):
-        if "other_nucleics" in self._components:
-            return self._components["other_nucleics"]
+    def get_other_nucleic(self):
+        if "other_nucleic" in self._components:
+            return self._components["other_nucleic"]
         else:
-            raise ValueError("Other Nucleics Component has not been found")
+            raise ValueError("Other Nucleic Component has not been found")
 
-    def set_other_nucleics(self, other_nucleics):
-        if other_nucleics is not None and other_nucleics.IsValid():
-            self._components["other_nucleics"] = other_nucleics
+    def set_other_nucleic(self, other_nucleic):
+        if other_nucleic is not None and other_nucleic.IsValid():
+            self._components["other_nucleic"] = other_nucleic
 
     @property
-    def has_other_nucleics(self):
-        if "other_nucleics" in self._components:
+    def has_other_nucleic(self):
+        if "other_nucleic" in self._components:
             return True
         else:
             return False
@@ -777,7 +777,7 @@ class ParametrizeMDComponents:
         self.solvent_ff = ff_library.Default.solventff.offxml
         self.cofactors_ff = ff_library.Default.cofactors_ff.offxml
         self.lipids_ff = ff_library.Default.lipids_ff.offxml
-        self.nucleics_ff = ff_library.Default.nucleics_ff.offxml
+        self.nucleic_ff = ff_library.Default.nucleic_ff.offxml
 
     @staticmethod
     def _check_formal_vs_partial_charge(comp_name, component, pmd_component, ths=0.01):
@@ -1151,32 +1151,32 @@ class ParametrizeMDComponents:
             raise ValueError("Lipids are not present in the MDComponents")
 
     @property
-    def parametrize_nucleics(self):
+    def parametrize_nucleic(self):
 
-        if self.md_components.has_nucleics:
-            nucleics_pmd = parametrize_component(
-                self.md_components.get_nucleics, self.nucleics_ff, self.other_ff
+        if self.md_components.has_nucleic:
+            nucleic_pmd = parametrize_component(
+                self.md_components.get_nucleic, self.nucleic_ff, self.other_ff
             )
 
             self._check_formal_vs_partial_charge(
-                "lipids", self.md_components.get_nucleics, nucleics_pmd
+                "nucleic", self.md_components.get_nucleic, nucleic_pmd
             )
 
-            return nucleics_pmd
+            return nucleic_pmd
         else:
-            raise ValueError("Nucleics molecule not present in the MDComponents")
+            raise ValueError("Nucleic molecules not present in the MDComponents")
 
     @property
-    def parametrize_other_nucleics(self):
+    def parametrize_other_nucleic(self):
 
-        if self.md_components.has_other_nucleics:
-            other_nucleics_pmd = parametrize_component(
-                self.md_components.get_other_nucleics, self.nucleics_ff, self.other_ff
+        if self.md_components.has_other_nucleic:
+            other_nucleic_pmd = parametrize_component(
+                self.md_components.get_other_nucleic, self.nucleic_ff, self.other_ff
             )
-            return other_nucleics_pmd
+            return other_nucleic_pmd
         else:
             raise ValueError(
-                "Other Nucleics molecules are not present in the MDComponents"
+                "Other Nucleic molecules are not present in the MDComponents"
             )
 
     @property
@@ -1208,10 +1208,10 @@ class ParametrizeMDComponents:
                 flask_pmd += self.parametrize_other_cofactors
             elif comp_name == "lipids":
                 flask_pmd += self.parametrize_lipids
-            elif comp_name == "nucleics":
-                flask_pmd += self.parametrize_nucleics
-            elif comp_name == "other_nucleics":
-                flask_pmd += self.parametrize_other_nucleics
+            elif comp_name == "nucleic":
+                flask_pmd += self.parametrize_nucleic
+            elif comp_name == "other_nucleic":
+                flask_pmd += self.parametrize_other_nucleic
             else:
                 raise ValueError(
                     "The parametrization of the component {} is not supported".format(

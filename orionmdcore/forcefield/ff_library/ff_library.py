@@ -79,7 +79,7 @@ class Default:
     excipients_ff = _Record("Excipients", "amber14/tip3p.xml")
     cofactors_ff = _Record("Cofactors", os.path.join(COFACTOR_DIR, "cofactors.xml"))
     lipids_ff = _Record("Lipids", "amber14/lipid17.xml")
-    nucleics_ff = _Record("Nucleics", "amber14-all.xml")
+    nucleic_ff = _Record("Nucleic", "amber14-all.xml")
 
 
 protein_standard_residue_names = [

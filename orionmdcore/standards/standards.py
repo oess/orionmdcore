@@ -192,6 +192,9 @@ class Fields:
     # Stage list Field
     md_stages = OEField("MDStages_OPLMD", Types.RecordVec, meta=_metaHidden)
 
+    # Bound or Unbound flask type used for Bound or Unbound protein ligand calculations
+    bound_unbound_type = OEField("Flask_type", Types.String, meta=_metaHidden)
+
     floe_report = OEField("Floe_report_OPLMD", Types.String, meta=_metaHidden)
 
     floe_report_svg_lig_depiction = OEField(
