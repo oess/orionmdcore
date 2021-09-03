@@ -257,13 +257,13 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
 
     if not quacpac_status:
         print("WARNING: OEAM1BCCELF10 charge assignment failed downgrading "
-              "to OEAM1BCC charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()))
+              "to OEAM1BCC charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()), flush=True)
 
         quacpac_status = oequacpac.OEAssignCharges(mol_copy_charged, oequacpac.OEAM1BCCCharges())
 
         if not quacpac_status:
             print("WARNING: OEAM1BCC charge assignment failed downgrading "
-                  "to MMFF94 charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()))
+                  "to MMFF94 charge assignment for the molecule: {}".format(mol_copy_charged.GetTitle()), flush=True)
 
         quacpac_status = oequacpac.OEAssignCharges(mol_copy_charged, oequacpac.OEMMFF94Charges())
 
