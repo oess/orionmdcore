@@ -122,7 +122,7 @@ class MDSimulations(ABC):
 
         if not isinstance(ff_parameters, parmed.Structure):
             raise ValueError(
-                "{} is not a Parmed Structure Object".format(type(mdstate))
+                "{} is not a Parmed Structure Object".format(type(ff_parameters))
             )
 
         if not isinstance(opt, dict):
