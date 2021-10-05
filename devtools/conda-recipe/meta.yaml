@@ -1,6 +1,6 @@
 package:
   name: orionmdcore
-  version: '1.0.0'
+  version: '1.1.0b0'
 
 source:
   path: ../../
@@ -18,7 +18,7 @@ requirements:
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3
-    - oeommtools==0.1.18
+    - oeommtools==0.1.19
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5
@@ -37,7 +37,7 @@ requirements:
     - lxml==4.6.0
     - numpy==1.18.5
     - mdtraj==1.9.3
-    - oeommtools==0.1.18
+    - oeommtools==0.1.19
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5

@@ -967,7 +967,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
-        "spot_policy": {"default": "Allowed"},
+        "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
@@ -1049,6 +1049,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
                     "reporter_interval": opt["reporter_interval"],
                     "hmr": info_dic["hmr"],
                     "md_engine": info_dic["md_engine"],
+                    "save_md_stage": True
                 }
 
                 record.set_value(Fields.cube_parameters_update, new_dic)
@@ -1079,6 +1080,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
                         "reporter_interval": opt["reporter_interval"],
                         "hmr": info_dic["hmr"],
                         "md_engine": info_dic["md_engine"],
+                        "save_md_stage": True
                     }
 
                     record.set_value(Fields.cube_parameters_update, new_dic)
