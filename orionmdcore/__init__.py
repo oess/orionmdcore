@@ -18,7 +18,7 @@
 
 __author__ = "Gaetano Calabro"
 __email__ = "gcalabro@eyesopen.com"
-__version__ = '1.1.0b0'
+__version__ = '1.1.0b2'
 
 __installation__error__ = """
 ERROR: The ORIOMDCORE package requires to work the manual installation of the OpenEye 

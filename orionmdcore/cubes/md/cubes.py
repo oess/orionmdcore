@@ -1049,6 +1049,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
                     "reporter_interval": opt["reporter_interval"],
                     "hmr": info_dic["hmr"],
                     "md_engine": info_dic["md_engine"],
+                    "instance_type": info_dic["instance_type"],
                     "save_md_stage": True
                 }
 
@@ -1080,6 +1081,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
                         "reporter_interval": opt["reporter_interval"],
                         "hmr": info_dic["hmr"],
                         "md_engine": info_dic["md_engine"],
+                        "instance_type": info_dic["instance_type"],
                         "save_md_stage": True
                     }
 
