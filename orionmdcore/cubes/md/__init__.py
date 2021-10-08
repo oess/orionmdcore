@@ -19,7 +19,6 @@ from orionmdcore.cubes.md.cubes import (
     MDMinimizeCube,
     MDNvtCube,
     MDNptCube,
-    MDProxyCube,
     ParallelMDMinimizeCube,
     ParallelMDNvtCube,
     ParallelMDNptCube,
