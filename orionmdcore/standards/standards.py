@@ -86,7 +86,8 @@ class CollectionsNames:
 
 # Orion Hidden meta data options
 _metaHidden = OEFieldMeta(options=[Meta.Display.Hidden])
-_metaIDHidden = OEFieldMeta(options=[Meta.Source.ID, Meta.Display.Hidden])
+# _metaIDHidden = OEFieldMeta(options=[Meta.Source.ID, Meta.Display.Hidden])
+_metaIDHidden = OEFieldMeta(options=[Meta.Display.Hidden], attributes=[[Meta.Source.ID, "ID"]])
 _metaProtHidden = OEFieldMeta(options=[Meta.Hints.Chem.Protein, Meta.Display.Hidden])
 
 
