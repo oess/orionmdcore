@@ -154,6 +154,14 @@ class MDDataRecord(object):
         except OSError as e:
             print("Error: {} - {}".format(e.filename, e.strerror))
 
+    def __getattr__(self, name):
+        try:
+            return getattr(self.rec, name)
+        except AttributeError:
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
+            )
+
     @property
     def get_record(self):
         """
@@ -1638,7 +1646,7 @@ class MDDataRecord(object):
 
         if not isinstance(protein_conf, oechem.OEMol):
             raise ValueError(
-                "The passed Parmed object is not a valid Parmed Structure: {}".format(
+                "The passed object is not a valid: {}".format(
                     type(protein_conf)
                 )
             )
@@ -1692,13 +1700,277 @@ class MDDataRecord(object):
 
         return True
 
-    def __getattr__(self, name):
-        try:
-            return getattr(self.rec, name)
-        except AttributeError:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
+    @property
+    def get_ligand_traj(self):
+        """
+        This method returns the ligand molecule where conformers have been set as trajectory frames
+
+        Parameters
+        ----------
+        Returns
+        -------
+        multi_conformer_ligand: OEMol
+            The multi conformer ligand
+        """
+
+        if not self.rec.has_field(Fields.ligand_traj_confs):
+            raise ValueError(
+                "The ligand conformer trajectory is not present on the record"
             )
+
+        ligand_conf = self.rec.get_value(Fields.ligand_traj_confs)
+
+        if in_orion():
+
+            # session = APISession
+
+            session = OrionSession(
+                requests_session=get_session(
+                    retry_dict={
+                        403: 5,
+                        404: 20,
+                        409: 45,
+                        460: 15,
+                        500: 2,
+                        502: 45,
+                        503: 45,
+                        504: 45,
+                    }
+                )
+            )
+
+            if self.collection_id is None:
+                raise ValueError("The Collection ID is None")
+
+            collection = session.get_resource(ShardCollection, self.collection_id)
+
+            shard = session.get_resource(Shard(collection=collection), ligand_conf)
+
+            with TemporaryDirectory() as output_directory:
+
+                ligand_fn = os.path.join(
+                    output_directory, MDFileNames.trajectory_conformers
+                )
+
+                try_hard_to_download_shard(shard, ligand_fn)
+
+                ligand_conf = oechem.OEMol()
+
+                with oechem.oemolistream(ligand_fn) as ifs:
+                    oechem.OEReadMolecule(ifs, ligand_conf)
+
+            shard.close()
+
+        return ligand_conf
+
+    def set_ligand_traj(self, ligand_conf, shard_name=""):
+        """
+        This method sets the multi conformer ligand trajectory on the record
+
+        Parameters
+        -----------
+        ligand_conf: OEChem
+            Th multi conformer ligand trajectory
+        shard_name: String
+            In Orion tha shard will be named by using the shard_name
+
+        Returns
+        -------
+        boolean: Bool
+            True if the setting was successful
+        """
+
+        if not isinstance(ligand_conf, oechem.OEMol):
+            raise ValueError(
+                "The passed object is not valid {}".format(
+                    type(ligand_conf)
+                )
+            )
+
+        if in_orion():
+
+            with TemporaryDirectory() as output_directory:
+
+                ligand_fn = os.path.join(
+                    output_directory, MDFileNames.trajectory_conformers
+                )
+
+                with oechem.oemolostream(ligand_fn) as ofs:
+                    oechem.OEWriteConstMolecule(ofs, ligand_conf)
+
+                if self.collection_id is None:
+                    raise ValueError("The Collection ID is None")
+
+                if self.rec.has_field(Fields.ligand_traj_confs):
+                    fid = self.rec.get_value(Fields.ligand_traj_confs)
+                    utils.delete_data(fid, collection_id=self.collection_id)
+
+                # session = APISession
+
+                session = OrionSession(
+                    requests_session=get_session(
+                        retry_dict={
+                            403: 5,
+                            404: 20,
+                            409: 45,
+                            460: 15,
+                            500: 2,
+                            502: 45,
+                            503: 45,
+                            504: 45,
+                        }
+                    )
+                )
+
+                collection = session.get_resource(ShardCollection, self.collection_id)
+
+                shard = try_hard_to_create_shard(
+                    collection, ligand_fn, name=shard_name
+                )
+
+                shard.close()
+
+                self.rec.set_value(Fields.ligand_traj_confs, shard.id)
+        else:
+            self.rec.set_value(Fields.ligand_traj_confs, ligand_conf)
+
+        return True
+
+    @property
+    def get_water_traj(self):
+        """
+        This method returns the water molecule where conformers have been set as trajectory frames
+
+        Parameters
+        ----------
+        Returns
+        -------
+        multi_conformer_water: OEMol
+            The multi conformer water
+        """
+
+        if not self.rec.has_field(Fields.ligand_traj_confs):
+            raise ValueError(
+                "The water conformer trajectory is not present on the record"
+            )
+
+        water_conf = self.rec.get_value(Fields.water_traj_confs)
+
+        if in_orion():
+
+            # session = APISession
+
+            session = OrionSession(
+                requests_session=get_session(
+                    retry_dict={
+                        403: 5,
+                        404: 20,
+                        409: 45,
+                        460: 15,
+                        500: 2,
+                        502: 45,
+                        503: 45,
+                        504: 45,
+                    }
+                )
+            )
+
+            if self.collection_id is None:
+                raise ValueError("The Collection ID is None")
+
+            collection = session.get_resource(ShardCollection, self.collection_id)
+
+            shard = session.get_resource(Shard(collection=collection), water_conf)
+
+            with TemporaryDirectory() as output_directory:
+
+                water_fn = os.path.join(
+                    output_directory, MDFileNames.trajectory_conformers
+                )
+
+                try_hard_to_download_shard(shard, water_fn)
+
+                water_conf = oechem.OEMol()
+
+                with oechem.oemolistream(water_fn) as ifs:
+                    oechem.OEReadMolecule(ifs, water_conf)
+
+            shard.close()
+
+        return water_conf
+
+    def set_water_traj(self, water_conf, shard_name=""):
+        """
+        This method sets the multi conformer water trajectory on the record
+
+        Parameters
+        -----------
+        water_conf: OEChem
+            Th multi conformer water trajectory
+        shard_name: String
+            In Orion tha shard will be named by using the shard_name
+
+        Returns
+        -------
+        boolean: Bool
+            True if the setting was successful
+        """
+
+        if not isinstance(water_conf, oechem.OEMol):
+            raise ValueError(
+                "The passed object is not valid {}".format(
+                    type(water_conf)
+                )
+            )
+
+        if in_orion():
+
+            with TemporaryDirectory() as output_directory:
+
+                water_fn = os.path.join(
+                    output_directory, MDFileNames.trajectory_conformers
+                )
+
+                with oechem.oemolostream(water_fn) as ofs:
+                    oechem.OEWriteConstMolecule(ofs, water_conf)
+
+                if self.collection_id is None:
+                    raise ValueError("The Collection ID is None")
+
+                if self.rec.has_field(Fields.water_traj_confs):
+                    fid = self.rec.get_value(Fields.water_traj_confs)
+                    utils.delete_data(fid, collection_id=self.collection_id)
+
+                # session = APISession
+
+                session = OrionSession(
+                    requests_session=get_session(
+                        retry_dict={
+                            403: 5,
+                            404: 20,
+                            409: 45,
+                            460: 15,
+                            500: 2,
+                            502: 45,
+                            503: 45,
+                            504: 45,
+                        }
+                    )
+                )
+
+                collection = session.get_resource(ShardCollection, self.collection_id)
+
+                shard = try_hard_to_create_shard(
+                    collection, water_fn, name=shard_name
+                )
+
+                shard.close()
+
+                self.rec.set_value(Fields.water_traj_confs, shard.id)
+        else:
+            self.rec.set_value(Fields.water_traj_confs, water_conf)
+
+        return True
 
     @property
     def get_md_components(self):
@@ -1884,3 +2156,4 @@ class MDDataRecord(object):
             self.rec.set_value(Fields.extra_data_tar, tar_fn)
 
         return True
+

@@ -141,13 +141,21 @@ class Fields:
         pmd_structure = OEField("Structure_Parmed_OPLMD", Types.Int, meta=_metaHidden)
         trajectory = OEField("Trajectory_OPLMD", Types.Int, meta=_metaHidden)
         mddata = OEField("MDData_OPLMD", Types.Int, meta=_metaHidden)
+
         protein_traj_confs = OEField("ProtTraj_OPLMD", Types.Int, meta=_metaHidden)
+        ligand_traj_confs = OEField("LigandTraj_OPLMD", Types.Int, meta=_metaHidden)
+        water_traj_confs = OEField("WaterTraj_OPLMD", Types.Int, meta=_metaHidden)
+
         extra_data_tar = OEField("ExtraData_OPLMD", Types.Int, meta=_metaHidden)
     else:
         pmd_structure = OEField("Structure_Parmed_OPLMD", ParmedData, meta=_metaHidden)
         trajectory = OEField("Trajectory_OPLMD", Types.String, meta=_metaHidden)
         mddata = OEField("MDData_OPLMD", Types.String, meta=_metaHidden)
+
         protein_traj_confs = OEField("ProtTraj_OPLMD", Types.Chem.Mol, meta=_metaHidden)
+        ligand_traj_confs = OEField("LigandTraj_OPLMD", Types.Chem.Mol, meta=_metaHidden)
+        water_traj_confs = OEField("WaterTraj_OPLMD", Types.Chem.Mol, meta=_metaHidden)
+
         extra_data_tar = OEField("ExtraData_OPLMD", Types.String, meta=_metaHidden)
 
     # The Stage Name
