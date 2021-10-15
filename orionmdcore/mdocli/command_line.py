@@ -102,7 +102,7 @@ def dataset(ctx, filename, id):
 @click.pass_context
 def data_trajectory_extraction(ctx, name, only):
 
-    check_only = ['a', 'stages', 'parmed', 'protein_confs']
+    check_only = ['a', 'stages', 'parmed', 'multi_confs']
 
     for v in only:
         if v not in check_only:
@@ -145,8 +145,8 @@ def data_trajectory_extraction(ctx, name, only):
                     data_fn = os.path.basename(output_directory) + '_' + system_title + '_' + str(sys_id) + '-' + stg_type + '.tar.gz'
                     shard_id = stage.get_value(OEField("MDData_OPLMD", Types.Int))
 
-                    shard = session.get_resource(Shard(collection=collection), shard_id)
-                    shard.download_to_file(data_fn)
+                    protein_shard = session.get_resource(Shard(collection=collection), shard_id)
+                    protein_shard.download_to_file(data_fn)
 
                     new_stage.delete_field(OEField("MDData_OPLMD", Types.Int))
                     new_stage.set_value(Fields.mddata, data_fn)
@@ -178,12 +178,12 @@ def data_trajectory_extraction(ctx, name, only):
         if 'a' in only or 'parmed' in only:
             if record.has_field(OEField('Structure_Parmed_OPLMD', Types.Int)):
                 pmd_id = record.get_value(OEField('Structure_Parmed_OPLMD', Types.Int))
-                shard = session.get_resource(Shard(collection=collection), pmd_id)
+                protein_shard = session.get_resource(Shard(collection=collection), pmd_id)
 
                 with TemporaryDirectory() as output_directory:
                     parmed_fn = os.path.join(output_directory, "parmed.pickle")
 
-                    shard.download_to_file(parmed_fn)
+                    protein_shard.download_to_file(parmed_fn)
 
                     with open(parmed_fn, 'rb') as f:
                         parm_dic = pickle.load(f)
@@ -194,27 +194,47 @@ def data_trajectory_extraction(ctx, name, only):
                 new_record.delete_field(OEField('Structure_Parmed_OPLMD', Types.Int))
                 new_record.set_value(Fields.pmd_structure, pmd_structure)
 
-        if 'a' in only or 'protein_confs' in only:
+        if 'a' in only or 'multi_confs' in only:
+
             if record.has_field(OEField('OETraj', Types.Record)):
 
                 oetrajrec = record.get_value(OEField('OETraj', Types.Record))
 
-                prot_conf_id = oetrajrec.get_value(OEField("ProtTraj_OPLMD", Types.Int))
+                protein_conf_id = oetrajrec.get_value(OEField("ProtTraj_OPLMD", Types.Int))
+                ligand_conf_id = oetrajrec.get_value(OEField("LigandTraj_OPLMD", Types.Int))
+                water_conf_id = oetrajrec.get_value(OEField("WaterTraj_OPLMD", Types.Int))
 
-                shard = session.get_resource(Shard(collection=collection),  prot_conf_id)
+                protein_shard = session.get_resource(Shard(collection=collection),  protein_conf_id)
+                ligand_shard = session.get_resource(Shard(collection=collection), ligand_conf_id)
+                water_shard = session.get_resource(Shard(collection=collection), water_conf_id)
 
                 with TemporaryDirectory() as output_directory:
                     protein_fn = os.path.join(output_directory, "prot_traj_confs.oeb")
-
-                    shard.download_to_file(protein_fn)
-
+                    protein_shard.download_to_file(protein_fn)
                     protein_conf = oechem.OEMol()
-
                     with oechem.oemolistream(protein_fn) as ifs:
                         oechem.OEReadMolecule(ifs, protein_conf)
 
+                    ligand_fn = os.path.join(output_directory, "ligand_traj_confs.oeb")
+                    ligand_shard.download_to_file(ligand_fn)
+                    ligand_conf = oechem.OEMol()
+                    with oechem.oemolistream(ligand_fn) as ifs:
+                        oechem.OEReadMolecule(ifs, ligand_conf)
+
+                    water_fn = os.path.join(output_directory, "water_traj_confs.oeb")
+                    water_shard.download_to_file(water_fn)
+                    water_conf = oechem.OEMol()
+                    with oechem.oemolistream(water_fn) as ifs:
+                        oechem.OEReadMolecule(ifs, water_conf)
+
                 oetrajrec.delete_field(OEField('ProtTraj_OPLMD', Types.Int))
                 oetrajrec.set_value(Fields.protein_traj_confs, protein_conf)
+
+                oetrajrec.delete_field(OEField('LigandTraj_OPLMD', Types.Int))
+                oetrajrec.set_value(Fields.ligand_traj_confs, ligand_conf)
+
+                oetrajrec.delete_field(OEField('WaterTraj_OPLMD', Types.Int))
+                oetrajrec.set_value(Fields.water_traj_confs, water_conf)
 
                 new_record.set_value(OEField('OETraj', Types.Record), oetrajrec)
 

@@ -154,14 +154,6 @@ class MDDataRecord(object):
         except OSError as e:
             print("Error: {} - {}".format(e.filename, e.strerror))
 
-    def __getattr__(self, name):
-        try:
-            return getattr(self.rec, name)
-        except AttributeError:
-            raise AttributeError(
-                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
-            )
-
     @property
     def get_record(self):
         """
@@ -2157,3 +2149,10 @@ class MDDataRecord(object):
 
         return True
 
+    def __getattr__(self, name):
+        try:
+            return getattr(self.rec, name)
+        except AttributeError:
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (type(self).__name__, name)
+            )
