@@ -8,7 +8,7 @@ except ImportError:
 
 # Orion Hidden meta data options
 _metaHidden = OEFieldMeta(options=[Meta.Display.Hidden])
-_metaIDHidden = OEFieldMeta(options=[Meta.Source.ID, Meta.Display.Hidden])
+_metaIDHidden = OEFieldMeta(options=[Meta.Display.Hidden], attributes=[[Meta.Source.ID, "ID"]])
 
 
 class Fields:
