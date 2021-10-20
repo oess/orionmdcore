@@ -155,15 +155,15 @@ class OpenMMSimulations(MDSimulations):
         # Add Implicit Solvent Force
         if opt["implicit_solvent"] != "None":
             opt["Logger"].info(
-                "[{}] Implicit Solvent Selected".format(opt["CubeTitle"])
+                "[{}] Implicit Solvent Detected. Model: {}".format(opt["CubeTitle"],  opt["implicit_solvent"])
             )
 
             implicit_force = parmed_structure.omm_gbsa_force(
                 eval("app.%s" % opt["implicit_solvent"]),
                 temperature=opt["temperature"] * unit.kelvin,
-                nonbondedMethod=app.PME,
-                nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
-            )
+                nonbondedMethod= app.NoCutoff,
+                solventDielectric=80.0)
+
             self.system.addForce(implicit_force)
 
         # OpenMM Integrator
@@ -172,17 +172,27 @@ class OpenMMSimulations(MDSimulations):
         )
 
         if opt["SimType"] == "npt":
-            if box is None:
-                raise ValueError("NPT simulation without box vector")
 
-            # Add Force Barostat to the system
-            self.system.addForce(
-                openmm.MonteCarloBarostat(
-                    opt["pressure"] * unit.atmospheres,
-                    opt["temperature"] * unit.kelvin,
-                    25,
+            # if box is None:
+            #     raise ValueError("NPT simulation without box vector")
+
+            if opt["implicit_solvent"] == "None":
+                # Add Force Barostat to the system
+                self.system.addForce(
+                    openmm.MonteCarloBarostat(
+                        opt["pressure"] * unit.atmospheres,
+                        opt["temperature"] * unit.kelvin,
+                        25,
+                    )
                 )
-            )
+            else:
+                opt["Logger"].warn(
+                    "[{}] The barastat force has not been applied. Implicit Solvent Simulations are performed "
+                    "without barostat and no pbc.\n"
+                    "Removing the barostat is necessary because there is no internal pressure to balance"
+                    "the barostat force".format(
+                        opt["CubeTitle"]))
+
 
         # Apply restraints
         if opt["restraints"]:
@@ -242,6 +252,10 @@ class OpenMMSimulations(MDSimulations):
                 delta = box_v / 2 - cog
                 # New Coordinates
                 corrected_reference_positions = coords + delta
+            else:
+                reference_positions = opt["reference_state"].get_positions()
+                coords = np.array(reference_positions.value_in_unit(unit.nanometers))
+                corrected_reference_positions = coords
 
             for idx in range(0, len(positions)):
                 if idx in res_atom_set:
@@ -493,7 +507,8 @@ class OpenMMSimulations(MDSimulations):
 
         if self.opt["SimType"] in ["nvt", "npt"]:
 
-            if self.opt["SimType"] == "nvt":
+            if self.opt["SimType"] == "nvt" or self.opt["implicit_solvent"] != "None":
+
                 self.opt["Logger"].info(
                     "[{}] Running time : {time} ns => {steps} steps of {SimType} at "
                     "{temperature} K".format(self.opt["CubeTitle"], **self.opt)

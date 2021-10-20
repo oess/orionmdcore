@@ -1403,9 +1403,12 @@ class MDDataRecord(object):
         if sync_stage_name is not None:
             mdstate = self.get_stage_state(stg_name=sync_stage_name)
 
-            pmd_structure.positions = mdstate.get_positions()
-            pmd_structure.velocities = mdstate.get_velocities()
-            pmd_structure.box_vectors = mdstate.get_box_vectors()
+            if mdstate.get_positions():
+                pmd_structure.positions = mdstate.get_positions()
+            if mdstate.get_velocities():
+                pmd_structure.velocities = mdstate.get_velocities()
+            if mdstate.get_box_vectors():
+                pmd_structure.box_vectors = mdstate.get_box_vectors()
 
         return pmd_structure
 
@@ -1442,9 +1445,12 @@ class MDDataRecord(object):
 
             mdstate = self.get_stage_state(stg_name=sync_stage_name)
 
-            pmd.positions = mdstate.get_positions()
-            pmd.velocities = mdstate.get_velocities()
-            pmd.box_vectors = mdstate.get_box_vectors()
+            if mdstate.get_positions():
+                pmd.positions = mdstate.get_positions()
+            if mdstate.get_velocities():
+                pmd.velocities = mdstate.get_velocities()
+            if mdstate.get_box_vectors():
+                pmd.box_vectors = mdstate.get_box_vectors()
 
         if in_orion():
 
@@ -1555,6 +1561,25 @@ class MDDataRecord(object):
         self.rec.delete_field(Fields.pmd_structure)
 
         return True
+
+    @property
+    def has_protein_traj(self):
+        """
+        This method checks if the multi conformer protein is on the record.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        boolean : Bool
+            True if the  multi conformer protein is on the record otherwise False
+        """
+
+        if not self.rec.has_field(Fields.protein_traj_confs):
+            return False
+        else:
+            return True
 
     @property
     def get_protein_traj(self):
@@ -1693,6 +1718,25 @@ class MDDataRecord(object):
         return True
 
     @property
+    def has_ligand_traj(self):
+        """
+        This method checks if the multi conformer ligand is on the record.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        boolean : Bool
+            True if the  multi conformer ligand is on the record otherwise False
+        """
+
+        if not self.rec.has_field(Fields.ligand_traj_confs):
+            return False
+        else:
+            return True
+
+    @property
     def get_ligand_traj(self):
         """
         This method returns the ligand molecule where conformers have been set as trajectory frames
@@ -1827,6 +1871,25 @@ class MDDataRecord(object):
             self.rec.set_value(Fields.ligand_traj_confs, ligand_conf)
 
         return True
+
+    @property
+    def has_water_traj(self):
+        """
+        This method checks if the multi conformer water is on the record.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        boolean : Bool
+            True if the  multi conformer water is on the record otherwise False
+        """
+
+        if not self.rec.has_field(Fields.water_traj_confs):
+            return False
+        else:
+            return True
 
     @property
     def get_water_traj(self):
