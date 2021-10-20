@@ -147,7 +147,8 @@ class OpenMMSimulations(MDSimulations):
             )
         else:  # Vacuum
             self.system = parmed_structure.createSystem(
-                nonbondedMethod=app.NoCutoff,
+                nonbondedMethod=app.CutoffNonPeriodic,
+                nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
                 constraints=eval("app.%s" % constraints),
                 removeCMMotion=False,
                 hydrogenMass=4.0 * unit.amu if opt["hmr"] else None,
@@ -161,7 +162,8 @@ class OpenMMSimulations(MDSimulations):
             implicit_force = parmed_structure.omm_gbsa_force(
                 eval("app.%s" % opt["implicit_solvent"]),
                 temperature=opt["temperature"] * unit.kelvin,
-                nonbondedMethod= app.NoCutoff,
+                nonbondedMethod= app.CutoffNonPeriodic,
+                nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
                 solventDielectric=80.0)
 
             self.system.addForce(implicit_force)
