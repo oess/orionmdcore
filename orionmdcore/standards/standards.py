@@ -16,6 +16,7 @@
 # or its use.
 
 try:
+    from openeye import oechem
     from floe.api.orion import in_orion
 except ImportError:
     from orionmdcore import __installation__error__

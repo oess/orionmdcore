@@ -40,8 +40,6 @@ import os
 
 import copy
 
-
-
 try:
     import bz2
 

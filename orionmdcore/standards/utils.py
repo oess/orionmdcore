@@ -16,6 +16,8 @@
 # or its use.
 
 try:
+    from openeye import oechem
+
     from datarecord import CustomHandler
 
     from orionclient.session import in_orion, OrionSession, get_session
@@ -28,9 +30,6 @@ try:
         try_hard_to_create_shard,
         try_hard_to_download_shard,
     )
-
-    from openeye import oechem
-
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)

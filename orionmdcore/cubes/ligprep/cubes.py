@@ -16,13 +16,13 @@
 # or its use.
 
 try:
+    from openeye import oechem
+
     from floe.api import parameters, ComputeCube, ParallelMixin
 
     from datarecord import OERecord
 
     from oeommtools import utils as oeommutils
-
-    from openeye import oechem
 
     from orionplatform.mixins import RecordPortsMixin
 except ImportError:

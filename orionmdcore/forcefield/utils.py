@@ -16,9 +16,10 @@
 # or its use.
 
 try:
+    from openeye import oechem
+    from openeye import oequacpac
+    from openeye import oeomega
     from oeommtools import utils as oeommutils
-
-    from openeye import oechem, oequacpac, oeomega
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)

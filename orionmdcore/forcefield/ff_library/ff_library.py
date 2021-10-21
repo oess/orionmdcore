@@ -15,6 +15,7 @@
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
+from openeye import oechem
 
 import os
 

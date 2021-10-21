@@ -8,8 +8,6 @@ from simtk import unit
 
 import itertools
 
-from orionmdcore.mdengine import data_utils
-
 
 class MDState(object):
     def __init__(self, parmed_structure):

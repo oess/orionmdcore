@@ -1,6 +1,5 @@
-import base64
-import parmed
 from openeye import oechem
+import base64
 import pickle
 
 

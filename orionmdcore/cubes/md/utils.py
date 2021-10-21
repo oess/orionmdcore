@@ -27,10 +27,6 @@ import fcntl
 
 import os
 
-from simtk import unit
-
-import math
-
 
 md_keys_converter = {
     "OpenMM": {

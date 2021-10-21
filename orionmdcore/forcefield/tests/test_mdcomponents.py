@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
+
 try:
     from openeye import oechem
     from datarecord import read_records

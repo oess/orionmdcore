@@ -16,6 +16,8 @@
 # or its use.
 
 try:
+    from openeye import oechem
+
     from orionplatform.mixins import RecordPortsMixin
 
     from orionplatform.ports import (
@@ -30,8 +32,6 @@ try:
     from orionclient.types import ShardCollection
 
     from orionclient.session import in_orion, APISession
-
-    from openeye import oechem
 
     from oeommtools import packmol
 

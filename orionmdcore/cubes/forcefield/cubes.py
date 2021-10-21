@@ -16,11 +16,11 @@
 # or its use.
 
 try:
+    from openeye import oechem
+
     from orionplatform.mixins import RecordPortsMixin
 
     from floe.api import ParallelMixin, parameters, ComputeCube
-
-    from openeye import oechem
 
     from snowball.utils.log_params import LogFieldParam
 except ImportError:
