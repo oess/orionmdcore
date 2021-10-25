@@ -1405,9 +1405,9 @@ class MDDataRecord(object):
 
             if mdstate.get_positions():
                 pmd_structure.positions = mdstate.get_positions()
-            if mdstate.get_velocities():
+            if mdstate.get_velocities() is not None:
                 pmd_structure.velocities = mdstate.get_velocities()
-            if mdstate.get_box_vectors():
+            if mdstate.get_box_vectors() is not None:
                 pmd_structure.box_vectors = mdstate.get_box_vectors()
 
         return pmd_structure
@@ -1447,9 +1447,9 @@ class MDDataRecord(object):
 
             if mdstate.get_positions():
                 pmd.positions = mdstate.get_positions()
-            if mdstate.get_velocities():
+            if mdstate.get_velocities() is not None:
                 pmd.velocities = mdstate.get_velocities()
-            if mdstate.get_box_vectors():
+            if mdstate.get_box_vectors() is not None:
                 pmd.box_vectors = mdstate.get_box_vectors()
 
         if in_orion():
