@@ -96,6 +96,17 @@ def anaconda_upload(ctx, username, label="OrionDev"):
 
 
 @task
+def docs(ctx):
+    clean_docs(ctx)
+    curdir = os.getcwd()
+    run('cube_doc orionmdcore.cubes docs/source')
+    run('floe_doc "OrionMDCore Floes" floes docs/source')
+    os.chdir('docs')
+    run("make html")
+    os.chdir(curdir)
+
+
+@task
 def clean(ctx):
     """
     Clean up doc and package builds
@@ -140,11 +151,21 @@ def clean_pycache(ctx):
 
 @task
 def clean_docs(ctx):
-    doc_dir = "docs/build/html"
-    _clean_out_dir(doc_dir)
+
+    if os.path.isdir("docs/docs"):
+        shutil.rmtree("docs/docs")
+
+    if os.path.isdir("docs/build"):
+        shutil.rmtree("docs/build")
 
     if os.path.isdir("docs/build/doctrees"):
         shutil.rmtree("docs/build/doctrees")
+
+    if os.path.isdir("docs/source/cubes"):
+        shutil.rmtree("docs/source/cubes")
+
+    if os.path.isdir("docs/source/floes"):
+        shutil.rmtree("docs/source/floes")
 
 
 def _clean_out_dir(dir_path):

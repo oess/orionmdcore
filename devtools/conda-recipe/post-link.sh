@@ -11,7 +11,7 @@ environment.
 Customers that have access to OpenEye MagPie repository and correctly set
 their local pip credentials can have them installed by typing:
 
-pip install OpenEye-orionplatform[artemis]==4.0.0 OpenEye-snowball==0.21.0
+pip install OpenEye-orionplatform[artemis]==4.2.2 OpenEye-toolkits==2021.2.0 OpenEye-snowball==0.23.0
 
 In case of issues please contact the OpenEye support
 ***************************************************************************
