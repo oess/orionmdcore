@@ -76,6 +76,13 @@ class GromacsSimulations(MDSimulations):
         velocities = mdstate.get_velocities()
         box = mdstate.get_box_vectors()
 
+        if opt['use_cpu_gpu'] == "Auto":
+            opt['platform'] = "Auto"
+        elif opt['use_cpu_gpu'] == 'GPU':
+            opt['platform'] = 'CUDA'
+        else:
+            opt['platform'] = 'CPU'
+
         if box is not None:
             omm_system = parmed_structure.createSystem(
                 nonbondedMethod=app.CutoffPeriodic,
@@ -870,40 +877,118 @@ class GromacsSimulations(MDSimulations):
         # Run Gromacs
         if self.opt["verbose"]:
             start_time = time.time()
-            subprocess.check_call(
-                [
-                    "gmx",
-                    "mdrun",
-                    "-v",
-                    "-s",
-                    self.opt["grm_tpr_fn"],
-                    "-deffnm",
-                    self.opt["grm_def_fn"],
-                    "-o",
-                    self.opt["grm_trj_fn"],
-                ]
-            )
+            if self.opt['platform'] == 'Auto':
+                subprocess.check_call(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                    ]
+                )
+            elif self.opt['platform'] == 'CUDA':
+                subprocess.check_call(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                        "-gpu_id", str(0)
+                    ]
+                )
+            else:
+                print("HERE>>>>>>>>>>>>>>1")
+                subprocess.check_call(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                        "-nb", "cpu",
+                        "-pme", "cpu",
+                        '-ntomp', str(self.opt['cpu_count']),
+                        '-ntmpi', str(1),
+                    ]
+                )
             end_time = time.time()
         else:
             start_time = time.time()
-            p = Popen(
-                [
-                    "gmx",
-                    "mdrun",
-                    "-v",
-                    "-s",
-                    self.opt["grm_tpr_fn"],
-                    "-deffnm",
-                    self.opt["grm_def_fn"],
-                    "-o",
-                    self.opt["grm_trj_fn"],
-                ],
-                stdin=PIPE,
-                stdout=DEVNULL,
-                stderr=STDOUT,
-            )
+            if self.opt['platform'] == 'Auto':
+                p = Popen(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                    ],
+                    stdin=PIPE,
+                    stdout=DEVNULL,
+                    stderr=STDOUT,
+                )
+                p.communicate()
+            elif self.opt['platform'] == 'CUDA':
+                p = Popen(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                        "-gpu_id", str(0),
+                    ],
+                    stdin=PIPE,
+                    stdout=DEVNULL,
+                    stderr=STDOUT,
+                )
+                p.communicate()
+            else:
+                print("HERE>>>>>>>>>>>>>>2")
+                p = Popen(
+                    [
+                        "gmx",
+                        "mdrun",
+                        "-v",
+                        "-s",
+                        self.opt["grm_tpr_fn"],
+                        "-deffnm",
+                        self.opt["grm_def_fn"],
+                        "-o",
+                        self.opt["grm_trj_fn"],
+                         "-nb", "cpu",
+                        "-pme", "cpu",
+                        '-ntomp', str(self.opt['cpu_count']),
+                        '-ntmpi', str(1),
+                    ],
+                    stdin=PIPE,
+                    stdout=DEVNULL,
+                    stderr=STDOUT,
+                )
+                p.communicate()
 
-            p.communicate()
             end_time = time.time()
 
         if self.opt["SimType"] in ["nvt", "npt"]:

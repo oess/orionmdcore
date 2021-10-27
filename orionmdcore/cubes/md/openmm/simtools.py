@@ -72,7 +72,13 @@ class OpenMMSimulations(MDSimulations):
     def __init__(self, mdstate, parmed_structure, opt):
         super().__init__(mdstate, parmed_structure, opt)
 
-        opt["platform"] = "Auto"
+        if opt['use_cpu_gpu'] == "Auto":
+            opt["platform"] = "Auto"
+        elif opt['use_cpu_gpu'] == "GPU":
+            opt["platform"] = "CUDA"
+        else:
+            opt["platform"] = "CPU"
+
         opt["cuda_opencl_precision"] = "mixed"
 
         topology = parmed_structure.topology
@@ -193,7 +199,6 @@ class OpenMMSimulations(MDSimulations):
                     "the barostat force".format(
                         opt["CubeTitle"]))
 
-
         # Apply restraints
         if opt["restraints"]:
             opt["Logger"].info(
@@ -290,6 +295,8 @@ class OpenMMSimulations(MDSimulations):
             for idx in range(0, len(positions)):
                 if idx in freeze_atom_set:
                     self.system.setParticleMass(idx, 0.0)
+
+        print(">>>>>>>>>>>>>>>>", opt['platform'], flush=True)
 
         # Platform Selection
         if opt["platform"] == "Auto":

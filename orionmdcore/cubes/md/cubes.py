@@ -76,6 +76,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
+        "cpu_count": {"default": 16},
         # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
@@ -189,6 +190,13 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         help_text="Select the MD available engine",
     )
 
+    use_cpu_gpu = parameters.StringParameter(
+        "use_cpu_gpu",
+        default="Auto",
+        choices=["Auto", "GPU", "CPU"],
+        help_text="Run on the selected platform",
+    )
+
     def begin(self):
         self.opt = vars(self.args)
         self.opt["Logger"] = self.log
@@ -257,6 +265,8 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
             # Extract the Parmed structure and synchronize it with the last MD stage state
             parmed_structure = mdrecord.get_parmed(sync_stage_name="last")
+
+            print(">>>>>>>>>>>>>>>>>ZERO", opt['cpu_count'])
 
             # Run the MD simulation
             new_mdstate = md_simulation(mdstate, parmed_structure, opt)
@@ -346,6 +356,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
+        "cpu_count": {"default": 16},
         # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
@@ -478,6 +489,13 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
         help_text="Select the MD available engine",
+    )
+
+    use_cpu_gpu = parameters.StringParameter(
+        "use_cpu_gpu",
+        default="Auto",
+        choices=["Auto", "GPU", "CPU"],
+        help_text="Run on the selected platform",
     )
 
     def begin(self):
@@ -662,6 +680,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
+        "cpu_count": {"default": 16},
         # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
         "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
@@ -795,6 +814,13 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
         help_text="Select the MD available engine",
+    )
+
+    use_cpu_gpu = parameters.StringParameter(
+        "use_cpu_gpu",
+        default="Auto",
+        choices=["Auto", "GPU", "CPU"],
+        help_text="Run on the selected platform",
     )
 
     def begin(self):
