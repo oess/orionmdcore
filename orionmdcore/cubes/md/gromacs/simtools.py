@@ -921,6 +921,8 @@ class GromacsSimulations(MDSimulations):
                         self.opt["grm_trj_fn"],
                         "-nb", "cpu",
                         "-pme", "cpu",
+                        "-bonded", "cpu",
+                        "-update", "cpu",
                         '-ntomp', str(self.opt['cpu_count']),
                         '-ntmpi', str(1),
                     ]
@@ -980,6 +982,8 @@ class GromacsSimulations(MDSimulations):
                         self.opt["grm_trj_fn"],
                          "-nb", "cpu",
                         "-pme", "cpu",
+                        "-bonded", "cpu",
+                        "-update", "cpu",
                         '-ntomp', str(self.opt['cpu_count']),
                         '-ntmpi', str(1),
                     ],

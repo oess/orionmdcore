@@ -72,15 +72,6 @@ class OpenMMSimulations(MDSimulations):
     def __init__(self, mdstate, parmed_structure, opt):
         super().__init__(mdstate, parmed_structure, opt)
 
-        if opt['use_cpu_gpu'] == "Auto":
-            opt["platform"] = "Auto"
-        elif opt['use_cpu_gpu'] == "GPU":
-            opt["platform"] = "CUDA"
-        else:
-            opt["platform"] = "CPU"
-
-        opt["cuda_opencl_precision"] = "mixed"
-
         topology = parmed_structure.topology
         positions = mdstate.get_positions()
         velocities = mdstate.get_velocities()
@@ -296,86 +287,107 @@ class OpenMMSimulations(MDSimulations):
                 if idx in freeze_atom_set:
                     self.system.setParticleMass(idx, 0.0)
 
-        print(">>>>>>>>>>>>>>>>", opt['platform'], flush=True)
-
         # Platform Selection
-        if opt["platform"] == "Auto":
+        if opt['use_cpu_gpu'] == "Auto":
             # Select the platform
+            check_platform = False
             for plt_name in ["CUDA", "OpenCL", "CPU", "Reference"]:
                 try:
                     platform = openmm.Platform_getPlatformByName(plt_name)
-                    break
-                except:
-                    if plt_name == "Reference":
-                        raise ValueError(
-                            "It was not possible to select any OpenMM Platform"
-                        )
-                    else:
-                        pass
-            if platform.getName() in ["CUDA", "OpenCL"]:
-                for precision in ["mixed", "single", "double"]:
-                    try:
-                        # Set platform precision for CUDA or OpenCL
-                        properties = {"Precision": precision}
+                    if plt_name in ["CUDA", "OpenCL"]:
 
-                        if (
-                            "gpu_id" in opt
-                            and "OE_VISIBLE_DEVICES" in os.environ
-                            and not in_orion()
-                        ):
-                            properties["DeviceIndex"] = opt["gpu_id"]
+                        for precision in ["mixed", "single", "double"]:
+                            try:
+                                # Set platform precision for CUDA or OpenCL
+                                properties = {"Precision": precision}
 
-                        simulation = app.Simulation(
-                            topology,
-                            self.system,
-                            integrator,
-                            platform=platform,
-                            platformProperties=properties,
-                        )
-                        break
-                    except:
-                        if precision == "double":
-                            raise ValueError(
-                                "It was not possible to select any Precision "
-                                "for the selected Platform: {}".format(
-                                    platform.getName()
+                                if (
+                                    "gpu_id" in opt
+                                    and "OE_VISIBLE_DEVICES" in os.environ
+                                    and not in_orion()
+                                ):
+                                    properties["DeviceIndex"] = opt["gpu_id"]
+
+                                simulation = app.Simulation(
+                                    topology,
+                                    self.system,
+                                    integrator,
+                                    platform=platform,
+                                    platformProperties=properties,
                                 )
+                                check_platform = True
+                                break
+                            except:
+                                if precision == 'double':
+                                    raise ValueError("It was not possible to Auto set the precision for "
+                                                     "the Platform: {}".format(plt_name))
+                                else:
+                                    continue
+
+                        if check_platform:
+                            break
+
+                    else:  # CPU or Reference
+                        if plt_name == 'CPU':
+                            properties = {"Threads": str(opt["cpu_count"])}
+                            simulation = app.Simulation(
+                                topology, self.system, integrator, platform=platform,
+                                platformProperties=properties
                             )
                         else:
-                            pass
-            else:  # CPU or Reference
-                simulation = app.Simulation(
-                    topology, self.system, integrator, platform=platform
-                )
-        else:  # Not Auto Platform selection
-            try:
-                platform = openmm.Platform.getPlatformByName(opt["platform"])
-            except Exception as e:
-                raise ValueError(
-                    "The selected platform is not supported: {}".format(str(e))
-                )
+                            simulation = app.Simulation(
+                                topology, self.system, integrator, platform=platform
+                            )
+                        check_platform = True
+                        break
 
-            if opt["platform"] in ["CUDA", "OpenCL"]:
-                try:
-                    # Set platform CUDA or OpenCL precision
-                    properties = {"Precision": opt["cuda_opencl_precision"]}
-
-                    simulation = app.Simulation(
-                        topology,
-                        self.system,
-                        integrator,
-                        platform=platform,
-                        platformProperties=properties,
-                    )
-                except Exception:
-                    raise ValueError(
-                        "It was not possible to set the {} precision for the {} platform".format(
-                            opt["cuda_opencl_precision"], opt["platform"]
-                        )
-                    )
-            else:  # CPU or Reference Platform
+                    if not check_platform:
+                        continue
+                    else:
+                        break
+                except:
+                    if plt_name == "Reference":
+                        raise ValueError("It Was not possible to Auto select the Platform")
+                    else:
+                        continue
+        else:  # Non-Auto Platform selection
+            if opt['use_cpu_gpu'] == 'GPU':
+                check_platform = False
+                for plt_name in ["CUDA", "OpenCL"]:
+                    try:
+                        platform = openmm.Platform_getPlatformByName(plt_name)
+                        for precision in ["mixed", "single", "double"]:
+                            try:
+                                # Set platform precision for CUDA or OpenCL
+                                properties = {"Precision": precision}
+                                simulation = app.Simulation(
+                                    topology,
+                                    self.system,
+                                    integrator,
+                                    platform=platform,
+                                    platformProperties=properties,
+                                )
+                                check_platform = True
+                                break
+                            except:
+                                if precision == 'double':
+                                    raise ValueError("It was not possible to set the precision {} for "
+                                                     "the platform: {}".format(precision, plt_name))
+                                else:
+                                    continue
+                        if check_platform:
+                            break
+                    except:
+                        if plt_name == 'OpenCL':
+                            raise ValueError("It was not possible to select the GPU platform")
+                        else:
+                            continue
+            else:  # CPU selection
+                platform = openmm.Platform_getPlatformByName(opt['use_cpu_gpu'])
+                properties = {"Threads": str(opt["cpu_count"])}
                 simulation = app.Simulation(
-                    topology, self.system, integrator, platform=platform
+                    topology, self.system, integrator, platform=platform,
+                    platformProperties=properties
                 )
 
         # Set starting positions and velocities
