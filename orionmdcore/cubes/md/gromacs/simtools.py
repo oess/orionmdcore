@@ -25,6 +25,7 @@ except ImportError:
 from simtk import unit
 
 from simtk.openmm import app
+from simtk.openmm import Platform
 
 import simtk
 
@@ -75,13 +76,6 @@ class GromacsSimulations(MDSimulations):
 
         velocities = mdstate.get_velocities()
         box = mdstate.get_box_vectors()
-
-        if opt['use_cpu_gpu'] == "Auto":
-            opt['platform'] = "Auto"
-        elif opt['use_cpu_gpu'] == 'GPU':
-            opt['platform'] = 'CUDA'
-        else:
-            opt['platform'] = 'CPU'
 
         if box is not None:
             omm_system = parmed_structure.createSystem(
@@ -874,10 +868,70 @@ class GromacsSimulations(MDSimulations):
 
     def run(self):
 
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self.opt['use_cpu_gpu'], self.opt['cpu_count'], self.opt['gpu_count'], flush=True)
+
         # Run Gromacs
         if self.opt["verbose"]:
             start_time = time.time()
-            if self.opt['platform'] == 'Auto':
+
+            if self.opt['use_cpu_gpu'] == 'Auto':
+                print(">>>>>>>>>>>>>>>>verbose Auto", flush=True)
+                num_platforms = Platform.getNumPlatforms()
+                have_gpu = False
+
+                for i in range(num_platforms):
+                    platform = Platform.getPlatform(i)
+                    plt_name =platform.getName()
+                    if plt_name in ['CUDA', 'OpenCL']:
+                        have_gpu = True
+                        break
+                    else:
+                        continue
+
+                print('>>>>>>>>>>>>>>', have_gpu)
+
+                if have_gpu:
+                    subprocess.check_call(
+                        [
+                            "gmx",
+                            "mdrun",
+                            "-v",
+                            "-s",
+                            self.opt["grm_tpr_fn"],
+                            "-deffnm",
+                            self.opt["grm_def_fn"],
+                            "-o",
+                            self.opt["grm_trj_fn"],
+                            "-nb", "gpu",
+                            "-pme", "gpu",
+                            "-bonded", "gpu",
+                            "-update", "gpu",
+                            '-ntomp', str(self.opt['cpu_count']),
+                            '-ntmpi', str(1),
+                        ]
+                    )
+                else:
+                    subprocess.check_call(
+                        [
+                            "gmx",
+                            "mdrun",
+                            "-v",
+                            "-s",
+                            self.opt["grm_tpr_fn"],
+                            "-deffnm",
+                            self.opt["grm_def_fn"],
+                            "-o",
+                            self.opt["grm_trj_fn"],
+                            "-nb", "cpu",
+                            "-pme", "cpu",
+                            "-bonded", "cpu",
+                            "-update", "cpu",
+                            '-ntomp', str(self.opt['cpu_count']),
+                            '-ntmpi', str(1),
+                        ]
+                    )
+            elif self.opt['use_cpu_gpu'] == 'GPU':
+                print(">>>>>>>>>>>>>>>>verbose GPU", flush=True)
                 subprocess.check_call(
                     [
                         "gmx",
@@ -889,25 +943,16 @@ class GromacsSimulations(MDSimulations):
                         self.opt["grm_def_fn"],
                         "-o",
                         self.opt["grm_trj_fn"],
-                    ]
-                )
-            elif self.opt['platform'] == 'CUDA':
-                subprocess.check_call(
-                    [
-                        "gmx",
-                        "mdrun",
-                        "-v",
-                        "-s",
-                        self.opt["grm_tpr_fn"],
-                        "-deffnm",
-                        self.opt["grm_def_fn"],
-                        "-o",
-                        self.opt["grm_trj_fn"],
-                        "-gpu_id", str(0)
+                        "-nb", "gpu",
+                        "-pme", "gpu",
+                        "-bonded", "gpu",
+                        "-update", "gpu",
+                        '-ntomp', str(self.opt['cpu_count']),
+                        '-ntmpi', str(1),
                     ]
                 )
             else:
-                print("HERE>>>>>>>>>>>>>>1")
+                print(">>>>>>>>>>>>>>>>verbose CPU", flush=True)
                 subprocess.check_call(
                     [
                         "gmx",
@@ -928,9 +973,77 @@ class GromacsSimulations(MDSimulations):
                     ]
                 )
             end_time = time.time()
-        else:
+        else: # Non Verbose mode
             start_time = time.time()
-            if self.opt['platform'] == 'Auto':
+            print(">>>>>>>>>>>>>>>>non verbose Auto", flush=True)
+
+            if self.opt['use_cpu_gpu'] == 'Auto':
+
+                num_platforms = Platform.getNumPlatforms()
+                have_gpu = False
+
+                for i in range(num_platforms):
+                    platform = Platform.getPlatform(i)
+                    plt_name = platform.getName()
+                    if plt_name in ['CUDA', 'OpenCL']:
+                        have_gpu = True
+                        break
+                    else:
+                        continue
+
+                print('>>>>>>>>>>>>>>', have_gpu)
+
+                if have_gpu:
+                    p = Popen(
+                        [
+                            "gmx",
+                            "mdrun",
+                            "-v",
+                            "-s",
+                            self.opt["grm_tpr_fn"],
+                            "-deffnm",
+                            self.opt["grm_def_fn"],
+                            "-o",
+                            self.opt["grm_trj_fn"],
+                            "-nb", "gpu",
+                            "-pme", "gpu",
+                            "-bonded", "gpu",
+                            "-update", "gpu",
+                            '-ntomp', str(self.opt['cpu_count']),
+                            '-ntmpi', str(1),
+                        ],
+                        stdin=PIPE,
+                        stdout=DEVNULL,
+                        stderr=STDOUT,
+                    )
+                    p.communicate()
+                else:
+                    p = Popen(
+                        [
+                            "gmx",
+                            "mdrun",
+                            "-v",
+                            "-s",
+                            self.opt["grm_tpr_fn"],
+                            "-deffnm",
+                            self.opt["grm_def_fn"],
+                            "-o",
+                            self.opt["grm_trj_fn"],
+                            "-nb", "cpu",
+                            "-pme", "cpu",
+                            "-bonded", "cpu",
+                            "-update", "cpu",
+                            '-ntomp', str(self.opt['cpu_count']),
+                            '-ntmpi', str(1),
+                        ],
+                        stdin=PIPE,
+                        stdout=DEVNULL,
+                        stderr=STDOUT,
+                    )
+                    p.communicate()
+
+            elif self.opt['use_cpu_gpu'] == 'GPU':
+                print(">>>>>>>>>>>>>>>>non verbose GPU", flush=True)
                 p = Popen(
                     [
                         "gmx",
@@ -942,25 +1055,12 @@ class GromacsSimulations(MDSimulations):
                         self.opt["grm_def_fn"],
                         "-o",
                         self.opt["grm_trj_fn"],
-                    ],
-                    stdin=PIPE,
-                    stdout=DEVNULL,
-                    stderr=STDOUT,
-                )
-                p.communicate()
-            elif self.opt['platform'] == 'CUDA':
-                p = Popen(
-                    [
-                        "gmx",
-                        "mdrun",
-                        "-v",
-                        "-s",
-                        self.opt["grm_tpr_fn"],
-                        "-deffnm",
-                        self.opt["grm_def_fn"],
-                        "-o",
-                        self.opt["grm_trj_fn"],
-                        "-gpu_id", str(0),
+                        "-nb", "gpu",
+                        "-pme", "gpu",
+                        "-bonded", "gpu",
+                        "-update", "gpu",
+                        '-ntomp', str(self.opt['cpu_count']),
+                        '-ntmpi', str(1),
                     ],
                     stdin=PIPE,
                     stdout=DEVNULL,
@@ -968,7 +1068,7 @@ class GromacsSimulations(MDSimulations):
                 )
                 p.communicate()
             else:
-                print("HERE>>>>>>>>>>>>>>2")
+                print(">>>>>>>>>>>>>>>>non verbose CPU", flush=True)
                 p = Popen(
                     [
                         "gmx",

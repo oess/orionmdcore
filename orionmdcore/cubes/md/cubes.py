@@ -266,8 +266,6 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
             # Extract the Parmed structure and synchronize it with the last MD stage state
             parmed_structure = mdrecord.get_parmed(sync_stage_name="last")
 
-            print(">>>>>>>>>>>>>>>>>ZERO", opt['cpu_count'])
-
             # Run the MD simulation
             new_mdstate = md_simulation(mdstate, parmed_structure, opt)
 
