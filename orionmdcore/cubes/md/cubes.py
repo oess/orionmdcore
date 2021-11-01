@@ -190,13 +190,6 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         help_text="Select the MD available engine",
     )
 
-    use_cpu_gpu = parameters.StringParameter(
-        "use_cpu_gpu",
-        default="Auto",
-        choices=["Auto", "GPU", "CPU"],
-        help_text="Run on the selected platform",
-    )
-
     def begin(self):
         self.opt = vars(self.args)
         self.opt["Logger"] = self.log
@@ -487,13 +480,6 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
         help_text="Select the MD available engine",
-    )
-
-    use_cpu_gpu = parameters.StringParameter(
-        "use_cpu_gpu",
-        default="Auto",
-        choices=["Auto", "GPU", "CPU"],
-        help_text="Run on the selected platform",
     )
 
     def begin(self):
@@ -812,13 +798,6 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
         help_text="Select the MD available engine",
-    )
-
-    use_cpu_gpu = parameters.StringParameter(
-        "use_cpu_gpu",
-        default="Auto",
-        choices=["Auto", "GPU", "CPU"],
-        help_text="Run on the selected platform",
     )
 
     def begin(self):

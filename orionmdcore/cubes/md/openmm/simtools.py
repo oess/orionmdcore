@@ -288,6 +288,11 @@ class OpenMMSimulations(MDSimulations):
                     self.system.setParticleMass(idx, 0.0)
 
         # Platform Selection
+        if opt['gpu_count']:
+            opt['use_cpu_gpu'] = "GPU"
+        else:
+            opt['use_cpu_gpu'] = "CPU"
+
         if opt['use_cpu_gpu'] == "Auto":
             # Select the platform
             check_platform = False
