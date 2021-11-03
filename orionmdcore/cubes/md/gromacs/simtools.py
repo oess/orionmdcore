@@ -169,7 +169,58 @@ class GromacsSimulations(MDSimulations):
         new_system_structure.box = parmed_structure.box
         new_system_structure.defaults = defaults
 
-        self.stepLen = 0.002 * unit.picoseconds
+        if opt['hmr']:
+            print(">>>>>>>>>>>>>>HMR ON")
+            # The Hydrogen Mass repartitioning code has been adapted from the PARMED code
+
+            SOLVENT_NAMES = {'WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL'}
+
+            changewater = True
+            new_h_mass = 3.024
+
+            # Back up the masses in case something goes wrong
+            original_masses = [atom.mass for atom in new_system_structure.atoms]
+            water = SOLVENT_NAMES
+
+            for i, atom in enumerate(new_system_structure.atoms):
+
+                if atom.atomic_number != 1:
+                    continue
+                if not changewater and atom.residue.name in water:
+                    continue
+
+                heteroatom = None
+                heteroidx = 0
+                bondeds = list(atom.bond_partners)
+
+                while heteroidx < len(bondeds):
+                    if bondeds[heteroidx].atomic_number != 1:
+                        heteroatom = bondeds[heteroidx]
+                        break
+                    heteroidx += 1
+
+                if heteroatom is None:
+                    # Only bonded to other Hydrogens. Weird, but do not repartition
+                    opt['Logger'].warn('H atom detected not bound to Heteroatom. Ignoring')
+                    continue
+
+                transfermass = new_h_mass - atom.mass
+                atom.mass = new_h_mass
+                heteroatom.mass -= transfermass
+
+            # Now make sure that all masses are positive, or revert masses and
+            # raise an exception
+            for atom in new_system_structure.atoms:
+                if atom.mass <= 0 and atom.atomic_number > 0:
+                    for i, atom in enumerate(new_system_structure.atoms):
+                        atom.mass = original_masses[i]
+                        raise ValueError('Too much mass removed from atom {}. Hydrogen masses must be smaller.'.format(i))
+
+            self.stepLen = 0.004 * unit.picoseconds
+
+        #########################################
+        else:
+            self.stepLen = 0.002 * unit.picoseconds
 
         opt["timestep"] = self.stepLen
 

@@ -202,6 +202,7 @@ class OpenMMSimulations(MDSimulations):
                     / unit.angstroms ** 2,
                 )
             )
+
             # Select atom to restraint
             res_atom_set = oeommutils.select_oemol_atom_idx_by_language(
                 opt["molecule"], mask=opt["restraints"]
