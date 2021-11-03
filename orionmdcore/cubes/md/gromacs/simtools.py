@@ -170,24 +170,22 @@ class GromacsSimulations(MDSimulations):
         new_system_structure.defaults = defaults
 
         if opt['hmr']:
-            print(">>>>>>>>>>>>>>HMR ON")
+            opt["Logger"].info("Hydrogen Mass repartitioning is On")
+
             # The Hydrogen Mass repartitioning code has been adapted from the PARMED code
+            original_masses = [atom.mass for atom in parmed_structure.atoms]
 
-            SOLVENT_NAMES = {'WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL'}
-
-            changewater = True
-            new_h_mass = 3.024
-
-            # Back up the masses in case something goes wrong
-            original_masses = [atom.mass for atom in new_system_structure.atoms]
-            water = SOLVENT_NAMES
+            # water = ['WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL']
+            # changewater = True
+            # new_h_mass = 3.024
+            new_h_mass = 2.800
 
             for i, atom in enumerate(new_system_structure.atoms):
 
                 if atom.atomic_number != 1:
                     continue
-                if not changewater and atom.residue.name in water:
-                    continue
+                # if not changewater and atom.residue.name in water:
+                #     continue
 
                 heteroatom = None
                 heteroidx = 0
@@ -208,13 +206,15 @@ class GromacsSimulations(MDSimulations):
                 atom.mass = new_h_mass
                 heteroatom.mass -= transfermass
 
-            # Now make sure that all masses are positive, or revert masses and
-            # raise an exception
-            for atom in new_system_structure.atoms:
-                if atom.mass <= 0 and atom.atomic_number > 0:
-                    for i, atom in enumerate(new_system_structure.atoms):
-                        atom.mass = original_masses[i]
-                        raise ValueError('Too much mass removed from atom {}. Hydrogen masses must be smaller.'.format(i))
+                if heteroatom.mass <= 0:
+                    raise ValueError('Too much mass removed from atom {}. '
+                                     'Hydrogen masses must be smaller.'.format(heteroatom.name))
+
+            new_masses = [atom.mass for atom in new_system_structure.atoms]
+
+            if abs(sum(original_masses) - sum(new_masses)) > 0.001:
+                raise ValueError("Total mass mismatch {} vs {}".format(sum(original_masses),
+                                                                       sum(new_masses)))
 
             self.stepLen = 0.004 * unit.picoseconds
 
