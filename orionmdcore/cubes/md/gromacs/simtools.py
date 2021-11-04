@@ -103,53 +103,83 @@ class GromacsSimulations(MDSimulations):
         defaults = _Defaults(fudgeLJ=0.5, fudgeQQ=0.8333, gen_pairs="yes")
         parmed_structure.defaults = defaults
 
-        def check_water(res):
-            two_bonds = list(res.bonds())
+        # def check_water(res):
+        #     two_bonds = list(res.bonds())
+        #
+        #     if len(two_bonds) == 2:
+        #
+        #         waters = []
+        #
+        #         for bond in two_bonds:
+        #
+        #             elem0 = bond[0].element
+        #             elem1 = bond[1].element
+        #
+        #             if (elem0.atomic_number == 1 and elem1.atomic_number == 8) or (
+        #                 elem0.atomic_number == 8 and elem1.atomic_number == 1
+        #             ):
+        #                 waters.append(True)
+        #
+        #         if all(waters):
+        #             return True
+        #
+        #     else:
+        #         return False
+        #
+        #
+        # print("HERE>>>>>>>>>>>>>>>1", flush=True)
+        # # Rename all the water molecules to avoid Gromacs
+        # # settling errors
+        # for r in topology.residues():
+        #     if check_water(r):
+        #         h1 = False
+        #         for a in r.atoms():
+        #             if a.element.atomic_number == 1:
+        #                 if not h1:
+        #                     a.name = "H1"
+        #                     h1 = True
+        #                 else:
+        #                     a.name = "H2"
+        #             else:
+        #                 a.name = "O"
+        # print("HERE>>>>>>>>>>>>>>>2", flush=True)
+        #
+        # for c in topology.chains():
+        #     for r in c.residues():
+        #         for a in r.atoms():
+        #             if r.name + a.name in atom_types_dic:
+        #                 a.id = atom_types_dic[r.name + a.name]
+        #             else:
+        #                 if check_water(r):
+        #                     if a.element.atomic_number == 1:
+        #                         a.id = "HW"
+        #                     else:
+        #                         a.id = "OW"
+        #                     atom_types_dic[r.name + a.name] = a.id
+        #                 else:
+        #                     a.id = "O" + str(count_id)
+        #                     count_id += 1
+        #                     atom_types_dic[r.name + a.name] = a.id
+        #
+        # print("HERE>>>>>>>>>>>>>>>3", flush=True)
 
-            if len(two_bonds) == 2:
-
-                waters = []
-
-                for bond in two_bonds:
-
-                    elem0 = bond[0].element
-                    elem1 = bond[1].element
-
-                    if (elem0.atomic_number == 1 and elem1.atomic_number == 8) or (
-                        elem0.atomic_number == 8 and elem1.atomic_number == 1
-                    ):
-                        waters.append(True)
-
-                if all(waters):
-                    return True
-
-            else:
-                return False
-
-        # Rename all the water molecules to avoid Gromacs
-        # settling errors
-        for r in topology.residues():
-            if check_water(r):
-                h1 = False
-                for a in r.atoms():
-                    if a.element.atomic_number == 1:
-                        if not h1:
-                            a.name = "H1"
-                            h1 = True
-                        else:
-                            a.name = "H2"
-                    else:
-                        a.name = "O"
+        water_res_names = ['WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL']
 
         for c in topology.chains():
             for r in c.residues():
+                h1 = False
                 for a in r.atoms():
                     if r.name + a.name in atom_types_dic:
                         a.id = atom_types_dic[r.name + a.name]
                     else:
-                        if check_water(r):
+                        if r.name in water_res_names:
                             if a.element.atomic_number == 1:
                                 a.id = "HW"
+                                if not h1:
+                                    a.name = "H1"
+                                    h1 = True
+                                else:
+                                    a.name = "H2"
                             else:
                                 a.id = "OW"
                             atom_types_dic[r.name + a.name] = a.id
@@ -178,7 +208,7 @@ class GromacsSimulations(MDSimulations):
             # water = ['WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL']
             # changewater = True
             # new_h_mass = 3.024
-            new_h_mass = 2.800
+            new_h_mass = 3.000
 
             for i, atom in enumerate(new_system_structure.atoms):
 

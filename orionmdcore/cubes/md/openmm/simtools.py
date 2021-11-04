@@ -138,7 +138,7 @@ class OpenMMSimulations(MDSimulations):
                 nonbondedCutoff=cutoff_distance,
                 constraints=eval("app.%s" % constraints),
                 removeCMMotion=False,
-                hydrogenMass=4.0 * unit.amu if opt["hmr"] else None,
+                hydrogenMass=3.0 * unit.amu if opt["hmr"] else None,
             )
         else:  # Vacuum
             self.system = parmed_structure.createSystem(
@@ -146,7 +146,7 @@ class OpenMMSimulations(MDSimulations):
                 nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
                 constraints=eval("app.%s" % constraints),
                 removeCMMotion=False,
-                hydrogenMass=4.0 * unit.amu if opt["hmr"] else None,
+                hydrogenMass=3.0 * unit.amu if opt["hmr"] else None,
             )
         # Add Implicit Solvent Force
         if opt["implicit_solvent"] != "None":
