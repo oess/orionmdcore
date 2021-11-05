@@ -949,7 +949,7 @@ class GromacsSimulations(MDSimulations):
 
     def run(self):
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self.opt['cpu_count'], self.opt['gpu_count'], flush=True)
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", self.opt['cpu_count'], self.opt['gpu_count'], flush=True)
 
         if self.opt['gpu_count']:
             self.opt['use_cpu_gpu'] = "GPU"
@@ -961,7 +961,7 @@ class GromacsSimulations(MDSimulations):
             start_time = time.time()
 
             if self.opt['use_cpu_gpu'] == 'Auto':
-                print(">>>>>>>>>>>>>>>>verbose Auto", flush=True)
+                # print(">>>>>>>>>>>>>>>>verbose Auto", flush=True)
 
                 if self.opt["gpu_count"] != 0:
                     subprocess.check_call(
@@ -1004,7 +1004,7 @@ class GromacsSimulations(MDSimulations):
                         ]
                     )
             elif self.opt['use_cpu_gpu'] == 'GPU':
-                print(">>>>>>>>>>>>>>>>verbose GPU", flush=True)
+                # print(">>>>>>>>>>>>>>>>verbose GPU", flush=True)
                 subprocess.check_call(
                     [
                         "gmx",
@@ -1025,7 +1025,7 @@ class GromacsSimulations(MDSimulations):
                     ]
                 )
             else:
-                print(">>>>>>>>>>>>>>>>verbose CPU", flush=True)
+                # print(">>>>>>>>>>>>>>>>verbose CPU", flush=True)
                 subprocess.check_call(
                     [
                         "gmx",
@@ -1048,7 +1048,7 @@ class GromacsSimulations(MDSimulations):
             end_time = time.time()
         else:  # Non Verbose mode
             start_time = time.time()
-            print(">>>>>>>>>>>>>>>>non verbose Auto", flush=True)
+            # print(">>>>>>>>>>>>>>>>non verbose Auto", flush=True)
 
             if self.opt['use_cpu_gpu'] == 'Auto':
 
@@ -1116,7 +1116,7 @@ class GromacsSimulations(MDSimulations):
                     p.communicate()
 
             elif self.opt['use_cpu_gpu'] == 'GPU':
-                print(">>>>>>>>>>>>>>>>non verbose GPU", flush=True)
+                # print(">>>>>>>>>>>>>>>>non verbose GPU", flush=True)
                 p = Popen(
                     [
                         "gmx",
@@ -1141,7 +1141,7 @@ class GromacsSimulations(MDSimulations):
                 )
                 p.communicate()
             else:
-                print(">>>>>>>>>>>>>>>>non verbose CPU", flush=True)
+                # print(">>>>>>>>>>>>>>>>non verbose CPU", flush=True)
                 p = Popen(
                     [
                         "gmx",
