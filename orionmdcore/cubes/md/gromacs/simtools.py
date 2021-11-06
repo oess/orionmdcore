@@ -125,8 +125,7 @@ class GromacsSimulations(MDSimulations):
         #
         #     else:
         #         return False
-        #
-        #
+
         # print("HERE>>>>>>>>>>>>>>>1", flush=True)
         # # Rename all the water molecules to avoid Gromacs
         # # settling errors
@@ -160,14 +159,24 @@ class GromacsSimulations(MDSimulations):
         #                     a.id = "O" + str(count_id)
         #                     count_id += 1
         #                     atom_types_dic[r.name + a.name] = a.id
-        #
-        # print("HERE>>>>>>>>>>>>>>>3", flush=True)
 
         water_res_names = ['WAT', 'HOH', 'TIP3', 'TIP4', 'TIP5', 'SPCE', 'SPC', 'SOL']
 
+        for r in topology.residues():
+            if r.name in water_res_names:
+                h1 = False
+                for a in r.atoms():
+                    if a.element.atomic_number == 1:
+                        if not h1:
+                            a.name = "H1"
+                            h1 = True
+                        else:
+                            a.name = "H2"
+                    else:
+                        a.name = "O"
+
         for c in topology.chains():
             for r in c.residues():
-                h1 = False
                 for a in r.atoms():
                     if r.name + a.name in atom_types_dic:
                         a.id = atom_types_dic[r.name + a.name]
@@ -175,11 +184,6 @@ class GromacsSimulations(MDSimulations):
                         if r.name in water_res_names:
                             if a.element.atomic_number == 1:
                                 a.id = "HW"
-                                if not h1:
-                                    a.name = "H1"
-                                    h1 = True
-                                else:
-                                    a.name = "H2"
                             else:
                                 a.id = "OW"
                             atom_types_dic[r.name + a.name] = a.id
