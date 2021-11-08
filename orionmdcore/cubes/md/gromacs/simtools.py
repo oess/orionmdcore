@@ -435,6 +435,7 @@ class GromacsSimulations(MDSimulations):
         opt["grm_tpr_fn"] = os.path.join(opt["out_directory"], opt["outfname"] + ".tpr")
         opt["mdp_fn"] = os.path.join(opt["out_directory"], opt["outfname"] + ".mdp")
         opt["grm_def_fn"] = os.path.join(opt["out_directory"], opt["outfname"] + "_run")
+        opt["grm_edr_fn"] = os.path.join(opt["out_directory"], opt["outfname"] + "_run.edr")
         opt["grm_log_fn"] = opt["grm_def_fn"] + ".log"
         opt["grm_trj_fn"] = os.path.join(opt["out_directory"], opt["outfname"] + ".trr")
         # opt['grm_trj_comp_fn'] = os.path.join(opt['out_directory'], opt['outfname'] + ".xtc")
@@ -1236,6 +1237,10 @@ class GromacsSimulations(MDSimulations):
                     archive.add(
                         self.opt["grm_trj_fn"],
                         arcname=os.path.basename(self.opt["grm_trj_fn"]),
+                    )
+                    archive.add(
+                        self.opt["grm_edr_fn"],
+                        arcname=os.path.basename(self.opt["grm_edr_fn"]),
                     )
                     # archive.add(self.opt['grm_trj_comp_fn'], arcname=os.path.basename(self.opt['grm_trj_comp_fn']))
                     archive.add(
