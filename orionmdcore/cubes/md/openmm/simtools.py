@@ -165,7 +165,7 @@ class OpenMMSimulations(MDSimulations):
 
         # OpenMM Integrator
         integrator = openmm.LangevinIntegrator(
-            opt["temperature"] * unit.kelvin, 1 / unit.picoseconds, self.stepLen
+            opt["temperature"] * unit.kelvin, 5 / unit.picoseconds, self.stepLen
         )
 
         if opt["SimType"] == "npt":

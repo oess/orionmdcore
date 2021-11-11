@@ -37,6 +37,8 @@ try:
 
     from oeommtools import data_utils as pack_utils
 
+    from datarecord import Types
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -650,12 +652,15 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
 
             name = self.opt["flask_title"]
 
-            if (
-                record.has_value(Fields.design_unit_from_spruce)
-                and not self.opt["ignore_du"]
-            ):
+            du_field = None
+            for fd in record.get_fields():
+                if fd.get_type() == Types.Chem.DesignUnit:
+                    du_field = fd
+                    break
 
-                du = record.get_value(Fields.design_unit_from_spruce)
+            if du_field is not None and not self.opt["ignore_du"]:
+
+                du = record.get_value(du_field)
 
                 self.opt["Logger"].info("[{}] Design Unit Detected".format(self.title))
 

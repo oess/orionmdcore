@@ -120,7 +120,7 @@ fourierspacing	= 0.16		; grid spacing for FFT
 ; Temperature coupling is on
 tcoupl		= no            ; modified Berendsen thermostat
 tc-grps		= System	;
-tau_t		= 1	    ; time constant, in ps >> friction_coefficient = 1/tau_t
+tau_t		= 0.2	    ; time constant, in ps >> friction_coefficient = 1/tau_t
 ref_t		= {temperature:f} ; reference temperature in K
 
 ; Pressure coupling is on
