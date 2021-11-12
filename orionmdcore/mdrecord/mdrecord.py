@@ -1009,8 +1009,15 @@ class MDDataRecord(object):
 
         state_fn = os.path.join(dir_stage, MDFileNames.state)
 
-        with open(state_fn, "rb") as f:
-            state = pickle.load(f)
+        try:
+            with open(state_fn, "rb") as f:
+                state = pickle.load(f)
+        except:
+            print("CAZZZZZ>>>>>>>>>>", flush=True)
+            from . import MDOrion
+            print("<<<<<<<<", MDOrion, flush=True)
+            with open(state_fn, "rb") as f:
+                state = pickle.load(f)
 
         return state
 
