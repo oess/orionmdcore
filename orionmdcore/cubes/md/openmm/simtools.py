@@ -157,7 +157,7 @@ class OpenMMSimulations(MDSimulations):
             implicit_force = parmed_structure.omm_gbsa_force(
                 eval("app.%s" % opt["implicit_solvent"]),
                 temperature=opt["temperature"] * unit.kelvin,
-                nonbondedMethod= app.CutoffNonPeriodic,
+                nonbondedMethod=app.CutoffNonPeriodic,
                 nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
                 solventDielectric=80.0)
 
