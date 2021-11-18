@@ -678,7 +678,7 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
                     else:
                         name = "Flask"
 
-                md_components = MDComponents(du, components_title=name)
+                md_components = MDComponents(from_design_unit=du, components_title=name)
 
             else:  # The extended protein is already prepared to MD standard
 
@@ -695,7 +695,7 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
                     else:
                         name = "protein"
 
-                md_components = MDComponents(molecules, components_title=name)
+                md_components = MDComponents(from_molecule=molecules, components_title=name)
 
             # self.opt['Logger'].info(md_components.get_info)
 

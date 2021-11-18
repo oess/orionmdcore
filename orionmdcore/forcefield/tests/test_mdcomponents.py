@@ -46,7 +46,7 @@ class MDComponentsTest(unittest.TestCase):
         with oechem.oemolistream(fn) as ifs:
             oechem.OEReadMolecule(ifs, mol)
 
-        md_components = MDComponents(mol)
+        md_components = MDComponents(from_molecule=mol)
 
         print(md_components)
 
