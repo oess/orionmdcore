@@ -777,7 +777,7 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
         return
 
 
-class MDAPIDatasetConverter(SourceCube):
+class MDAPIDatasetConverter(RecordPortsMixin, ComputeCube):
     title = "MD API Dataset Converter Cube"
 
     classification = [["Utility"]]
@@ -798,51 +798,46 @@ class MDAPIDatasetConverter(SourceCube):
         "item_count": {"default": 1}  # 1 molecule at a time
     }
 
-    success = RecordOutputPort("success")
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt['Logger'] = self.log
+        self.count = 0
 
-    data_in = DatasetInputParameter(
-        "data_in",
-        title="Input Dataset",
-        description="The old MD Dataset to be converted",
-        required=True,
-        default=None,
-    )
+    def process(self, record, port):
 
-    def __iter__(self):
         try:
-            datasets = list(self.args.data_in)
-            for dataset in datasets:
-                for record in dataset.records():
 
-                    md_record = MDDataRecord(record)
+            md_record = MDDataRecord(record)
 
-                    md_comp = md_record.get_md_components
+            md_comp = md_record.get_md_components
 
-                    new_md_comp = MDComponents()
+            new_md_comp = MDComponents()
 
-                    for comp_name, comp in md_comp.get_components.items():
-                        new_md_comp.set_component_by_name(comp_name, comp)
+            for comp_name, comp in md_comp.get_components.items():
+                new_md_comp.set_component_by_name(comp_name, comp)
 
-                    new_md_comp.set_title(md_comp.get_title)
+            new_md_comp.set_title(md_comp.get_title)
 
-                    if md_comp.has_box_vectors:
-                        new_md_comp.set_box_vectors(md_comp.get_box_vectors)
+            if md_comp.has_box_vectors:
+                new_md_comp.set_box_vectors(md_comp.get_box_vectors)
 
-                    md_record.set_md_components(new_md_comp)
+            md_record.set_md_components(new_md_comp)
 
-                    stage_names = md_record.get_stages_names
+            stage_names = md_record.get_stages_names
 
-                    for stgn in stage_names:
-                        pmd = md_record.get_parmed(sync_stage_name=stgn)
-                        new_state = MDState(pmd)
-                        md_record.set_stage_state(new_state, stg_name=stgn)
+            for stgn in stage_names:
+                pmd = md_record.get_parmed(sync_stage_name=stgn)
+                new_state = MDState(pmd)
+                md_record.set_stage_state(new_state, stg_name=stgn)
 
-                    yield md_record.get_record
+            self.success.emit(md_record.get_record)
+
         except Exception as e:
 
             print("Failed to complete", str(e), flush=True)
-            print('Exception {} {}'.format(str(e), self.title), flush=True)
+            self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
             self.log.error(traceback.format_exc())
+            self.failure.emit(record)
 
 
 class ParallelSolvationCube(ParallelMixin, SolvationCube):

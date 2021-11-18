@@ -80,7 +80,7 @@ class MDComponents:
 
         if type(from_design_unit) == oechem.OEDesignUnit:
             pass
-        elif type(from_molecule) == oechem.OEMol:
+        elif type(from_molecule) == oechem.OEMol or type(from_molecule) == oechem.OEConfBase:
             pass
         else:
             raise ValueError(
