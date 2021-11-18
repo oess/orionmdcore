@@ -46,22 +46,10 @@ import numpy as np
 
 
 class MDComponents:
-    def __init__(self, system_representation, components_title="Flask"):
+    def __init__(self, from_design_unit=None, from_molecule=None, components_title="Flask"):
 
-        du = None
-        molecules = None
-
-        if type(system_representation) == oechem.OEDesignUnit:
-            du = system_representation
-        elif type(system_representation) == oechem.OEMol:
-            molecules = system_representation
-        else:
-            raise ValueError(
-                "The MDComponent class can be initialized with an OE Design Unit "
-                "or an OE Mol. The object passed is: {}".format(
-                    type(system_representation)
-                )
-            )
+        if from_design_unit is not None and from_molecule is not None:
+            raise ValueError("The MD Components can be built from a Design Unit or from a Molecule, but NOT from both")
 
         # MD allowed components
         self._component_names = [
@@ -87,11 +75,26 @@ class MDComponents:
 
         self._box_vectors = None
 
-        if du is not None:
-            print("Found DU")
-            self._initialize_from_du(du)
+        if from_design_unit is None and from_molecule is None:
+            return
+
+        if type(from_design_unit) == oechem.OEDesignUnit:
+            pass
+        elif type(from_molecule) == oechem.OEMol:
+            pass
         else:
-            self._initialize_from_molecules(molecules)
+            raise ValueError(
+                "The MDComponent class can be initialized with an OE Design Unit "
+                ", an OE Mol or not passing any argument")
+
+        if from_design_unit:
+            print("MDComponents Initialized from Design Unit")
+            self._initialize_from_du(from_design_unit)
+        else:
+            print("MDComponents Initialized from Molecule")
+            self._initialize_from_molecules(from_molecule)
+
+        return
 
     def __repr__(self):
         ret_str = "\n" + 28 * "-" + "\n"
