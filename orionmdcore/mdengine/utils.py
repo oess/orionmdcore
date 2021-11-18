@@ -116,7 +116,16 @@ class MDSimulations(ABC):
     def __init__(self, mdstate, ff_parameters, opt):
 
         if not isinstance(mdstate, MDState):
-            raise ValueError("{} is not a MDState Object".format(type(mdstate)))
+
+            if str(type(mdstate)) == '<class \'MDOrion.MDEngines.utils.MDState\'>':
+
+                print("\n\nDEPRECATION WARNING:\n"
+                      "You are trying to use a dataset produced by using the old openmm_orion API "
+                      "which will not be supported in future releases. "
+                      "The API has been moved to the new orionmdcore pkg: "
+                      "https://github.com/oess/orionmdcore\n\n", flush=True)
+            else:
+                raise ValueError("{} is not a valid MDState Object".format(type(mdstate)))
 
         if not isinstance(ff_parameters, parmed.Structure):
             raise ValueError(

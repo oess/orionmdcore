@@ -58,6 +58,8 @@ from orionmdcore.forcefield import MDComponents
 
 from orionmdcore.standards import CollectionsNames
 
+from orionmdcore.standards.utils import check_filename
+
 
 def mdstages(f):
     def wrapper(*pos, **named):
@@ -1009,15 +1011,8 @@ class MDDataRecord(object):
 
         state_fn = os.path.join(dir_stage, MDFileNames.state)
 
-        try:
-            with open(state_fn, "rb") as f:
-                state = pickle.load(f)
-        except:
-            print("CAZZZZZ>>>>>>>>>>", flush=True)
-            from . import MDOrion
-            print("<<<<<<<<", MDOrion, flush=True)
-            with open(state_fn, "rb") as f:
-                state = pickle.load(f)
+        with open(state_fn, "rb") as f:
+            state = pickle.load(f)
 
         return state
 
@@ -1053,6 +1048,60 @@ class MDDataRecord(object):
             oechem.OEReadMolecule(ifs, topology)
 
         return topology
+
+    @stage_system
+    @mdstages
+    def set_stage_state(self, mdstate, stg_name='last'):
+
+        with TemporaryDirectory() as output_directory:
+            topology = self.get_stage_topology(stg_name=stg_name)
+
+            top_fn = os.path.join(output_directory, MDFileNames.topology)
+
+            with oechem.oemolostream(top_fn) as ofs:
+                oechem.OEWriteConstMolecule(ofs, topology)
+
+            state_fn = os.path.join(output_directory, MDFileNames.state)
+
+            with open(state_fn, "wb") as f:
+                pickle.dump(mdstate, f)
+
+            stage = self.get_stage_by_name(stg_name)
+
+            data_fn = check_filename(
+                os.path.basename(output_directory)
+                + "_"
+                + self.get_title + "_"
+                + str(self.get_flask_id)
+                + "-"
+                + stage.get_value(Fields.stage_type)
+                + ".tar.gz")
+
+            with tarfile.open(data_fn, mode="w:gz") as archive:
+                archive.add(top_fn, arcname=os.path.basename(top_fn))
+                archive.add(state_fn, arcname=os.path.basename(state_fn))
+
+            fid = stage.get_value(Fields.mddata)
+            utils.delete_data(fid, collection_id=self.collection_id)
+
+            lf = utils.upload_data(
+                data_fn, collection_id=self.collection_id, shard_name=data_fn
+            )
+
+            stage.set_value(Fields.mddata, lf)
+
+            self.processed[stg_name] = False
+
+            stages = self.get_stages
+
+            for idx, st in enumerate(stages):
+                name = st.get_value(Fields.stage_name)
+                if name == stg_name:
+                    stages[idx] = stage
+
+            self.rec.set_value(Fields.md_stages, stages)
+
+        return True
 
     @stage_system
     @mdstages

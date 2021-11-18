@@ -18,6 +18,7 @@
 from orionmdcore.cubes.complexprep.cubes import ComplexPrepCube
 
 from orionmdcore.cubes.flask.cubes import (
+    MDAPIDatasetConverter,
     IDSettingCube,
     CollectionSetting,
     SolvationCube,
