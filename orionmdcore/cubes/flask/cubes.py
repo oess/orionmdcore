@@ -777,7 +777,7 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
         return
 
 
-class MDAPIDatasetConverter(RecordPortsMixin, ComputeCube):
+class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
     title = "MD API Dataset Converter Cube"
 
     classification = [["Utility"]]
@@ -866,3 +866,15 @@ class ParallelRecordSizeCheck(ParallelMixin, RecordSizeCheck):
         "item_count": {"default": 1},  # 1 molecule at a time
     }
 
+
+class ParallelMDAPIDatasetConverterCube(ParallelMixin, MDAPIDatasetConverterCube):
+    title = "Parallel " + MDAPIDatasetConverterCube.title
+    description = "(Parallel) " + MDAPIDatasetConverterCube.description
+    uuid = "568ffd29-23e0-4d35-b37c-727596bedf92"
+
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }

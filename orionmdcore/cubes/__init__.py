@@ -18,7 +18,7 @@
 from orionmdcore.cubes.complexprep.cubes import ComplexPrepCube
 
 from orionmdcore.cubes.flask.cubes import (
-    MDAPIDatasetConverter,
+    MDAPIDatasetConverterCube,
     IDSettingCube,
     CollectionSetting,
     SolvationCube,
@@ -27,6 +27,7 @@ from orionmdcore.cubes.flask.cubes import (
     BoundUnboundSwitchCube,
     ParallelSolvationCube,
     ParallelRecordSizeCheck,
+    ParallelMDAPIDatasetConverterCube
 )
 
 from orionmdcore.cubes.forcefield.cubes import (ForceFieldCube,

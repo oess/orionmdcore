@@ -22,7 +22,8 @@ from orionmdcore.cubes.flask.cubes import (
     RecordSizeCheck,
     MDComponentCube,
     BoundUnboundSwitchCube,
-    MDAPIDatasetConverter,
+    MDAPIDatasetConverterCube,
     ParallelSolvationCube,
     ParallelRecordSizeCheck,
+    ParallelMDAPIDatasetConverterCube
 )
