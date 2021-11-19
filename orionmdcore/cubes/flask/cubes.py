@@ -212,6 +212,9 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
                             for collection in self.collections.values():
 
                                 if collection.state == "open":
+                                    self.opt["Logger"].info(
+                                        "Collection Already Opened: {}".format(collection.id)
+                                    )
                                     pass
                                 else:
                                     collection.open()
@@ -298,6 +301,20 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
                 if len(self.collections):
                     for collection in self.collections.values():
                         if collection.state == "ready":
+                            self.opt["Logger"].info(
+                                "Collection Already Closed: {}".format(collection.id))
+                            pass
+                        elif collection.state == "processing":
+                            self.opt["Logger"].info(
+                                "Collection in Close Processing: {}".format(collection.id))
+                            pass
+                        elif collection.state == "error":
+                            self.opt["Logger"].info(
+                                "Collection in Error State: {}".format(collection.id))
+                            pass
+                        elif collection.state == "deleting":
+                            self.opt["Logger"].info(
+                                "Collection in Deleting State: {}".format(collection.id))
                             pass
                         else:
                             collection.close()
@@ -870,7 +887,7 @@ class ParallelRecordSizeCheck(ParallelMixin, RecordSizeCheck):
 class ParallelMDAPIDatasetConverterCube(ParallelMixin, MDAPIDatasetConverterCube):
     title = "Parallel " + MDAPIDatasetConverterCube.title
     description = "(Parallel) " + MDAPIDatasetConverterCube.description
-    uuid = "568ffd29-23e0-4d35-b37c-727596bedf92"
+    uuid = "22299125-a023-4878-a7af-80b2cb0216ec"
 
     parameter_overrides = {
         "memory_mb": {"default": 14000},
