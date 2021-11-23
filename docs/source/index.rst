@@ -12,7 +12,6 @@ The Molecular Dynamics Orion package provides capability to run certain kinds of
     mddatarecord.rst
     floes/floes.rst
     cubes/cubes.rst
-    releasenotes.rst
 
 *   :ref:`genindex`
 
