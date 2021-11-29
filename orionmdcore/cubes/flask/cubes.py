@@ -62,6 +62,7 @@ from orionmdcore.mdrecord import MDDataRecord
 
 from orionmdcore.mdengine.utils import MDState
 
+from oemdtoolbox.ForceField.md_components import MDComponents as OldMDComponents
 
 class IDSettingCube(RecordPortsMixin, ComputeCube):
     title = "Simulation Flask ID Setting"
@@ -828,24 +829,28 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
 
             md_comp = md_record.get_md_components
 
-            new_md_comp = MDComponents()
+            if isinstance(md_comp, OldMDComponents):
 
-            for comp_name, comp in md_comp.get_components.items():
-                new_md_comp.set_component_by_name(comp_name, comp)
+                new_md_comp = MDComponents()
 
-            new_md_comp.set_title(md_comp.get_title)
+                for comp_name, comp in md_comp.get_components.items():
+                    new_md_comp.set_component_by_name(comp_name, comp)
 
-            if md_comp.has_box_vectors:
-                new_md_comp.set_box_vectors(md_comp.get_box_vectors)
+                new_md_comp.set_title(md_comp.get_title)
 
-            md_record.set_md_components(new_md_comp)
+                if md_comp.has_box_vectors:
+                    new_md_comp.set_box_vectors(md_comp.get_box_vectors)
 
-            stage_names = md_record.get_stages_names
+                md_record.set_md_components(new_md_comp)
 
-            for stgn in stage_names:
-                pmd = md_record.get_parmed(sync_stage_name=stgn)
-                new_state = MDState(pmd)
-                md_record.set_stage_state(new_state, stg_name=stgn)
+                stage_names = md_record.get_stages_names
+
+                for stgn in stage_names:
+                    pmd = md_record.get_parmed(sync_stage_name=stgn)
+                    new_state = MDState(pmd)
+                    md_record.set_stage_state(new_state, stg_name=stgn)
+            else:
+                opt['Logger'].info("No Conversion is Needed")
 
             self.success.emit(md_record.get_record)
 
