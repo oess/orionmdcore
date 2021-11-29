@@ -321,6 +321,13 @@ def upload_data(filename, collection_id=None, shard_name=""):
 
         collection = session.get_resource(ShardCollection, collection_id)
 
+        if collection.state == "open":
+            pass
+        elif collection.state == "ready":
+            collection.open()
+        else:
+            raise ValueError("Collection is not in an Open State: {}".format(collection.state))
+
         shard = try_hard_to_create_shard(collection, filename, name=shard_name)
 
         file_id = shard.id
@@ -403,6 +410,13 @@ def delete_data(file_id, collection_id=None):
         )
 
         collection = session.get_resource(ShardCollection, collection_id)
+
+        if collection.state == "open":
+            pass
+        elif collection.state == "ready":
+            collection.open()
+        else:
+            raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
         session.delete_resource(Shard(collection=collection, id=file_id))
 

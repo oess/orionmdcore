@@ -1541,6 +1541,13 @@ class MDDataRecord(object):
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
+                if collection.state == "open":
+                    pass
+                elif collection.state == "ready":
+                    collection.open()
+                else:
+                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
+
                 shard = try_hard_to_create_shard(collection, parmed_fn, name=shard_name)
 
                 shard.close()
@@ -1609,6 +1616,13 @@ class MDDataRecord(object):
             )
 
             collection = session.get_resource(ShardCollection, self.collection_id)
+
+            if collection.state == "open":
+                pass
+            elif collection.state == "ready":
+                collection.open()
+            else:
+                raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
             file_id = self.rec.get_value(Fields.pmd_structure)
 
@@ -1760,6 +1774,13 @@ class MDDataRecord(object):
                 )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
+
+                if collection.state == "open":
+                    pass
+                elif collection.state == "ready":
+                    collection.open()
+                else:
+                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
                 shard = try_hard_to_create_shard(
                     collection, protein_fn, name=shard_name
@@ -1916,6 +1937,13 @@ class MDDataRecord(object):
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
+                if collection.state == "open":
+                    pass
+                elif collection.state == "ready":
+                    collection.open()
+                else:
+                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
+
                 shard = try_hard_to_create_shard(
                     collection, ligand_fn, name=shard_name
                 )
@@ -2070,6 +2098,13 @@ class MDDataRecord(object):
                 )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
+
+                if collection.state == "open":
+                    pass
+                elif collection.state == "ready":
+                    collection.open()
+                else:
+                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
                 shard = try_hard_to_create_shard(
                     collection, water_fn, name=shard_name
@@ -2256,6 +2291,13 @@ class MDDataRecord(object):
             )
 
             collection = session.get_resource(ShardCollection, self.collection_id)
+
+            if collection.state == "open":
+                pass
+            elif collection.state == "ready":
+                collection.open()
+            else:
+                raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
             shard = try_hard_to_create_shard(collection, tar_fn, name=shard_name)
 
