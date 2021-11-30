@@ -157,7 +157,7 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                             Fields.title.get_name()
                         )
                     )
-                    ligand_title = ligand.GetTitle()[0:12]
+                    ligand_title = ligand.GetTitle()[0:50]
                 else:
                     ligand_title = record.get_value(Fields.title)
 

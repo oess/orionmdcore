@@ -331,7 +331,9 @@ class ParamMolStructure(object):
                 )
             )
         else:
-            self.molecule = molecule
+            # Copy and Sanitize the molecule setting the aromaticity model to MDL
+            self.molecule = oeommutils.sanitizeOEMolecule(oechem.OEMol(molecule), aromaticity='MDL')
+
             self.forcefield = str(forcefield).strip()
             self.structure = None
             self.prefix_name = prefix_name
@@ -410,6 +412,8 @@ class ParamMolStructure(object):
     def getGaffStructure(self, molecule=None, forcefield=None):
         if not molecule:
             molecule = self.molecule
+        else:
+            molecule = oeommutils.sanitizeOEMolecule(oechem.OEMol(molecule), aromaticity='MDL')
 
         if not forcefield:
             forcefield = self.forcefield
@@ -612,9 +616,8 @@ def parametrize_component(component, component_ff, other_ff):
             # print("Parametrize full part: {}".format(part_i))
         else:
 
-            mol_part_i_clean = oeommutils.sanitizeOEMolecule(mol_part_i)
             pmd_part_i = ParamMolStructure(
-                mol_part_i_clean,
+                mol_part_i,
                 other_ff,
                 prefix_name="Part" + "_" + str(part_i),
                 recharge=True,
