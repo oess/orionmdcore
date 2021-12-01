@@ -46,7 +46,7 @@ except ImportError:
     raise ImportError(__installation__error__)
 
 
-from orionmdcore.cubes.flask.utils import get_human_readable
+from orionmdcore.cubes.flask.utils import get_human_readable, parser_log_old_api
 
 from os import environ
 
@@ -848,6 +848,12 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
                     pmd = md_record.get_parmed(sync_stage_name=stgn)
                     new_state = MDState(pmd)
                     md_record.set_stage_state(new_state, stg_name=stgn)
+
+                    # logs = md_record.get_stage_logs(stg_name=stgn)
+                    # parser_log_old_api(logs)
+                    #
+                    # info = md_record.get_stage_info(stg_name=stgn)
+
             else:
                 self.opt['Logger'].info("No Conversion is Needed. Bypass record")
 

@@ -26,3 +26,7 @@ def get_human_readable(size, precision=2):
         size = size / 1024.0  # apply the division
 
     return "%.*f %s" % (precision, size, suffixes[suffixIndex])
+
+
+def parser_log_old_api(logs):
+    print(logs)
