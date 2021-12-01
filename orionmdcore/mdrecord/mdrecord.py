@@ -975,9 +975,12 @@ class MDDataRecord(object):
                 )
             )
 
-        stage = self.get_stage_by_name(stg_name)
-
-        stage.set_value(Fields.stage_info, info_dic)
+        for idx, stage in enumerate(self.rec.get_value(Fields.md_stages)):
+            if stage.get_value(Fields.stage_name) == stg_name:
+                stage.set_value(Fields.stage_info, info_dic)
+                stages = self.rec.get_value(Fields.md_stages)
+                stages[idx] = stage
+                self.rec.set_value(Fields.md_stages, stages)
 
         return True
 

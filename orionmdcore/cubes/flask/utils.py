@@ -29,4 +29,35 @@ def get_human_readable(size, precision=2):
 
 
 def parser_log_old_api(logs):
-    print(logs)
+    lines = logs.split("\n")
+
+    filtered_lines = list()
+    for ln in lines:
+        if '=' in ln:
+            filtered_lines.append(ln)
+        else:
+            continue
+
+    info_dic = dict()
+    for ln in filtered_lines:
+        ln = ln.split()
+        tmp_key = ""
+        for idx, word in enumerate(ln):
+            if word == '=':
+                try:
+                    if '.' in ln[idx + 1]:
+                        info_dic[tmp_key] = float(ln[idx + 1])
+                    else:
+                        info_dic[tmp_key] = int(ln[idx + 1])
+                except Exception as e:
+                    if ln[idx + 1] == 'None':
+                        info_dic[tmp_key] = None
+                    else:
+                        info_dic[tmp_key] = ln[idx + 1]
+            else:
+                if idx == 0:
+                    tmp_key = word
+                else:
+                    tmp_key += ' ' + word
+
+    return info_dic

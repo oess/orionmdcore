@@ -845,14 +845,19 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
                 stage_names = md_record.get_stages_names
 
                 for stgn in stage_names:
+
+                    if md_record.has_stage_info(stg_name=stgn):
+                        pass
+                    else:
+                        logs = md_record.get_stage_logs(stg_name=stgn)
+
+                        if logs is not None:
+                            info_dic = parser_log_old_api(logs)
+                            md_record.set_stage_info(info_dic, stg_name=stgn)
+
                     pmd = md_record.get_parmed(sync_stage_name=stgn)
                     new_state = MDState(pmd)
                     md_record.set_stage_state(new_state, stg_name=stgn)
-
-                    # logs = md_record.get_stage_logs(stg_name=stgn)
-                    # parser_log_old_api(logs)
-                    #
-                    # info = md_record.get_stage_info(stg_name=stgn)
 
             else:
                 self.opt['Logger'].info("No Conversion is Needed. Bypass record")
