@@ -100,7 +100,7 @@ def docs(ctx):
     clean_docs(ctx)
     curdir = os.getcwd()
     run('cube_doc orionmdcore.cubes docs/source')
-    run('floe_doc "OrionMDCore Floes" floes docs/source')
+    # run('floe_doc "OrionMDCore Floes" floes docs/source')
     os.chdir('docs')
     run("make html")
     os.chdir(curdir)
