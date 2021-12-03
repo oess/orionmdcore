@@ -48,6 +48,8 @@ from os import environ
 
 import os
 
+import json
+
 
 class ParmedData(CustomHandler):
     @staticmethod
@@ -114,13 +116,18 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        pkl_obj = pickle.dumps(components)
-        return bytes(pkl_obj)
+        comp_dic = components.__getstate__()
+        json_str = json.dumps(comp_dic)
+        json_str.encode(encoding='utf8')
+        return json_str.encode(encoding='utf8')
 
     @staticmethod
-    def deserialize(components):
-        new_components = pickle.loads(bytes(components))
-        return new_components
+    def deserialize(json_str_bytes):
+        json_str = json_str_bytes.decode()
+        comp_dic = json.loads(json_str)
+        new_md_components = MDComponents()
+        new_md_components.__setstate__(comp_dic)
+        return new_md_components
 
 
 class DesignUnit(CustomHandler):
