@@ -70,7 +70,7 @@ class MDEngines:
 
 class MDFileNames:
     topology = "topology.oeb"
-    state = "state.pickle"
+    state = "state.json"
     trajectory = "trajectory.tar.gz"
     trajectory_conformers = "trajectory_confs.oeb"
     mddata = "data.tar.gz"

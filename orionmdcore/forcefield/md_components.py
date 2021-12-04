@@ -48,7 +48,9 @@ import copy
 
 import numpy as np
 
-import json_numpy
+# import json_numpy
+
+from orionmdcore.mdengine import json_numpy
 
 
 class MDComponents:
@@ -81,6 +83,7 @@ class MDComponents:
 
         self._box_vectors = None
 
+        # Empty Object
         if from_design_unit is None and from_molecule is None:
             return
 
