@@ -803,7 +803,7 @@ class MDComponents:
 
             return box_vec
         else:
-            print("WARNING: Box Vectors have not been found")
+            print("WARNING: MDComponents Box Vectors cannot be found")
             return None
 
     # def set_box_vectors(self, box_vectors):
