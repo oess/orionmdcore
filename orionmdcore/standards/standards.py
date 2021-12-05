@@ -70,7 +70,7 @@ class MDEngines:
 
 class MDFileNames:
     topology = "topology.oeb"
-    state = "state.pickle"
+    state = "state.json"
     trajectory = "trajectory.tar.gz"
     trajectory_conformers = "trajectory_confs.oeb"
     mddata = "data.tar.gz"
@@ -189,6 +189,8 @@ class Fields:
 
     # MD Components
     md_components = OEField("MDComponents_OPLMD", MDComponentData)
+
+    # md_components = OEField("MDComponents_OPLMD", Types.JSONObject)
 
     # Collection is used to offload data from the record which must be < 100Mb
     # collection = OEField("Collection_ID_OPLMD", Types.Int, meta=_metaHidden)

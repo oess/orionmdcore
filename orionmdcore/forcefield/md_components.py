@@ -34,6 +34,10 @@ from orionmdcore.forcefield.utils import (
 
 from simtk.openmm import app
 
+from simtk import unit
+
+from simtk.openmm import Vec3
+
 import parmed
 
 from orionmdcore.forcefield import nsr_template_generator
@@ -43,6 +47,10 @@ from io import StringIO
 import copy
 
 import numpy as np
+
+# import json_numpy
+
+from orionmdcore.mdengine import json_numpy
 
 
 class MDComponents:
@@ -75,6 +83,7 @@ class MDComponents:
 
         self._box_vectors = None
 
+        # Empty Object
         if from_design_unit is None and from_molecule is None:
             return
 
@@ -326,22 +335,99 @@ class MDComponents:
             du, self._components["protein"], oechem.OEDesignUnitComponents_Protein
         )
 
+    # def __getstate__(self):
+    #     def mol_to_bytes(mol):
+    #         return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+    #
+    #     state = dict()
+    #     for name in self._component_names:
+    #         if name in self._components:
+    #             state[name] = mol_to_bytes(self._components[name])
+    #         else:
+    #             state[name] = None
+    #     state["components_title"] = self._components_title
+    #     state["box_vectors"] = (
+    #         data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
+    #     )
+    #
+    #     return state
+
     def __getstate__(self):
-        def mol_to_bytes(mol):
-            return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+
+        def mol_to_json(mol):
+            return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All)
 
         state = dict()
         for name in self._component_names:
             if name in self._components:
-                state[name] = mol_to_bytes(self._components[name])
+                state[name] = mol_to_json(self._components[name])
             else:
                 state[name] = None
+
         state["components_title"] = self._components_title
-        state["box_vectors"] = (
-            data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
-        )
+
+        if self.get_box_vectors is not None:
+            box_vec_list = list()
+            for vec in self.get_box_vectors:
+                for ln in vec:
+                    box_vec_list.append(ln.value_in_unit(unit.angstroms))
+
+            box_vec = np.array(box_vec_list)
+        else:
+            box_vec = None
+
+        state["box_vectors"] = json_numpy.dumps(box_vec)
 
         return state
+
+    # def __setstate__(self, state):
+    #
+    #     # MD allowed components
+    #     self._component_names = [
+    #         "protein",
+    #         "ligand",
+    #         "other_ligands",
+    #         "counter_ions",
+    #         "metals",
+    #         "excipients",
+    #         "solvent",
+    #         "water",
+    #         "cofactors",
+    #         "other_cofactors",
+    #         "lipids",
+    #         "nucleic",
+    #         "other_nucleic",
+    #     ]
+    #
+    #     def mol_from_bytes(mol_bytes):
+    #         mol = oechem.OEMol()
+    #         oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
+    #         return mol
+    #
+    #     self._components = dict()
+    #     # self._total_atoms = 0
+    #
+    #     for comp_name, comp in state.items():
+    #
+    #         if comp_name == "components_title":
+    #             self._components_title = comp
+    #             continue
+    #
+    #         if comp_name == "box_vectors":
+    #             if comp is not None:
+    #                 box_vec = data_utils.decodePyObj(comp)
+    #                 self._box_vectors = box_vec
+    #             else:
+    #                 self._box_vectors = None
+    #             continue
+    #
+    #         if comp_name not in self._component_names:
+    #             raise ValueError("Cannot Deserialize Component {}".format(comp_name))
+    #
+    #         mol = mol_from_bytes(comp) if comp else None
+    #
+    #         if mol is not None and mol.IsValid():
+    #             self._components[comp_name] = mol
 
     def __setstate__(self, state):
 
@@ -362,9 +448,11 @@ class MDComponents:
             "other_nucleic",
         ]
 
-        def mol_from_bytes(mol_bytes):
+        def mol_from_json_str(json_str):
             mol = oechem.OEMol()
-            oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
+            if not oechem.OEJSONToMol(mol, json_str):
+                raise ValueError("It was not possible to generate the OE Molecule from the "
+                                 "json string during the deserialization")
             return mol
 
         self._components = dict()
@@ -378,7 +466,7 @@ class MDComponents:
 
             if comp_name == "box_vectors":
                 if comp is not None:
-                    box_vec = data_utils.decodePyObj(comp)
+                    box_vec = json_numpy.loads(comp)
                     self._box_vectors = box_vec
                 else:
                     self._box_vectors = None
@@ -387,7 +475,7 @@ class MDComponents:
             if comp_name not in self._component_names:
                 raise ValueError("Cannot Deserialize Component {}".format(comp_name))
 
-            mol = mol_from_bytes(comp) if comp else None
+            mol = mol_from_json_str(comp) if comp else None
 
             if mol is not None and mol.IsValid():
                 self._components[comp_name] = mol
@@ -698,16 +786,39 @@ class MDComponents:
         else:
             return False
 
+    # @property
+    # def get_box_vectors(self):
+    #     if self._box_vectors is not None:
+    #         return self._box_vectors
+    #     else:
+    #         print("WARNING: Box Vectors have not been found")
+    #         return None
+
     @property
     def get_box_vectors(self):
         if self._box_vectors is not None:
-            return self._box_vectors
+            box_vec = (Vec3(x=self._box_vectors[0], y=self._box_vectors[1], z=self._box_vectors[2]),
+                       Vec3(x=self._box_vectors[3], y=self._box_vectors[4], z=self._box_vectors[5]),
+                       Vec3(x=self._box_vectors[6], y=self._box_vectors[7], z=self._box_vectors[8])) * unit.angstroms
+
+            return box_vec
         else:
-            print("WARNING: Box Vectors have not been found")
+            print("WARNING: MDComponents Box Vectors cannot be found")
             return None
 
+    # def set_box_vectors(self, box_vectors):
+    #     self._box_vectors = box_vectors
+
     def set_box_vectors(self, box_vectors):
-        self._box_vectors = box_vectors
+
+        box_vec_list = list()
+        for vec in box_vectors:
+            for ln in vec:
+                box_vec_list.append(ln.value_in_unit(unit.angstroms))
+
+        box_vec = np.array(box_vec_list)
+
+        self._box_vectors = box_vec
 
     @property
     def get_title(self):
