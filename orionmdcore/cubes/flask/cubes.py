@@ -833,6 +833,7 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
                 new_md_comp = MDComponents()
 
                 for comp_name, comp in md_comp.get_components.items():
+
                     new_md_comp.set_component_by_name(comp_name, comp)
 
                 new_md_comp.set_title(md_comp.get_title)

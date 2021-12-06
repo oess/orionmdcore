@@ -1016,13 +1016,20 @@ class MDDataRecord(object):
 
         dir_stage = self.processed[stage_name]
 
-        state_fn = os.path.join(dir_stage, MDFileNames.state)
+        try:
+            state_fn = os.path.join(dir_stage, MDFileNames.state)
 
-        with open(state_fn, "r") as f:
-            state_dic = json.load(f)
+            with open(state_fn, "r") as f:
+                state_dic = json.load(f)
 
-        state = MDState()
-        state.__setstate__(state_dic)
+            state = MDState()
+            state.__setstate__(state_dic)
+        except:
+
+            state_fn = os.path.join(dir_stage, "state.pickle")
+
+            with open(state_fn, "rb") as f:
+                state = pickle.load(f)
 
         return state
 
