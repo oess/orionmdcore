@@ -63,8 +63,9 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
 
     max_conformers = parameters.IntegerParameter(
         "max_conformers",
+        title='Max number of ligand conformers',
         default=800,
-        help_text="Max number of ligand conformers generated to charge the ligands",
+        help_text="Maximum number of ligand conformers to generate to assign AM1BCC ELF10 ligand partial charges",
     )
 
     charge_ligands = parameters.BooleanParameter(
