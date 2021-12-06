@@ -8,9 +8,7 @@ The Molecular Dynamics Orion package provides capability to run certain kinds of
     :maxdepth: 2
 
     intro.rst
-    tutorials.rst
     mddatarecord.rst
-    floes/floes.rst
     cubes/cubes.rst
 
 *   :ref:`genindex`
