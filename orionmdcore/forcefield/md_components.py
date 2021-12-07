@@ -355,7 +355,7 @@ class MDComponents:
     def __getstate__(self):
 
         def mol_to_json(mol):
-            return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All)
+            return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All ^ oechem.OEOFlavor_JSON_Smiles)
 
         state = dict()
         for name in self._component_names:

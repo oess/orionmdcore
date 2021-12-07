@@ -127,7 +127,7 @@ class MDComponentData(CustomHandler):
     def serialize(components):
         comp_dic = components.__getstate__()
         json_str = json.dumps(comp_dic)
-        json_str.encode(encoding='utf8')
+        # json_str.encode(encoding='utf8')
         return json_str.encode(encoding='utf8')
 
     @staticmethod
