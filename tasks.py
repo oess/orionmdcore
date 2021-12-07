@@ -72,7 +72,7 @@ def version(ctx):
 
 
 @task
-def anaconda_upload(ctx, username, label="OrionDev"):
+def anaconda_upload(ctx, username, label="Orion"):
     conda_build_path = os.environ['CONDA_PREFIX'].split('envs')[0] + "conda-bld/noarch/"
     fn = orionmdcore.__name__ + "-" + orionmdcore.__version__ + "-py_0.tar.bz2"
 

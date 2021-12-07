@@ -48,8 +48,6 @@ from os import environ
 
 import os
 
-import json
-
 
 class ParmedData(CustomHandler):
     @staticmethod
@@ -91,23 +89,14 @@ class MDStateData(CustomHandler):
         return copy.deepcopy(value)
 
     @staticmethod
-    def serialize(mdstate):
-        mdstate_dic = mdstate.__getstate__()
-        json_str = json.dumps(mdstate_dic)
-        json_str.encode(encoding='utf8')
-        return json_str.encode(encoding='utf8')
+    def serialize(state):
+        pkl_obj = pickle.dumps(state)
+        return bytes(pkl_obj)
 
     @staticmethod
-    def deserialize(json_str_bytes):
-        try:
-            json_str = json_str_bytes.decode()
-            mdstate_dic = json.loads(json_str)
-            new_md_state = MDState()
-            new_md_state.__setstate__(mdstate_dic)
-            return new_md_state
-        except:
-            new_state = pickle.loads(bytes(json_str_bytes))
-            return new_state
+    def deserialize(data):
+        new_state = pickle.loads(bytes(data))
+        return new_state
 
 
 class MDComponentData(CustomHandler):
@@ -125,22 +114,13 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        comp_dic = components.__getstate__()
-        json_str = json.dumps(comp_dic)
-        # json_str.encode(encoding='utf8')
-        return json_str.encode(encoding='utf8')
+        pkl_obj = pickle.dumps(components)
+        return bytes(pkl_obj)
 
     @staticmethod
-    def deserialize(json_str_bytes):
-        try:
-            json_str = json_str_bytes.decode()
-            comp_dic = json.loads(json_str)
-            new_md_components = MDComponents()
-            new_md_components.__setstate__(comp_dic)
-            return new_md_components
-        except:
-            new_components = pickle.loads(bytes(json_str_bytes))
-            return new_components
+    def deserialize(components):
+        new_components = pickle.loads(bytes(components))
+        return new_components
 
 
 class DesignUnit(CustomHandler):
