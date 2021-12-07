@@ -583,8 +583,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
                     trajectory_engine = MDEngines.Gromacs
                 # HJ: find extension of the trj file
                 trj_file_ext = os.path.splitext(tarfile.open(trajectory_fn, mode='r:gz').getnames()[0])[1]
-                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' \
-                                      + trj_file_ext + ".tar.gz"
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + trj_file_ext + ".tar.gz"
 
             else:  # Empty Trajectory
                 trajectory_fn = None
@@ -900,10 +899,14 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
                     trajectory_engine = MDEngines.OpenMM
                 else:
                     trajectory_engine = MDEngines.Gromacs
+                # HJ: find extension of the trj file
+                trj_file_ext = os.path.splitext(tarfile.open(trajectory_fn, mode='r:gz').getnames()[0])[1]
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + trj_file_ext + ".tar.gz"
 
             else:  # Empty Trajectory
                 trajectory_fn = None
                 trajectory_engine = None
+                trajectory_orion_ui = opt["system_title"]+ "_"+ str(opt["system_id"])+ "-"+ opt["suffix"]+ ".tar.gz" # HJ
 
             data_fn = opt["out_fn"] + ".tar.gz"
 
@@ -937,12 +940,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
                 info=info_dic,
                 trajectory_fn=trajectory_fn,
                 trajectory_engine=trajectory_engine,
-                trajectory_orion_ui=opt["system_title"]
-                + "_"
-                + str(opt["system_id"])
-                + "-"
-                + opt["suffix"]
-                + ".tar.gz",
+                trajectory_orion_ui=trajectory_orion_ui,
             ):
 
                 raise ValueError("Problems adding in the new NPT Stage")
