@@ -52,8 +52,6 @@ import os
 
 from orionmdcore.standards.utils import check_filename
 
-import tarfile  # HJ
-
 
 class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     title = "Minimization Cube"
@@ -579,11 +577,12 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
                 trajectory_fn = opt["trj_fn"]
                 if opt["md_engine"] == MDEngines.OpenMM:
                     trajectory_engine = MDEngines.OpenMM
+                    traj_ext = '.h5'
                 else:
                     trajectory_engine = MDEngines.Gromacs
+                    traj_ext = '.gromacs'
                 # HJ: find extension of the trj file
-                trj_file_ext = os.path.splitext(tarfile.open(trajectory_fn, mode='r:gz').getnames()[0])[1]
-                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + trj_file_ext + ".tar.gz"
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + traj_ext + ".tar.gz"
 
             else:  # Empty Trajectory
                 trajectory_fn = None
@@ -897,11 +896,12 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
                 trajectory_fn = opt["trj_fn"]
                 if opt["md_engine"] == MDEngines.OpenMM:
                     trajectory_engine = MDEngines.OpenMM
+                    traj_ext = '.h5'
                 else:
                     trajectory_engine = MDEngines.Gromacs
+                    traj_ext = '.gromacs'
                 # HJ: find extension of the trj file
-                trj_file_ext = os.path.splitext(tarfile.open(trajectory_fn, mode='r:gz').getnames()[0])[1]
-                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + trj_file_ext + ".tar.gz"
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"]+'_traj' + traj_ext + ".tar.gz"
 
             else:  # Empty Trajectory
                 trajectory_fn = None
