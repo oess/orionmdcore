@@ -58,9 +58,7 @@ from orionmdcore.forcefield import MDComponents
 
 from orionmdcore.standards import CollectionsNames
 
-from orionmdcore.mdrecord import MDDataRecord
-
-from orionmdcore.mdengine.utils import MDState
+from orionmdcore.cubes.flask.utils import convert
 
 
 class IDSettingCube(RecordPortsMixin, ComputeCube):
@@ -823,47 +821,8 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
     def process(self, record, port):
 
         try:
-
-            md_record = MDDataRecord(record)
-
-            md_comp = md_record.get_md_components
-
-            if str(type(md_comp)) == '<class \'oemdtoolbox.ForceField.md_components.MDComponents\'>':
-
-                new_md_comp = MDComponents()
-
-                for comp_name, comp in md_comp.get_components.items():
-
-                    new_md_comp.set_component_by_name(comp_name, comp)
-
-                new_md_comp.set_title(md_comp.get_title)
-
-                if md_comp.has_box_vectors:
-                    new_md_comp.set_box_vectors(md_comp.get_box_vectors)
-
-                md_record.set_md_components(new_md_comp)
-
-                stage_names = md_record.get_stages_names
-
-                for stgn in stage_names:
-
-                    if md_record.has_stage_info(stg_name=stgn):
-                        pass
-                    else:
-                        logs = md_record.get_stage_logs(stg_name=stgn)
-
-                        if logs is not None:
-                            info_dic = parser_log_old_api(logs)
-                            md_record.set_stage_info(info_dic, stg_name=stgn)
-
-                    pmd = md_record.get_parmed(sync_stage_name=stgn)
-                    new_state = MDState(pmd)
-                    md_record.set_stage_state(new_state, stg_name=stgn)
-
-            else:
-                self.opt['Logger'].info("No Conversion is Needed. Bypass record")
-
-            self.success.emit(md_record.get_record)
+            rec = convert(record)
+            self.success.emit(rec)
 
         except Exception as e:
 
