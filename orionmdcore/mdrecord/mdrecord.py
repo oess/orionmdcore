@@ -54,11 +54,7 @@ import shutil
 
 import glob
 
-import json
-
 from orionmdcore.forcefield import MDComponents
-
-from orionmdcore.mdengine.utils import MDState
 
 from orionmdcore.standards import CollectionsNames
 
@@ -1016,20 +1012,10 @@ class MDDataRecord(object):
 
         dir_stage = self.processed[stage_name]
 
-        try:
-            state_fn = os.path.join(dir_stage, MDFileNames.state)
+        state_fn = os.path.join(dir_stage, MDFileNames.state)
 
-            with open(state_fn, "r") as f:
-                state_dic = json.load(f)
-
-            state = MDState()
-            state.__setstate__(state_dic)
-        except:
-
-            state_fn = os.path.join(dir_stage, "state.pickle")
-
-            with open(state_fn, "rb") as f:
-                state = pickle.load(f)
+        with open(state_fn, "rb") as f:
+            state = pickle.load(f)
 
         return state
 
@@ -1080,8 +1066,8 @@ class MDDataRecord(object):
 
             state_fn = os.path.join(output_directory, MDFileNames.state)
 
-            with open(state_fn, "w") as f:
-                json.dump(mdstate.__getstate__(), f)
+            with open(state_fn, "wb") as f:
+                pickle.dump(mdstate, f)
 
             stage = self.get_stage_by_name(stg_name)
 
@@ -1245,8 +1231,8 @@ class MDDataRecord(object):
 
             state_fn = os.path.join(output_directory, MDFileNames.state)
 
-            with open(state_fn, "w") as f:
-                json.dump(mdstate.__getstate__(), f)
+            with open(state_fn, "wb") as f:
+                pickle.dump(mdstate, f)
 
             with tarfile.open(data_fn, mode="w:gz") as archive:
                 archive.add(top_fn, arcname=os.path.basename(top_fn))

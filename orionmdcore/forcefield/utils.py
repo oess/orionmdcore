@@ -136,7 +136,7 @@ def run_tleap(
     return prmtop_filename, inpcrd_filename
 
 
-def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
+def assignELF10charges(molecule, max_confs=800, strictStereo=False, opt=None):
     """
      This function computes atomic partial charges for an OEMol by
      using the ELF10 method
@@ -156,7 +156,7 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=True, opt=None):
         a copy of the original molecule with assigned atomic partial charges
     """
 
-    def generate_conformers(molecule, max_confs=800, strictStereo=True, ewindow=15.0, rms_threshold=1.0,
+    def generate_conformers(molecule, max_confs=800, strictStereo=False, ewindow=15.0, rms_threshold=1.0,
                             strictTypes=True):
         """Generate conformations for the supplied molecule
 
