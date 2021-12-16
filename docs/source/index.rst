@@ -15,6 +15,7 @@ routine MD simulations in Orion.
     intro.rst
     mddatarecord.rst
     cubes/cubes.rst
-
+    releasenotes.rst
+    
 *   :ref:`genindex`
 

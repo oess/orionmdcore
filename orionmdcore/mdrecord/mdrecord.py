@@ -2171,7 +2171,7 @@ class MDDataRecord(object):
         """
         This method returns True if the MD Components object is present on the record
 
-        Return:
+        Return
         -------
         boolean: Bool
             True if the md components object is present on the record otherwise False
@@ -2187,7 +2187,7 @@ class MDDataRecord(object):
         """
         This method returns True if extra data file in tar format is attached to the record
 
-        Return:
+        Return
         -------
         boolean: Bool
             True if extra data file is present on the record otherwise False
