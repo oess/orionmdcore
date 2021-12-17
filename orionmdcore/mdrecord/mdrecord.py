@@ -60,8 +60,10 @@ from orionmdcore.standards import CollectionsNames
 
 from orionmdcore.standards.utils import check_filename
 
+from functools import wraps
 
 def mdstages(f):
+    @wraps(f)
     def wrapper(*pos, **named):
         mdrec = pos[0]
 
@@ -74,6 +76,7 @@ def mdstages(f):
 
 
 def stage_system(f):
+    @wraps(f)
     def wrapper(*pos, **named):
 
         mdrec = pos[0]
