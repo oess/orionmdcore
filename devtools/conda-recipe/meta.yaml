@@ -14,43 +14,45 @@ build:
 requirements:
   pin_depends: strict
   build:
-    - invoke==1.2.0
-    - lxml==4.6.0
-    - numpy==1.21.2
-    - mdtraj==1.9.6
+    - ambertools=21.11
+    - invoke==1.6.0
+    - lxml==4.6.3
+    - numpy==1.22.2
+    - mdtraj==1.9.7
     - oeommtools==0.1.20
-    - openff-toolkit==0.10.0
+    - openff-toolkit==0.10.2
     - openff-forcefields==2.0.0
-    - openmm==7.5
-    - openmoltools==0.8.7
+    - openmm==7.5.1
+    - openmoltools==0.8.8
     - packmol==20.010
-    - parmed==3.2.0
-    - pdbfixer==1.6
-    - pip==21.1.1
-    - pyparsing==2.4.7
-    - python==3.7.10
-    - pytest==3.10.1
-    - setuptools
-    - tqdm==4.57.0
+    - parmed==3.4.3
+    - pdbfixer==1.7
+    - pip==22.0.3
+    - pyparsing==3.0.7
+    - python==3.9
+    - pytest==7.0.0
+    - setuptools==60.8.1
+    - tqdm==4.62.3
   run:
-    - invoke==1.2.0
-    - lxml==4.6.0
-    - numpy==1.21.2
-    - mdtraj==1.9.6
+    - ambertools=21.11
+    - invoke==1.6.0
+    - lxml==4.6.3
+    - numpy==1.22.2
+    - mdtraj==1.9.7
     - oeommtools==0.1.20
-    - openff-toolkit==0.10.0
+    - openff-toolkit==0.10.2
     - openff-forcefields==2.0.0
-    - openmm==7.5
-    - openmoltools==0.8.7
+    - openmm==7.5.1
+    - openmoltools==0.8.8
     - packmol==20.010
-    - parmed==3.2.0
-    - pdbfixer==1.6
-    - pip==21.1.1
-    - pyparsing==2.4.7
-    - python==3.7.10
-    - pytest==3.10.1
-    - setuptools
-    - tqdm==4.57.0
+    - parmed==3.4.3
+    - pdbfixer==1.7
+    - pip==22.0.3
+    - pyparsing==3.0.7
+    - python==3.9
+    - pytest==7.0.0
+    - setuptools==60.8.1
+    - tqdm==4.62.3
 test:
   requires:
     - pytest
@@ -61,4 +63,3 @@ about:
   home: https://github.com/oess/orionmdcore
   license: OpenEye proprietary
   summary: Orion MD core package
-   
