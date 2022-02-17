@@ -51,6 +51,9 @@ import textwrap
 import os
 
 from orionmdcore.standards.utils import check_filename
+# TODO REMOVE THIS
+from orionmdcore.cubes.md.utils import str_schedule, schedule_cycles
+###
 
 
 class MDMinimizeCube(RecordPortsMixin, ComputeCube):
@@ -957,6 +960,350 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
             self.failure.emit(record)
 
         return
+
+
+class MDProxyCube(RecordPortsMixin, ComputeCube):
+    title = "MD ProxyCube"
+
+    classification = [["MD Simulations"]]
+    tags = ["Gromacs", "OpenMM"]
+
+    description = """
+    The MD Proxy cube runs chucks of MD simulations in cycles till the desired
+    total md running time has been reached. 
+
+    Input:
+    -------
+    Data Record Streaming - Streams of MD ready records 
+
+    Output:
+    -------
+    Data Record Streaming - Streams of MD ready records with the long trajectory md
+    stages in it
+
+    Data Record Streaming - Streams of Recovery records that can be used in the event 
+    of Orion issues
+    """
+
+    uuid = "1c0882c5-be6c-4405-8fba-ef78cdbc2429"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Prohibited"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
+    time = parameters.DecimalParameter(
+        "time", default=5.0, help_text="Total simulation time in nanoseconds"
+    )
+
+    trajectory_interval = parameters.DecimalParameter(
+        "trajectory_interval",
+        default=0.10,
+        help_text="""Time interval per cycle for trajectory snapshots in ns. 
+        If 0 the trajectory file will not be generated""",
+    )
+
+    reporter_interval = parameters.DecimalParameter(
+        "reporter_interval",
+        default=0.01,
+        help_text="""Time interval for reporting data in ns. 
+        If 0 the reporter file will not be generated""",
+    )
+
+    cube_max_run_time = parameters.DecimalParameter(
+        "cube_max_run_time", default=10, help_text="Max Cube Running Time in hrs. Max 11hrs"
+    )
+
+    cycle_out_port = RecordOutputPort(
+        "cycle_out_port",
+    )
+
+    recover_out_port = RecordOutputPort(
+        "recover_out_port",
+    )
+
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt["Logger"] = self.log
+
+        return
+
+    def process(self, record, port):
+        try:
+            opt = dict(self.opt)
+            opt["CubeTitle"] = self.title
+
+            if not 0 < opt['cube_max_run_time'] < 11:
+                raise ValueError("The Max allowed MD running time per iteration is limited to 11 hrs. "
+                                 "Selected time: {} hrs".format(opt['cube_max_run_time']))
+
+            md_record = MDDataRecord(record)
+
+            info_dic = md_record.get_stage_info(stg_name="last")
+
+            if not record.has_field(Fields.title):
+                raise ValueError("Field title has not been found on the record")
+
+            flask_title = record.get_value(Fields.title)
+
+            if not record.has_field(Fields.cycle_id):
+
+                if "speed_ns_per_day" not in info_dic:
+                    raise ValueError("Last MD stage does not have speed information")
+
+                # Remove the init stage
+                md_record.delete_stage_by_name(stg_name="last")
+
+                schedule = schedule_cycles(opt, info_dic)
+                info_str = str_schedule(schedule, 0, flask_title)
+                opt["Logger"].info(info_str)
+
+                record.set_value(Fields.cycle_id, 0)
+                record.set_value(Fields.schedule, schedule)
+
+                # TODO UPDATE ALL THE CUBE PARAMS?
+                new_dic = {
+                    "time": schedule[0][0],
+                    "CubeTitle": "cycle_0",
+                    "suffix": "cycle_0",
+                    "trajectory_interval": opt["trajectory_interval"],
+                    "reporter_interval": opt["reporter_interval"],
+                    "hmr": info_dic["hmr"],
+                    "md_engine": info_dic["md_engine"],
+                    "instance_type": info_dic["instance_type"],
+                    "save_md_stage": True
+                }
+
+                record.set_value(Fields.cube_parameters_update, new_dic)
+                opt["Logger"].info("Forwarding to next cycle....{}".format(flask_title))
+                self.cycle_out_port.emit(record)
+
+            else:
+
+                current_cycle_id = record.get_value(Fields.cycle_id)
+                schedule = record.get_value(Fields.schedule)
+                next_cycle_id = current_cycle_id + 1
+
+                # Cycle Termination
+                if str(next_cycle_id) not in schedule and not record.has_field(Fields.end_cycle):
+                    opt["Logger"].info("Cycle complete....{}".format(flask_title))
+                    record.set_value(Fields.cycle_id, next_cycle_id)
+                    self.recover_out_port.emit(record)
+                    record.set_value(Fields.end_cycle, True)
+                    self.success.emit(record)
+
+                # Cycle Restarting
+                elif str(next_cycle_id) not in schedule and record.has_field(Fields.end_cycle):
+                    opt["Logger"].info("Restarting Detected....")
+
+                    # Remove the init stage
+                    md_record.delete_stage_by_name(stg_name="last")
+
+                    if "speed_ns_per_day" not in info_dic:
+                        raise ValueError("Last MD stage does not have speed information")
+
+                    schedule = schedule_cycles(opt, info_dic, start_iter_index=current_cycle_id)
+
+                    # TODO UPDATE ALL THE CUBE PARAMS?
+                    new_dic = {
+                        "time": schedule[current_cycle_id][0],
+                        "CubeTitle": "cycle_" + str(current_cycle_id),
+                        "suffix": "cycle_" + str(current_cycle_id),
+                        "trajectory_interval": opt["trajectory_interval"],
+                        "reporter_interval": opt["reporter_interval"],
+                        "hmr": info_dic["hmr"],
+                        "md_engine": info_dic["md_engine"],
+                        "instance_type": info_dic["instance_type"],
+                        "save_md_stage": True}
+
+                    record.set_value(Fields.schedule, schedule)
+                    record.set_value(Fields.cycle_id, current_cycle_id)
+                    record.set_value(Fields.cube_parameters_update, new_dic)
+
+                    info_str = str_schedule(schedule, current_cycle_id, flask_title)
+                    opt["Logger"].info(info_str)
+
+                    if record.has_field(Fields.end_cycle):
+                        record.delete_field(Fields.end_cycle)
+
+                    self.cycle_out_port.emit(record)
+
+                # Cycle forwarding
+                else:
+
+                    # TODO UPDATE ALL THE CUBE PARAMS?
+                    new_dic = {
+                        "time": schedule[str(next_cycle_id)][0],
+                        "CubeTitle": "cycle_" + str(next_cycle_id),
+                        "suffix": "cycle_" + str(next_cycle_id),
+                        "trajectory_interval": opt["trajectory_interval"],
+                        "reporter_interval": opt["reporter_interval"],
+                        "hmr": info_dic["hmr"],
+                        "md_engine": info_dic["md_engine"],
+                        "instance_type": info_dic["instance_type"],
+                        "save_md_stage": True
+                    }
+
+                    record.set_value(Fields.cycle_id, next_cycle_id)
+                    record.set_value(Fields.cube_parameters_update, new_dic)
+
+                    info_str = str_schedule(schedule, next_cycle_id, flask_title)
+                    opt["Logger"].info(info_str)
+                    opt["Logger"].info("Forwarding to next cycle....{}".format(flask_title))
+
+                    self.cycle_out_port.emit(record)
+                    self.recover_out_port.emit(record)
+
+        except Exception as e:
+
+            print("Failed to complete", str(e), flush=True)
+            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            self.log.error(traceback.format_exc())
+            self.failure.emit(record)
+
+        return
+
+
+class MDRecoveryRestartProxyCube(RecordPortsMixin, ComputeCube):
+    title = "MD Recover Restart for ProxyCube"
+
+    classification = [["MD Simulations"]]
+    tags = ["Gromacs", "OpenMM"]
+
+    description = """
+    This cube is able to restart or recover a previously run long MD simulation.
+    This cube is used as support of the MD proxy cube.
+
+    Input:
+    -------
+    Data Record Streaming - Streams of MD ready records 
+
+    Output:
+    -------
+    Data Record Streaming - Streams of MD ready records 
+    """
+
+    uuid = "5be8a53a-6de0-492c-9564-3957d88084f2"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Prohibited"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt["Logger"] = self.log
+        self.max_cycles_dic = dict()
+
+        return
+
+    def process(self, record, port):
+        try:
+
+            md_record = MDDataRecord(record)
+
+            if not md_record.has_stages:
+                if record.has_field(Fields.oetrajconf_rec):
+                    oetraj_conf_records = record.get_value(Fields.oetrajconf_rec)
+
+                    last_conf_rec = oetraj_conf_records[-1]
+                    md_last_conf_rec = MDDataRecord(last_conf_rec)
+
+                    if md_last_conf_rec.has_stages:
+                        record = last_conf_rec
+                        md_record = md_last_conf_rec
+                        self.opt["Logger"].info("Starting From MD Analysis Record")
+                    else:
+                        raise ValueError("The record is missing the MD Stages")
+                else:
+                    raise ValueError("The record is missing the Conf Records")
+
+            # md_components = md_record.get_md_components
+            #
+            # # if isinstance(md_components, MDComponents):
+            # #     raise ValueError("\nDeprecation Error: The MDComponents object seems to be generated "
+            # #                      "by using the old MD API. You should use the MD API Converter floe "
+            # #                      "to generate datasets compatible with the new MD API\n")
+
+            if record.has_field(Fields.flaskid):
+                flask_id = record.get_value(Fields.flaskid)
+
+                # Start
+                if not record.has_field(Fields.cycle_id):
+                    self.success.emit(record)
+                    self.opt["Logger"].info("Starting From MD Record")
+                else:
+                    cycle_id = record.get_value(Fields.cycle_id)
+
+                    if not record.has_field(Fields.schedule):
+                        raise ValueError("The Schedule Field has not been found")
+
+                    schedule = record.get_value(Fields.schedule)
+
+                    # Restarting
+                    if str(cycle_id) not in schedule and record.has_field(Fields.end_cycle):
+                        # Remove update cube parameters
+                        if record.has_field(Fields.cube_parameters_update):
+                            record.delete_field(Fields.cube_parameters_update)
+                        self.opt["Logger"].info("\nAttempting Restarting....\n")
+                        self.success.emit(record)
+                        return
+
+                    # Recovering
+                    if flask_id not in self.max_cycles_dic:
+                        self.max_cycles_dic[flask_id] = record
+                    else:
+
+                        max_cycle_id = self.max_cycles_dic[flask_id].get_value(Fields.cycle_id)
+                        if cycle_id > max_cycle_id:
+                            self.max_cycles_dic[flask_id] = record
+            else:
+                raise ValueError("Cannot find the flask id field")
+
+        except Exception as e:
+
+            print("Failed to complete", str(e), flush=True)
+            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            self.log.error(traceback.format_exc())
+            self.failure.emit(record)
+
+        return
+
+    def end(self):
+        try:
+            if self.max_cycles_dic:
+
+                for rec in self.max_cycles_dic.values():
+
+                    if not rec.has_field(Fields.title):
+                        raise ValueError("The Title Field has not been found")
+
+                    schedule = rec.get_value(Fields.schedule)
+                    title = rec.get_value(Fields.title)
+                    next_it = rec.get_value(Fields.cycle_id)
+
+                    # Recovering from a finished run...Do not do anything
+                    if str(next_it) not in schedule and not rec.has_field(Fields.end_cycle):
+                        self.opt["Logger"].info(
+                            "\nAttempting Restarting from completed Recovery record...{}".format(title))
+                        return
+
+                    info_str = str_schedule(schedule, next_it, title)
+                    self.opt["Logger"].warn("\nAttempting Recovering {}....\n".format(title))
+                    self.opt["Logger"].info(info_str)
+                    self.success.emit(rec)
+
+        except Exception as e:
+
+            print("Failed to complete", str(e), flush=True)
+            self.opt["Logger"].info("Exception {}".format(str(e)))
+            self.log.error(traceback.format_exc())
 
 
 class ParallelMDMinimizeCube(ParallelMixin, MDMinimizeCube):
