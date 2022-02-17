@@ -27,6 +27,11 @@ import fcntl
 
 import os
 
+# TODO REMOVE THIS
+from simtk import unit
+
+import math
+#
 
 md_keys_converter = {
     "OpenMM": {
@@ -174,3 +179,112 @@ def update_cube_parameters_in_place(record, parameter_dic):
             {k: cube_parameters_dic[k] for k in parameters_intersection_set}
         )
 
+# TODO REMOVE THIS
+
+
+def schedule_cycles(cube_param_dic, record_info_dic, start_iter_index=0):
+
+    speed_ns_per_day = record_info_dic["speed_ns_per_day"]
+    hmr = record_info_dic["hmr"]
+    md_engine = record_info_dic["md_engine"]
+
+    if md_engine == "Gromacs":
+        time_step = 2 * unit.femtoseconds
+    else:
+        if hmr:
+            time_step = 4 * unit.femtoseconds
+        else:
+            time_step = 2 * unit.femtoseconds
+
+    cube_max_run_time = cube_param_dic["cube_max_run_time"] * unit.hours
+    time = cube_param_dic["time"] * unit.nanoseconds
+    time_ns = time.in_units_of(unit.nanoseconds)
+    total_steps = math.ceil(time_ns / time_step)
+
+    trajectory_interval_ns = cube_param_dic["trajectory_interval"] * unit.nanoseconds
+
+    # Per cycle md running time
+    running_time_per_cycle = (
+        cube_max_run_time.value_in_unit(unit.day) * speed_ns_per_day * unit.nanoseconds
+    )
+    running_time_per_cycle_in_ns = running_time_per_cycle.in_units_of(unit.nanoseconds)
+
+    md_steps_per_cycle = int(running_time_per_cycle_in_ns / time_step)
+
+    cycles = int(time_ns / running_time_per_cycle_in_ns)
+    cycle_rem = time_ns.value_in_unit(
+        unit.nanoseconds
+    ) % running_time_per_cycle_in_ns.value_in_unit(unit.nanoseconds)
+
+    trajectory_steps = int(
+        round(
+            trajectory_interval_ns.value_in_unit(unit.nanosecond)
+            / (time_step.value_in_unit(unit.nanoseconds))
+        )
+    )
+
+    schedule = dict()
+    if cycles == 0:
+        time_step_to_time = (
+            int(round(cycle_rem / time_step.value_in_unit(unit.nanoseconds)))
+            * time_step
+        )
+
+        frame_per_cycle = int(total_steps / trajectory_steps)
+
+        schedule[start_iter_index] = (
+            time_step_to_time.value_in_unit(unit.nanosecond),
+            frame_per_cycle,
+        )
+    else:
+        time_steps_to_time = md_steps_per_cycle * time_step.in_units_of(
+            unit.nanoseconds
+        )
+        last_time = (total_steps - md_steps_per_cycle * cycles) * time_step.in_units_of(
+            unit.nanoseconds
+        )
+
+        frames_per_cycle = int(md_steps_per_cycle / trajectory_steps)
+        frame_per_cycle_dic = {i: frames_per_cycle for i in range(start_iter_index, cycles+start_iter_index)}
+        frame_per_cycle_dic[cycles+start_iter_index] = int(
+            (total_steps - md_steps_per_cycle * cycles) / trajectory_steps
+        )
+
+        schedule = {
+            i: (
+                time_steps_to_time.value_in_unit(unit.nanosecond),
+                frame_per_cycle_dic[i],
+            )
+            for i in range(start_iter_index, cycles+start_iter_index)
+        }
+        schedule[cycles+start_iter_index] = (
+            last_time.value_in_unit(unit.nanosecond),
+            frame_per_cycle_dic[cycles+start_iter_index],
+        )
+
+    return schedule
+
+
+def str_schedule(schedule, count, flask_title):
+
+    info_str = "\n\n" + 27 * "-" + "\n"
+    info_str += flask_title[:27] + "\n"
+    info_str += "\nIter  time(ns)    Frames\n"
+    info_str += 27 * "-" + "\n"
+
+    tot_time = 0
+    tot_frames = 0
+    for iteration, (time, frame) in schedule.items():
+        info_str += "{:4d}  {:8.4f}  {:8d}  {}\n".format(
+            int(iteration),
+            time,
+            frame,
+            "* running" if int(iteration) == count else "",
+        )
+        tot_time += time
+        tot_frames += frame
+    info_str += 27 * "-" + "\n"
+    info_str += "      {:8.4f}  {:8d}\n".format(tot_time, tot_frames)
+
+    return info_str
+##############
