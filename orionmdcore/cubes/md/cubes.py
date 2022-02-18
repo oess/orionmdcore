@@ -80,8 +80,8 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -351,8 +351,8 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -669,8 +669,8 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -1313,8 +1313,8 @@ class ParallelMDMinimizeCube(ParallelMixin, MDMinimizeCube):
 
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -1330,8 +1330,8 @@ class ParallelMDNvtCube(ParallelMixin, MDNvtCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -1347,8 +1347,8 @@ class ParallelMDNptCube(ParallelMixin, MDNptCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        # "instance_type": {"default": "g3.4xlarge"},  # Gpu Family selection
-        "instance_type": {"default": ""},  # Gpu Family selection
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
