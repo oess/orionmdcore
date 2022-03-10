@@ -82,7 +82,7 @@ def anaconda_upload(ctx, username, label="OrionDev"):
         try:
             print("\n>>>>>>>>>>> Building the conda recipe <<<<<<<<<<<<<\n")
             pkg_meta_file = os.path.join(os.path.dirname(orionmdcore.__path__[0]), "devtools/conda-recipe/meta.yaml")
-            run("conda build {} -c conda-forge -c omnia -c OpenEye/label/Orion".format(pkg_meta_file))
+            run("conda build {} -c conda-forge -c omnia -c OpenEye/label/Orion -c OpenEye/label/OrionDev".format(pkg_meta_file))
             print("\n>>>>>>>>>>> End building the conda recipe <<<<<<<<<<<<<\n")
         except Exception as e:
             if not os.path.isfile(full_path):
