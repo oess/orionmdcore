@@ -228,7 +228,7 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
                             if self.opt["write_new_collection"] in self.collections:
                                 raise ValueError(
                                     "Collection name already present in the collections: {}".format(
-                                        list(self.collections.keys)
+                                        list(self.collections)
                                     )
                                 )
 
