@@ -21,17 +21,10 @@ except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
 
-import time
-
-import fcntl
-
-import os
-
-# TODO REMOVE THIS
 from simtk import unit
 
 import math
-#
+
 
 md_keys_converter = {
     "OpenMM": {
@@ -53,74 +46,6 @@ md_keys_converter = {
 }
 
 
-def local_cluster(sim):
-    def wrapper(*args):
-
-        mdstate = args[0]
-        ff_parameters = args[1]
-        opt = args[2]
-
-        if "OE_VISIBLE_DEVICES" in os.environ and not in_orion():
-
-            gpus_available_indexes = os.environ["OE_VISIBLE_DEVICES"].split(",")
-
-            opt["Logger"].info("OE LOCAL FLOE CLUSTER OPTION IN USE")
-
-            if "OE_MAX" in os.environ:
-                opt["OE_MAX"] = int(os.environ["OE_MAX"])
-            else:
-                opt["OE_MAX"] = 1
-
-            opt["Logger"].info("OE MAX = {}".format(opt["OE_MAX"]))
-
-            while True:
-
-                for gpu_id in gpus_available_indexes:
-
-                    for p in range(0, opt["OE_MAX"]):
-
-                        fn = str(gpu_id) + "_" + str(p) + ".txt"
-
-                        try:
-                            with open(fn, "a") as file:
-
-                                fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                                # opt['Logger'].warn("LOCKED GPU ID = {} - MOL ID = {}".format(gpu_id, opt['system_id']))
-                                file.write(
-                                    "MD - name = {} MOL_ID = {} GPU_IDS = {} GPU_ID = {}\n".format(
-                                        opt["system_title"],
-                                        opt["system_id"],
-                                        gpus_available_indexes,
-                                        str(gpu_id),
-                                    )
-                                )
-                                opt["gpu_id"] = str(gpu_id)
-
-                                new_mdstate = sim(mdstate, ff_parameters, opt)
-
-                                time.sleep(5.0)
-                                # opt['Logger'].warn("UNLOCKING GPU ID = {} - MOL ID = {}".format(gpu_id, opt['system_id']))
-                                fcntl.flock(file, fcntl.LOCK_UN)
-                                return new_mdstate
-
-                        except BlockingIOError:
-                            time.sleep(0.1)
-
-                        except Exception as e:  # If the simulation fails for other reasons
-                            try:
-                                time.sleep(5.0)
-                                fcntl.flock(file, fcntl.LOCK_UN)
-                            except Exception as e:
-                                pass
-                            raise ValueError("{} Simulation Failed".format(str(e)))
-        else:
-            new_mdstate = sim(*args)
-            return new_mdstate
-
-    return wrapper
-
-
-@local_cluster
 def md_simulation(mdstate, ff_parameters, opt):
 
     if opt["md_engine"] == "OpenMM":
@@ -178,8 +103,6 @@ def update_cube_parameters_in_place(record, parameter_dic):
         parameter_dic.update(
             {k: cube_parameters_dic[k] for k in parameters_intersection_set}
         )
-
-# TODO REMOVE THIS
 
 
 def schedule_cycles(cube_param_dic, record_info_dic, start_iter_index=0):
@@ -287,4 +210,3 @@ def str_schedule(schedule, count, flask_title):
     info_str += "      {:8.4f}  {:8d}\n".format(tot_time, tot_frames)
 
     return info_str
-##############
