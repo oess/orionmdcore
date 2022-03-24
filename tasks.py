@@ -16,6 +16,7 @@
 # or its use.
 
 import os
+import sys
 
 import shutil
 
