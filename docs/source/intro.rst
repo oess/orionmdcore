@@ -20,7 +20,7 @@ installation of the OpenEye **orionplatform** and **snowball** packages in the c
 Customers that have access to OpenEye MagPie repository and
 correctly set their local pip credentials can install them with:
 ::
-     pip install OpenEye-orionplatform[artemis]==4.2.5 OpenEye-toolkits==2021.2.0 OpenEye-snowball==0.23.0
+     pip install OpenEye-orionplatform[artemis]==4.3.0 OpenEye-toolkits==2021.2.0 OpenEye-snowball==0.23.1
 
 In case of issues please contact OpenEye support.
 
