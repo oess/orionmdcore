@@ -106,7 +106,7 @@ def rsts(ctx):
 # create RSTs and also build HTMLs
 @task
 def docs(ctx):
-    rsts
+    rsts(ctx)
     curdir = os.getcwd()
     os.chdir("docs")
     if sys.platform == "win32":
