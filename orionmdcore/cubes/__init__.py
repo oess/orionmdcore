@@ -44,4 +44,8 @@ from orionmdcore.cubes.md.cubes import (
     ParallelMDMinimizeCube,
     ParallelMDNvtCube,
     ParallelMDNptCube,
+    # TODO REMOVE THIS
+    MDProxyCube,
+    MDRecoveryRestartProxyCube
+    ###
 )

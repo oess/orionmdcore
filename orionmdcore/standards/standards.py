@@ -235,3 +235,6 @@ class Fields:
         "Floe_report_ID_OPLMD", Types.Int, meta=_metaHidden
     )
 
+    # TODO THIS MUST BE REMOVED
+    # The Lig_Conf_Data Field is for the record containing Traj conf data for all confs
+    oetrajconf_rec = OEField("Lig_Conf_Data", Types.RecordVec, meta=_metaHidden)
