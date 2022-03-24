@@ -8,16 +8,18 @@ v 1.1.5 March 2022
 
 General Notice
 ---------------------------------------------------------------------------------
-* 
+* New cubes for Long Trajectory MD supports
+* Package dependencies update
+* Minor bugs fixing
 
 New Cubes
 --------------------------------------------------------------------------------
-* MDProxyCube
-* MDRecoveryRestartProxyCube
+* MDProxyCube. The MD Proxy cube runs chucks of MD simulations in cycles till the desired total md running time has been reached
+* MDRecoveryRestartProxyCube. This cube is able to restart or recover a previously run long MD simulation and it is used as support of the MD proxy cube
 
 Cube Updates
 --------------------------------------------------------------------------------
-* All MD cubes are by default pinning g3 spot instances
+* All the MD cubes are by default pinning g3 spot instances
 
 ======================
 
