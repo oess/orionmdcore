@@ -245,43 +245,36 @@ class MDComponents:
 
             if protein.NumAtoms():
                 protein = clean_tags(protein)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(protein, False)
+                oechem.OEPDBOrderAtoms(protein, False)
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
                 ligand = sanitizeOEMolecule(ligand)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(ligand, False)
+                oechem.OEPDBOrderAtoms(ligand, False)
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(water, False)
+                oechem.OEPDBOrderAtoms(water, False)
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(excipients)
                 cofactors = sanitizeOEMolecule(cofactors)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(cofactors, False)
+                oechem.OEPDBOrderAtoms(cofactors, False)
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(lipids, False)
+                oechem.OEPDBOrderAtoms(lipids, False)
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(metals, False)
+                oechem.OEPDBOrderAtoms(metals, False)
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
-                # TODO ENABLE THIS ?
-                # oechem.OEPDBOrderAtoms(excipients, False)
+                oechem.OEPDBOrderAtoms(excipients, False)
                 self._components["excipients"] = excipients
 
             print("Design Unit Built from Molecule")
