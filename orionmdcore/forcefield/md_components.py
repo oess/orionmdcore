@@ -245,7 +245,7 @@ class MDComponents:
 
             if protein.NumAtoms():
                 protein = clean_tags(protein)
-                oechem.OEPDBOrderAtoms(protein, False)
+                # oechem.OEPDBOrderAtoms(protein, False)
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
@@ -325,11 +325,15 @@ class MDComponents:
             return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
 
         state = dict()
+        list_comp_name = list()
+        for comp_name in self._components:
+            state[comp_name] = mol_to_bytes(self._components[comp_name])
+            list_comp_name.append(comp_name)
+
         for name in self._component_names:
-            if name in self._components:
-                state[name] = mol_to_bytes(self._components[name])
-            else:
+            if name not in list_comp_name:
                 state[name] = None
+
         state["components_title"] = self._components_title
         state["box_vectors"] = (
             data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None

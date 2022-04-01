@@ -196,9 +196,9 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                     at_flask = flask.GetAtom(pred)
 
                     if at_flask.GetAtomicNum() != at_comp.GetAtomicNum():
-                        "Atomic number mismatch between the component {}  atom {} and the flask atom {}".format(
-                            comp_name, at_comp, at_flask
-                        )
+                        raise ValueError("Atomic number mismatch between the "
+                                         "component {}  atom {} and the flask atom {}".format(
+                                          comp_name, at_comp, at_flask))
 
                     at_comp.SetPartialCharge(at_flask.GetPartialCharge())
 
