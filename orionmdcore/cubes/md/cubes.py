@@ -969,7 +969,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
     tags = ["Gromacs", "OpenMM"]
 
     description = """
-    The MD Proxy cube runs chucks of MD simulations in cycles till the desired
+    The MD Proxy cube runs chunks of MD simulations in cycles till the desired
     total md running time has been reached. 
 
     Input:
