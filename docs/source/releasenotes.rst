@@ -3,10 +3,10 @@ Release Notes
 #############
 
 
-v 1.1.5 March 2022
+v 1.1.5 April 2022
 =================
 
-General Notice
+General Notes
 ---------------------------------------------------------------------------------
 * New cubes for Long Trajectory MD support; these are cubes to enable iterative floes.
 * Package dependencies update
