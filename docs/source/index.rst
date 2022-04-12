@@ -1,3 +1,5 @@
+.. _orion-md-core-documentation:
+
 ##############################################
 Molecular Dynamics Core Package Documentation
 ##############################################
