@@ -60,8 +60,10 @@ from orionmdcore.standards import CollectionsNames
 
 from orionmdcore.standards.utils import check_filename
 
+from functools import wraps
 
 def mdstages(f):
+    @wraps(f)
     def wrapper(*pos, **named):
         mdrec = pos[0]
 
@@ -74,6 +76,7 @@ def mdstages(f):
 
 
 def stage_system(f):
+    @wraps(f)
     def wrapper(*pos, **named):
 
         mdrec = pos[0]
@@ -2171,7 +2174,7 @@ class MDDataRecord(object):
         """
         This method returns True if the MD Components object is present on the record
 
-        Return:
+        Return
         -------
         boolean: Bool
             True if the md components object is present on the record otherwise False
@@ -2187,7 +2190,7 @@ class MDDataRecord(object):
         """
         This method returns True if extra data file in tar format is attached to the record
 
-        Return:
+        Return
         -------
         boolean: Bool
             True if extra data file is present on the record otherwise False

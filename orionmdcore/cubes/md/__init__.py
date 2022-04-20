@@ -22,6 +22,7 @@ from orionmdcore.cubes.md.cubes import (
     ParallelMDMinimizeCube,
     ParallelMDNvtCube,
     ParallelMDNptCube,
+    ParallelMDSpeedChecker,
     # TODO REMOVE THIS
     MDProxyCube,
     MDRecoveryRestartProxyCube

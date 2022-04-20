@@ -16,6 +16,7 @@
 # or its use.
 
 import os
+import sys
 
 import shutil
 
@@ -95,16 +96,25 @@ def anaconda_upload(ctx, username, label="OrionDev"):
         raise IOError("It was not possible to upload the file: {}".format(str(e)))
 
 
+# create RSTs for cubes
 @task
-def docs(ctx):
+def rsts(ctx):
     clean_docs(ctx)
     curdir = os.getcwd()
     run('cube_doc orionmdcore.cubes docs/source')
-    # run('floe_doc "OrionMDCore Floes" floes docs/source')
-    os.chdir('docs')
-    run("make html")
     os.chdir(curdir)
 
+# create RSTs and also build HTMLs
+@task
+def docs(ctx):
+    rsts(ctx)
+    curdir = os.getcwd()
+    os.chdir("docs")
+    if sys.platform == "win32":
+        run("make.bat html")
+    else:
+        run("make html")
+    os.chdir(curdir)
 
 @task
 def clean(ctx):
