@@ -1354,3 +1354,104 @@ class ParallelMDNptCube(ParallelMixin, MDNptCube):
         "prefetch_count": {"default": 1},  # 1 molecule at a time
         "item_count": {"default": 1},  # 1 molecule at a time
     }
+
+# HJ
+class MDSpeedChecker(RecordPortsMixin, ComputeCube):
+    title = "MD Speed Checker Cube"
+
+    classification = [["MD Simulations"]]
+    tags = []
+
+    description = """
+    This Cube estimates the wall clock time the production run will require and
+    if the estimated time exceeds the 12 hour time limit, the cube will fail the job. 
+    """
+
+    uuid = "9c679508-45ad-4852-aebd-9a39dc0583a2"
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "gpu_count": {"default": 1},
+        "cpu_count": {"default": 16},
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        # "instance_type": {"default": ""},  # Gpu Family selection
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Prohibited"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }
+
+    time = parameters.DecimalParameter(
+        "time", default=0.01, help_text="NPT simulation time in nanoseconds"
+    )
+
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt["Logger"] = self.log
+
+        return
+
+    def process(self, record, port):
+        try:
+            opt = dict(self.opt)
+            opt["CubeTitle"] = self.title
+
+            md_record = MDDataRecord(record)
+
+            info_dic = md_record.get_stage_info(stg_name="last")
+
+            if not record.has_field(Fields.title):
+                raise ValueError("Field title has not been found on the record")
+
+            flask_title = record.get_value(Fields.title)
+
+            if "speed_ns_per_day" not in info_dic:
+                raise ValueError("Last MD stage does not have speed information")
+
+            speed_ns_per_hour = info_dic["speed_ns_per_day"] / 24
+
+            # the production time in ns
+            prod_ns = opt['time']
+
+            # compute estimate computation time 
+            estimate_prod_time_in_hr = prod_ns / speed_ns_per_hour 
+
+            # # for debugging. Need to delete later
+            # print('>>>>>>>>>>>>>>>>>>>>>>')
+            # print(f'prod_ns: {prod_ns}')
+            # print(f'speed_ns_per_hour: {speed_ns_per_hour:.2f}')
+            # print(f'estimate_prod_time_in_hr: {estimate_prod_time_in_hr:.2f}')
+            # print('>>>>>>>>>>>>>>>>>>>>>>')
+
+            if estimate_prod_time_in_hr >= 12: 
+                e = f'''Estimated wall clock time for the production run exceeds 12 hour time limit: {estimate_prod_time_in_hr:.2f}hr. Please use "Plain MD Floe" for long trajectory MD simulations.'''
+                print("Failed to complete", str(e), flush=True)
+                self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+                self.log.error(traceback.format_exc())
+                self.failure.emit(record)
+            else:
+                self.success.emit(record)
+
+        except Exception as e:
+
+            print("Failed to complete", str(e), flush=True)
+            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            self.log.error(traceback.format_exc())
+            self.failure.emit(record)
+        
+        return
+
+# HJ
+class ParallelMDSpeedChecker(ParallelMixin, MDSpeedChecker):
+    title = "Parallel " + MDSpeedChecker.title
+    description = "(Parallel) " + MDSpeedChecker.description
+    uuid = "97578ae4-a0e0-496f-a8b3-03601c832ed8"
+
+    parameter_overrides = {
+        "gpu_count": {"default": 1},
+        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "memory_mb": {"default": 14000},
+        "spot_policy": {"default": "Allowed"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1},  # 1 molecule at a time
+    }

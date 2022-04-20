@@ -200,41 +200,53 @@ def data_trajectory_extraction(ctx, name, only):
 
                 oetrajrec = record.get_value(OEField('OETraj', Types.Record))
 
-                protein_conf_id = oetrajrec.get_value(OEField("ProtTraj_OPLMD", Types.Int))
-                ligand_conf_id = oetrajrec.get_value(OEField("LigandTraj_OPLMD", Types.Int))
-                water_conf_id = oetrajrec.get_value(OEField("WaterTraj_OPLMD", Types.Int))
+                protein_conf_id = ligand_conf_id = water_conf_id = None
+                if oetrajrec.has_field(OEField("ProtTraj_OPLMD", Types.Int)):
+                    protein_conf_id = oetrajrec.get_value(OEField("ProtTraj_OPLMD", Types.Int))
 
-                protein_shard = session.get_resource(Shard(collection=collection),  protein_conf_id)
-                ligand_shard = session.get_resource(Shard(collection=collection), ligand_conf_id)
-                water_shard = session.get_resource(Shard(collection=collection), water_conf_id)
+                if oetrajrec.has_field(OEField("LigandTraj_OPLMD", Types.Int)):
+                    ligand_conf_id = oetrajrec.get_value(OEField("LigandTraj_OPLMD", Types.Int))
+
+                if oetrajrec.has_field(OEField("WaterTraj_OPLMD", Types.Int)):
+                    water_conf_id = oetrajrec.get_value(OEField("WaterTraj_OPLMD", Types.Int))
+
+                if protein_conf_id:
+                    protein_shard = session.get_resource(Shard(collection=collection),  protein_conf_id)
+                if ligand_conf_id:
+                    ligand_shard = session.get_resource(Shard(collection=collection), ligand_conf_id)
+                if water_conf_id:
+                    water_shard = session.get_resource(Shard(collection=collection), water_conf_id)
 
                 with TemporaryDirectory() as output_directory:
-                    protein_fn = os.path.join(output_directory, "prot_traj_confs.oeb")
-                    protein_shard.download_to_file(protein_fn)
-                    protein_conf = oechem.OEMol()
-                    with oechem.oemolistream(protein_fn) as ifs:
-                        oechem.OEReadMolecule(ifs, protein_conf)
+                    if protein_conf_id:
+                        protein_fn = os.path.join(output_directory, "prot_traj_confs.oeb")
+                        protein_shard.download_to_file(protein_fn)
+                        protein_conf = oechem.OEMol()
+                        with oechem.oemolistream(protein_fn) as ifs:
+                            oechem.OEReadMolecule(ifs, protein_conf)
 
-                    ligand_fn = os.path.join(output_directory, "ligand_traj_confs.oeb")
-                    ligand_shard.download_to_file(ligand_fn)
-                    ligand_conf = oechem.OEMol()
-                    with oechem.oemolistream(ligand_fn) as ifs:
-                        oechem.OEReadMolecule(ifs, ligand_conf)
+                    if ligand_conf_id:
+                        ligand_fn = os.path.join(output_directory, "ligand_traj_confs.oeb")
+                        ligand_shard.download_to_file(ligand_fn)
+                        ligand_conf = oechem.OEMol()
+                        with oechem.oemolistream(ligand_fn) as ifs:
+                            oechem.OEReadMolecule(ifs, ligand_conf)
+                    if water_conf_id:
+                        water_fn = os.path.join(output_directory, "water_traj_confs.oeb")
+                        water_shard.download_to_file(water_fn)
+                        water_conf = oechem.OEMol()
+                        with oechem.oemolistream(water_fn) as ifs:
+                            oechem.OEReadMolecule(ifs, water_conf)
 
-                    water_fn = os.path.join(output_directory, "water_traj_confs.oeb")
-                    water_shard.download_to_file(water_fn)
-                    water_conf = oechem.OEMol()
-                    with oechem.oemolistream(water_fn) as ifs:
-                        oechem.OEReadMolecule(ifs, water_conf)
-
-                oetrajrec.delete_field(OEField('ProtTraj_OPLMD', Types.Int))
-                oetrajrec.set_value(Fields.protein_traj_confs, protein_conf)
-
-                oetrajrec.delete_field(OEField('LigandTraj_OPLMD', Types.Int))
-                oetrajrec.set_value(Fields.ligand_traj_confs, ligand_conf)
-
-                oetrajrec.delete_field(OEField('WaterTraj_OPLMD', Types.Int))
-                oetrajrec.set_value(Fields.water_traj_confs, water_conf)
+                if protein_conf_id:
+                    oetrajrec.delete_field(OEField('ProtTraj_OPLMD', Types.Int))
+                    oetrajrec.set_value(Fields.protein_traj_confs, protein_conf)
+                if ligand_conf_id:
+                    oetrajrec.delete_field(OEField('LigandTraj_OPLMD', Types.Int))
+                    oetrajrec.set_value(Fields.ligand_traj_confs, ligand_conf)
+                if water_conf_id:
+                    oetrajrec.delete_field(OEField('WaterTraj_OPLMD', Types.Int))
+                    oetrajrec.set_value(Fields.water_traj_confs, water_conf)
 
                 new_record.set_value(OEField('OETraj', Types.Record), oetrajrec)
 

@@ -31,6 +31,8 @@ try:
 
     from oeommtools import utils as oeommutils
 
+    from snowball.utils.mixins import ExceptHandlerMixin
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -45,7 +47,7 @@ from orionmdcore.cubes.complexprep.utils import clash_detection
 from orionmdcore.forcefield import MDComponents
 
 
-class ComplexPrepCube(RecordPortsMixin, ComputeCube):
+class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
     title = "Complex Preparation"
 
     classification = [["Flask Preparation"]]

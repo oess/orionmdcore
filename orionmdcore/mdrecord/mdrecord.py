@@ -18,7 +18,7 @@
 try:
     from openeye import oechem
 
-    from datarecord import Meta, OEFieldMeta, OEField, OERecord
+    from datarecord import Meta, OEFieldMeta, OEField, OERecord, Types
 
     from orionclient.types import ShardCollection, Shard
 
