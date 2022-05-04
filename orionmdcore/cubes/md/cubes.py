@@ -1423,8 +1423,8 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
             # print(f'estimate_prod_time_in_hr: {estimate_prod_time_in_hr:.2f}')
             # print('>>>>>>>>>>>>>>>>>>>>>>')
 
-            if estimate_prod_time_in_hr >= 12: 
-                e = f'''Estimated wall clock time for the production run exceeds 12 hour time limit: {estimate_prod_time_in_hr:.2f}hr. Please use "Plain MD Floe" for long trajectory MD simulations.'''
+            if estimate_prod_time_in_hr >= 10: 
+                e = f'''Estimated wall clock time for the production run exceeds 10 hours: {estimate_prod_time_in_hr:.2f}hr. Please use "Plain MD Floe" for long trajectory MD simulations.'''
                 print("Failed to complete", str(e), flush=True)
                 self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
                 self.log.error(traceback.format_exc())
