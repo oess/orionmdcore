@@ -857,6 +857,25 @@ class ParametrizeMDComponents:
             print("Protein Parametrized by using the ff: {}".format(self.protein_ff))
             protein = self.md_components.get_protein
 
+            # HJ: Test if the protein needs pdb atom ordering, and reset protein if needed.
+            protein_ordered = oechem.OEMol(protein)
+            oechem.OEPDBOrderAtoms(protein_ordered, False)
+
+            topology, _ = oeommutils.oemol_to_openmmTop(protein)
+            topology_ordered, _ = oeommutils.oemol_to_openmmTop(protein_ordered)
+
+            n_res_from_omm_top = topology.getNumResidues()
+            n_res_from_ordered_omm_top = topology_ordered.getNumResidues()
+
+            # print('>>>>>>>>>>>>>>>>>>>>>>>')
+            # print(f'# residues before ordering: {n_res_from_omm_top}')
+            # print(f'# residues after ordering:  {n_res_from_ordered_omm_top}')
+            # print('>>>>>>>>>>>>>>>>>>>>>>>')
+            if n_res_from_omm_top != n_res_from_ordered_omm_top:
+                print('Protein needs atom re-ordering using oechem.OEPDBOrderAtoms. save ordered protein in md_components')
+                self.md_components.set_protein(protein_ordered)
+                protein = self.md_components.get_protein
+
             # OpenMM topology and positions from OEMol
             topology, positions = oeommutils.oemol_to_openmmTop(protein)
 

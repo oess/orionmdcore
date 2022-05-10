@@ -138,6 +138,9 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                 protein_ff=opt["protein_forcefield"], ligand_ff=opt["ligand_forcefield"]
             )
 
+            # HJ: regenerate flask
+            flask, map_comp = md_components.create_flask
+
             # Set Parmed structure box_vectors
             is_periodic = True
             if md_components.get_box_vectors is not None:
