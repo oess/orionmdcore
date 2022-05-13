@@ -228,7 +228,6 @@ class MDComponents:
             self._initialize_from_du(du)
             print("Design Unit Built from Spruce")
         else:
-
             # Split the complex in components
             (
                 protein,
@@ -759,6 +758,9 @@ class ParametrizeMDComponents:
         ligand_ff=ff_library.Default.ligandff.name,
         other_ff=ff_library.Default.otherff.name,
     ):
+
+        if not isinstance(md_component, MDComponents):
+            raise ValueError("The passed argument is not a MDComponent object type: {}".format(type(md_component)))
 
         # MD Components
         self.md_components = md_component
