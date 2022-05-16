@@ -162,14 +162,14 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
         self.ligand_count = 0
         self.max_runs = 0
 
-    def process(self, record, port):
+    def process(self, init_record, port):
 
         try:
-            if record.has_value(Fields.primary_molecule):
-                ligand = record.get_value(Fields.primary_molecule)
+            if init_record.has_value(Fields.primary_molecule):
+                ligand = init_record.get_value(Fields.primary_molecule)
 
-            elif record.has_value(Fields.design_unit_from_spruce):
-                du = record.get_value(Fields.design_unit_from_spruce)
+            elif init_record.has_value(Fields.design_unit_from_spruce):
+                du = init_record.get_value(Fields.design_unit_from_spruce)
                 ligand = oechem.OEMol()
                 if not du.GetLigand(ligand):
                     raise ValueError("It was not possible to extract the Ligand from the Design Unit")
@@ -178,14 +178,13 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
             else:
                 raise ValueError("It was not possible to find the ligand in a Du or as Primary molecule on the record")
 
-            # place the entire initial record as a sub-record, to be restored when conformer runs are gathered
             record = OERecord()
-            record.set_value(Fields.ligInit_rec, record)
+            record.set_value(Fields.ligInit_rec, init_record)
 
-            if record.has_field(Fields.design_unit_from_spruce):
+            if init_record.has_field(Fields.design_unit_from_spruce):
                 record.set_value(
                     Fields.design_unit_from_spruce,
-                    record.get_value(Fields.design_unit_from_spruce),
+                    init_record.get_value(Fields.design_unit_from_spruce),
                 )
 
             if (

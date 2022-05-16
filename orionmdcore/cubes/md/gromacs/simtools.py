@@ -336,12 +336,15 @@ class GromacsSimulations(MDSimulations):
                 # If restraints
                 if opt["restraints"]:
                     pcoupl = "berendsen"
+                    tau_p = 0.5
                 else:
                     pcoupl = "Parrinello-Rahman"
+                    tau_p = 20 * nslist * self.stepLen.value_in_unit(unit.picoseconds)
             else:  # nvt ensemble do not use any pressure
                 pcoupl = "no"
                 # This is not used
                 opt["pressure"] = 0.0
+                tau_p = 0.0
 
             if opt["reporter_interval"]:
                 reporter_steps = int(
@@ -411,6 +414,7 @@ class GromacsSimulations(MDSimulations):
                 cutoff=cutoff.in_units_of(unit.nanometer) / unit.nanometer,
                 temperature=opt["temperature"],
                 pcoupl=pcoupl,
+                tau_p=tau_p,
                 pressure=opt["pressure"],
                 gen_vel=gen_vel,
                 pbc=pbc,
