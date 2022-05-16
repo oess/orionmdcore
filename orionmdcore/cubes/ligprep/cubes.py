@@ -162,21 +162,30 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
         self.ligand_count = 0
         self.max_runs = 0
 
-    def process(self, initialRecord, port):
-        try:
-            if not initialRecord.has_value(Fields.primary_molecule):
-                raise ValueError("Missing Primary Molecule field")
+    def process(self, record, port):
 
-            ligand = initialRecord.get_value(Fields.primary_molecule)
+        try:
+            if record.has_value(Fields.primary_molecule):
+                ligand = record.get_value(Fields.primary_molecule)
+
+            elif record.has_value(Fields.design_unit_from_spruce):
+                du = record.get_value(Fields.design_unit_from_spruce)
+                ligand = oechem.OEMol()
+                if not du.GetLigand(ligand):
+                    raise ValueError("It was not possible to extract the Ligand from the Design Unit")
+                self.log.info("[{}] Ligand extracted from the DU".format(self.title))
+
+            else:
+                raise ValueError("It was not possible to find the ligand in a Du or as Primary molecule on the record")
 
             # place the entire initial record as a sub-record, to be restored when conformer runs are gathered
             record = OERecord()
-            record.set_value(Fields.ligInit_rec, initialRecord)
+            record.set_value(Fields.ligInit_rec, record)
 
-            if initialRecord.has_field(Fields.design_unit_from_spruce):
+            if record.has_field(Fields.design_unit_from_spruce):
                 record.set_value(
                     Fields.design_unit_from_spruce,
-                    initialRecord.get_value(Fields.design_unit_from_spruce),
+                    record.get_value(Fields.design_unit_from_spruce),
                 )
 
             if (
@@ -246,7 +255,7 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
             print("Failed to complete", str(e), flush=True)
             self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
             self.log.error(traceback.format_exc())
-            self.failure.emit(initialRecord)
+            self.failure.emit(record)
 
     def end(self):
 
