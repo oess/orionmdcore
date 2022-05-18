@@ -23,6 +23,9 @@ try:
     from floe.api import ParallelMixin, parameters, ComputeCube
 
     from orionplatform.ports import RecordInputPort, RecordOutputPort
+
+    from snowball.utils.log_params import LogFieldParam
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -75,6 +78,9 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     """
 
     uuid = "bdfeaabe-f93b-4a14-9754-d6ca0c18a009"
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     # Override defaults for some parameters
     parameter_overrides = {
@@ -316,11 +322,18 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
             del mdrecord
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -344,6 +357,9 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
     while the trajectory snapshots can be set by using the “trajectory_interval” cube 
     parameter.
     """
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     uuid = "94962b93-bf32-4b5e-b324-dbe8b9350266"
 
@@ -634,11 +650,18 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
             del mdrecord
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -662,6 +685,9 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
     while the trajectory snapshots can be set by using the “trajectory_interval” cube 
     parameter.
     """
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     uuid = "602d397b-d8a5-4388-a94a-ac3a54ff3bad"
 
@@ -953,11 +979,18 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
             del mdrecord
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -986,6 +1019,9 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
     """
 
     uuid = "1c0882c5-be6c-4405-8fba-ef78cdbc2429"
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     # Override defaults for some parameters
     parameter_overrides = {
@@ -1037,8 +1073,10 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
             opt["CubeTitle"] = self.title
 
             if not 0 < opt['cube_max_run_time'] < 11:
+                # raise ValueError("The Max allowed MD running time per iteration is limited to 11 hrs. "
+                #                  "Selected time: {} hrs".format(opt['cube_max_run_time']))
                 raise ValueError("The Max allowed MD running time per iteration is limited to 11 hrs. "
-                                 "Selected time: {} hrs".format(opt['cube_max_run_time']))
+                )
 
             md_record = MDDataRecord(record)
 
@@ -1158,11 +1196,18 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
                     self.recover_out_port.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -1187,6 +1232,9 @@ class MDRecoveryRestartProxyCube(RecordPortsMixin, ComputeCube):
     """
 
     uuid = "5be8a53a-6de0-492c-9564-3957d88084f2"
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     # Override defaults for some parameters
     parameter_overrides = {
@@ -1267,11 +1315,18 @@ class MDRecoveryRestartProxyCube(RecordPortsMixin, ComputeCube):
                 raise ValueError("Cannot find the flask id field")
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -1300,10 +1355,13 @@ class MDRecoveryRestartProxyCube(RecordPortsMixin, ComputeCube):
                     self.success.emit(rec)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {}".format(str(e)))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {}".format(str(e)))
+            # self.log.error(traceback.format_exc())
 
 
 class ParallelMDMinimizeCube(ParallelMixin, MDMinimizeCube):
@@ -1369,6 +1427,9 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
 
     uuid = "9c679508-45ad-4852-aebd-9a39dc0583a2"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
@@ -1423,21 +1484,37 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
             # print(f'estimate_prod_time_in_hr: {estimate_prod_time_in_hr:.2f}')
             # print('>>>>>>>>>>>>>>>>>>>>>>')
 
-            if estimate_prod_time_in_hr >= 10: 
-                e = f'''Estimated wall clock time for the production run exceeds 10 hours: {estimate_prod_time_in_hr:.2f}hr. Please use "Plain MD Floe" for long trajectory MD simulations.'''
-                print("Failed to complete", str(e), flush=True)
-                self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            if estimate_prod_time_in_hr >= 11:
+                e = "Estimated wall clock time for the production run exceeds 11 hrs. Please use 'Plain MD Floe' for long trajectory MD simulations"
+                msg = "{} Cube exception: {}".format(self.title, str(e))
+                self.opt["Logger"].info(msg)
                 self.log.error(traceback.format_exc())
+                # Write field for Exception Handler
+                record.set_value(self.args.log_field, str(msg))
+                # Return failed mol
                 self.failure.emit(record)
+
+                # e = f'''Estimated wall clock time for the production run exceeds 11 hrs. Please use "Plain MD Floe" for long trajectory MD simulations'''
+                # print("Failed to complete", str(e), flush=True)
+                # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+                # self.log.error(traceback.format_exc())
+                # self.failure.emit(record)
             else:
                 self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
         
         return
 

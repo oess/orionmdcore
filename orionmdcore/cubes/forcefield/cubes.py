@@ -23,6 +23,7 @@ try:
     from floe.api import ParallelMixin, parameters, ComputeCube
 
     from snowball.utils.log_params import LogFieldParam
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -120,7 +121,8 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
             opt["CubeTitle"] = self.title
 
             if not record.has_value(Fields.md_components):
-                raise ValueError("MD Components Field is missing")
+                # raise ValueError("MD Components Field is missing")
+                raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
             md_components = record.get_value(Fields.md_components)
             flask, map_comp = md_components.create_flask
@@ -151,13 +153,17 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                 )
 
             if flask.NumAtoms() != flask_pmd_structure.topology.getNumAtoms():
+                # raise ValueError(
+                #     "The flask {} and the generated Parmed structure "
+                #     "have mismatch atom numbers: {} vs {}".format(
+                #         flask_title,
+                #         flask.NumAtoms(),
+                #         flask_pmd_structure.topology.getNumAtoms(),
+                #     )
+                # )
                 raise ValueError(
-                    "The flask {} and the generated Parmed structure "
-                    "have mismatch atom numbers: {} vs {}".format(
-                        flask_title,
-                        flask.NumAtoms(),
-                        flask_pmd_structure.topology.getNumAtoms(),
-                    )
+                    "The flask and the generated Parmed structure "
+                    "have mismatch atom numbers"
                 )
 
             # Check Formal vs Partial charges
@@ -170,20 +176,26 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                 flask_partial_charge += at.charge
 
             if abs(flask_formal_charge - flask_partial_charge) > 0.01:
+                # raise ValueError(
+                #     "Flask Formal charge and flask Partial charge mismatch: {} vs {}".format(
+                #         flask_formal_charge, flask_partial_charge
+                #     )
+                # )
                 raise ValueError(
-                    "Flask Formal charge and flask Partial charge mismatch: {} vs {}".format(
-                        flask_formal_charge, flask_partial_charge
-                    )
+                    "Flask Formal charge and flask Partial charge mismatch"
                 )
 
             # Copying the charges between the parmed structure and the oemol
             for parm_at, oe_at in zip(flask_pmd_structure.atoms, flask.GetAtoms()):
 
                 if parm_at.atomic_number != oe_at.GetAtomicNum():
+                    # raise ValueError(
+                    #     "Atomic number mismatch between the Parmed and the OpenEye topologies: {} - {}".format(
+                    #         parm_at.atomic_number, oe_at.GetAtomicNum()
+                    #     )
+                    # )
                     raise ValueError(
-                        "Atomic number mismatch between the Parmed and the OpenEye topologies: {} - {}".format(
-                            parm_at.atomic_number, oe_at.GetAtomicNum()
-                        )
+                        "Atomic number mismatch between the Parmed and the OpenEye topologies"
                     )
 
                 oe_at.SetPartialCharge(parm_at.charge)
@@ -196,9 +208,12 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                     at_flask = flask.GetAtom(pred)
 
                     if at_flask.GetAtomicNum() != at_comp.GetAtomicNum():
+                        # raise ValueError("Atomic number mismatch between the "
+                        #                  "component {}  atom {} and the flask atom {}".format(
+                        #                   comp_name, at_comp, at_flask))
                         raise ValueError("Atomic number mismatch between the "
-                                         "component {}  atom {} and the flask atom {}".format(
-                                          comp_name, at_comp, at_flask))
+                                         "component atom and the flask atom"
+                        )
 
                     at_comp.SetPartialCharge(at_flask.GetPartialCharge())
 
@@ -270,14 +285,21 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
             del mdrecord
 
         except Exception as e:
-
-            msg = "{}: {} Cube exception: {}".format(flask_title, self.title, str(e))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
             self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
             # Write field for Exception Handler
-            record.set_value(self.args.log_field, msg)
+            record.set_value(self.args.log_field, str(msg))
             # Return failed mol
             self.failure.emit(record)
+
+            # msg = "{}: {} Cube exception: {}".format(flask_title, self.title, str(e))
+            # self.opt["Logger"].info(msg)
+            # self.log.error(traceback.format_exc())
+            # # Write field for Exception Handler
+            # record.set_value(self.args.log_field, msg)
+            # # Return failed mol
+            # self.failure.emit(record)
 
         return
 
