@@ -154,8 +154,7 @@ class MDComponents:
                 oechem.OEAddExplicitHydrogens(comp)
 
             # Reset Comp Order
-            if comp_name != 'ligand':
-                oechem.OEPDBOrderAtoms(comp, False)
+            oechem.OEPDBOrderAtoms(comp, False)
 
             if comp_id == oechem.OEDesignUnitComponents_Solvent:
                 # Separate Water from Spruce Solvent
@@ -245,7 +244,7 @@ class MDComponents:
 
             if protein.NumAtoms():
                 protein = clean_tags(protein)
-                oechem.OEPDBOrderAtoms(protein, False)
+                # oechem.OEPDBOrderAtoms(protein, False)
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
@@ -254,27 +253,27 @@ class MDComponents:
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
-                oechem.OEPDBOrderAtoms(water, False)
+                # oechem.OEPDBOrderAtoms(water, False)
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(excipients)
                 cofactors = sanitizeOEMolecule(cofactors)
-                oechem.OEPDBOrderAtoms(cofactors, False)
+                # oechem.OEPDBOrderAtoms(cofactors, False)
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
-                oechem.OEPDBOrderAtoms(lipids, False)
+                # oechem.OEPDBOrderAtoms(lipids, False)
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
-                oechem.OEPDBOrderAtoms(metals, False)
+                # oechem.OEPDBOrderAtoms(metals, False)
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
-                oechem.OEPDBOrderAtoms(excipients, False)
+                # oechem.OEPDBOrderAtoms(excipients, False)
                 self._components["excipients"] = excipients
 
             print("Design Unit Built from Molecule")
@@ -948,6 +947,20 @@ class ParametrizeMDComponents:
                 print("Ligand Parametrized by using the ff: {}".format(self.cofactors_ff))
                 return ligand_pmd
 
+            # # Try to check if the ligand is a peptide made of natural amino acids
+            # forcefield = app.ForceField()
+            # forcefield.loadFile(self.protein_ff)
+            # unmatched_res_list = forcefield.getUnmatchedResidues(topology)
+            #
+            # if not unmatched_res_list:
+            #     omm_components = forcefield.createSystem(topology, rigidWater=False, constraints=None)
+            #     ligand_pmd = parmed.openmm.load_topology(topology, omm_components, xyz=positions)
+            #     self._check_formal_vs_partial_charge("ligand", self.md_components.get_ligand, ligand_pmd)
+            #     print("Ligand Peptide detected")
+            #     print("Ligand Parametrized by using the ff: {}".format(self.protein_ff))
+            #     return ligand_pmd
+
+            # Use Gaff or OpenFF
             print("Ligand Parametrized by using the ff: {}".format(self.ligand_ff))
             prefix_name = 'LIG'
 
