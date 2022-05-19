@@ -221,24 +221,25 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
             str_logger += "\n{:<25} = {:<10}".format("Cube Title", opt["CubeTitle"])
 
             for k, v in sorted(self.parameters().items()):
-                tmp_default = copy.deepcopy(v)
+                if k != 'log_field':
+                    tmp_default = copy.deepcopy(v)
 
-                if v.default is None:
-                    tmp_default.default = "None"
-                elif isinstance(v, parameters.BooleanParameter):
-                    if v.default:
-                        tmp_default.default = "True"
+                    if v.default is None:
+                        tmp_default.default = "None"
+                    elif isinstance(v, parameters.BooleanParameter):
+                        if v.default:
+                            tmp_default.default = "True"
+                        else:
+                            tmp_default.default = "False"
                     else:
-                        tmp_default.default = "False"
-                else:
-                    tmp_description = textwrap.fill(
-                        " ".join(v.description.split()),
-                        subsequent_indent=" " * 39,
-                        width=80,
-                    )
-                    str_logger += "\n{:<25} = {:<10} {}".format(
-                        k, getattr(self.args, tmp_default.name), tmp_description
-                    )
+                        tmp_description = textwrap.fill(
+                            " ".join(v.description.split()),
+                            subsequent_indent=" " * 39,
+                            width=80,
+                        )
+                        str_logger += "\n{:<25} = {:<10} {}".format(
+                            k, getattr(self.args, tmp_default.name), tmp_description
+                        )
 
             str_logger += "\n{:<25} = {:<10}".format("Simulation Type", opt["SimType"])
 
@@ -524,24 +525,25 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
             str_logger += "\n{:<25} = {:<10}".format("Cube Title", opt["CubeTitle"])
 
             for k, v in sorted(self.parameters().items()):
-                tmp_default = copy.deepcopy(v)
+                if k != 'log_field':
+                    tmp_default = copy.deepcopy(v)
 
-                if v.default is None:
-                    tmp_default.default = "None"
-                elif isinstance(v, parameters.BooleanParameter):
-                    if v.default:
-                        tmp_default.default = "True"
+                    if v.default is None:
+                        tmp_default.default = "None"
+                    elif isinstance(v, parameters.BooleanParameter):
+                        if v.default:
+                            tmp_default.default = "True"
+                        else:
+                            tmp_default.default = "False"
                     else:
-                        tmp_default.default = "False"
-                else:
-                    tmp_description = textwrap.fill(
-                        " ".join(v.description.split()),
-                        subsequent_indent=" " * 39,
-                        width=80,
-                    )
-                    str_logger += "\n{:<25} = {:<10} {}".format(
-                        k, getattr(self.args, tmp_default.name), tmp_description
-                    )
+                        tmp_description = textwrap.fill(
+                            " ".join(v.description.split()),
+                            subsequent_indent=" " * 39,
+                            width=80,
+                        )
+                        str_logger += "\n{:<25} = {:<10} {}".format(
+                            k, getattr(self.args, tmp_default.name), tmp_description
+                        )
 
             str_logger += "\n{:<25} = {:<10}".format("Simulation Type", opt["SimType"])
 
@@ -853,24 +855,25 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
             str_logger += "\n{:<25} = {:<10}".format("Cube Title", opt["CubeTitle"])
 
             for k, v in sorted(self.parameters().items()):
-                tmp_default = copy.deepcopy(v)
+                if k != 'log_field':
+                    tmp_default = copy.deepcopy(v)
 
-                if v.default is None:
-                    tmp_default.default = "None"
-                elif isinstance(v, parameters.BooleanParameter):
-                    if v.default:
-                        tmp_default.default = "True"
+                    if v.default is None:
+                        tmp_default.default = "None"
+                    elif isinstance(v, parameters.BooleanParameter):
+                        if v.default:
+                            tmp_default.default = "True"
+                        else:
+                            tmp_default.default = "False"
                     else:
-                        tmp_default.default = "False"
-                else:
-                    tmp_description = textwrap.fill(
-                        " ".join(v.description.split()),
-                        subsequent_indent=" " * 39,
-                        width=80,
-                    )
-                    str_logger += "\n{:<25} = {:<10} {}".format(
-                        k, getattr(self.args, tmp_default.name), tmp_description
-                    )
+                        tmp_description = textwrap.fill(
+                            " ".join(v.description.split()),
+                            subsequent_indent=" " * 39,
+                            width=80,
+                        )
+                        str_logger += "\n{:<25} = {:<10} {}".format(
+                            k, getattr(self.args, tmp_default.name), tmp_description
+                        )
 
             str_logger += "\n{:<25} = {:<10}".format("Simulation Type", opt["SimType"])
 
