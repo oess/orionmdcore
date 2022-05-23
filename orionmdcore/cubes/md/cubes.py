@@ -1376,7 +1376,7 @@ class ParallelMDMinimizeCube(ParallelMixin, MDMinimizeCube):
 
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
@@ -1393,7 +1393,7 @@ class ParallelMDNvtCube(ParallelMixin, MDNvtCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
@@ -1410,7 +1410,7 @@ class ParallelMDNptCube(ParallelMixin, MDNptCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
@@ -1438,9 +1438,8 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
     # Override defaults for some parameters
     parameter_overrides = {
         "gpu_count": {"default": 1},
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         "cpu_count": {"default": 16},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
-        # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -1531,7 +1530,7 @@ class ParallelMDSpeedChecker(ParallelMixin, MDSpeedChecker):
 
     parameter_overrides = {
         "gpu_count": {"default": 1},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Allowed"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
