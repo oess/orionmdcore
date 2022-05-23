@@ -58,6 +58,8 @@ from orionmdcore.standards.utils import check_filename
 from orionmdcore.cubes.md.utils import str_schedule, schedule_cycles
 ###
 
+from snowball import GPU_INSTANCE_TYPES_SUPPORT_FOR_MD
+
 
 class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     title = "Minimization Cube"
@@ -86,7 +88,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
@@ -368,7 +370,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
@@ -697,7 +699,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
     parameter_overrides = {
         "gpu_count": {"default": 1},
         "cpu_count": {"default": 16},
-        "instance_type": {"default": "g3"},  # Gpu Family selection
+        "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
@@ -1416,7 +1418,7 @@ class ParallelMDNptCube(ParallelMixin, MDNptCube):
         "item_count": {"default": 1},  # 1 molecule at a time
     }
 
-# HJ
+
 class MDSpeedChecker(RecordPortsMixin, ComputeCube):
     title = "MD Speed Checker Cube"
 
@@ -1521,7 +1523,7 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
         
         return
 
-# HJ
+
 class ParallelMDSpeedChecker(ParallelMixin, MDSpeedChecker):
     title = "Parallel " + MDSpeedChecker.title
     description = "(Parallel) " + MDSpeedChecker.description

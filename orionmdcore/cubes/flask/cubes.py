@@ -757,7 +757,9 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
 
             # hj: set primary molecule in case the field is missing
             if not record.has_value(Fields.primary_molecule):
-                self.opt["Logger"].warn("Primary Molecule is missing. Setting the ligand (or protein if ligand component is missing) from MD components as Primary Molecule.")
+                self.opt["Logger"].warn("Primary Molecule is missing. Setting the ligand "
+                                        "(or protein if ligand component is missing) from MD "
+                                        "components as Primary Molecule.")
                 if md_components.has_ligand:
                     record.set_value(Fields.primary_molecule, md_components.get_ligand)
                 elif md_components.has_protein:
