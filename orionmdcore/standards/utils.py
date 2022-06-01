@@ -222,6 +222,21 @@ def upload_file(filename, orion_ui_name="OrionFile"):
 
         file_id = file_upload.id
 
+        # TODO DEBUGGING
+        if os.path.exists(filename):
+            print("FOUND>>>>>>>", flush=True)
+        else:
+            print("NOT FOUND>>>>>>", flush=True)
+
+        # Delete the local Orion file after uploading it
+        os.remove(filename)
+
+        # TODO DEBUGGING
+        if os.path.exists(filename):
+            print("STILL THERE>>>>>>>", flush=True)
+        else:
+            print(">>>>>>>DELETE", flush=True)
+
     else:
         file_id = filename
 

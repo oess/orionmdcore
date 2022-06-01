@@ -117,6 +117,7 @@ class MDComponents:
         for pair in du.GetTaggedComponents():
 
             comp_name = pair[0]
+
             comp_id = du.GetComponentID(comp_name)
 
             if comp_name in self._components:
