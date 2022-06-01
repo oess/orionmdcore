@@ -143,6 +143,9 @@ class MDComponents:
             oechem.OEDeleteInteractionsHintSerializationIds(comp)
             oechem.OEClearStyle(comp)
 
+            if comp_name == 'protein':
+                oechem.OEAddExplicitHydrogens(comp)
+
             # Clean R-Groups
             R_group = False
             for atom in comp.GetAtoms(oechem.OEIsRGroup()):
