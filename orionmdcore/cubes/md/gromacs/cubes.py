@@ -72,6 +72,7 @@ class InputGromacs(SourceCube):
 
     prefix_name = parameters.StringParameter(
         "prefix_name",
+        title="Prefix name",
         description="The system prefix name",
         required=True,
         default="PROT",
@@ -227,7 +228,7 @@ class GromacsRunCube(RecordPortsMixin, ComputeCube):
     }
 
     cube_run_time = parameters.DecimalParameter(
-        "cube_run_time", default=10.0, help_text="Gromacs Max Cube Running Time in hrs"
+        "cube_run_time", title="Cube max run time", default=10.0, help_text="Gromacs Max Cube Running Time in hrs"
     )
 
     verbose = parameters.BooleanParameter(

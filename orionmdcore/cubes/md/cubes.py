@@ -121,6 +121,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
     restraint_to_reference = parameters.BooleanParameter(
         "restraint_to_reference",
+        title="Restraint to reference",
         default=True,
         help_text="If True the starting reference system coordinates will be used "
         "to restraint the system",
@@ -159,6 +160,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
     implicit_solvent = parameters.StringParameter(
         "implicit_solvent",
+        title="Implicit solvent",
         default="None",
         choices=["None", "HCT", "OBC1", "OBC2", "GBn", "GBn2"],
         help_text="Implicit Solvent Model. NOTE:"
@@ -181,13 +183,14 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
     hmr = parameters.BooleanParameter(
         "hmr",
+        title='Hydrogen Mass Repartitioning',
         default=False,
-        description="On enables Hydrogen Mass Repartitioning. NOTE:"
-        "Not currently implemented in Gromacs",
+        description="Give hydrogens more mass to speed up the MD",
     )
 
     save_md_stage = parameters.BooleanParameter(
         "save_md_stage",
+        title="Save MD stage",
         default=True,
         help_text="""Save the MD simulation stage. If True the MD,
            simulation data will be appended to the md simulation stages 
@@ -196,6 +199,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
     md_engine = parameters.StringParameter(
         "md_engine",
+        title="MD engine",
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
         help_text="Select the MD available engine",
@@ -403,6 +407,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     restraint_to_reference = parameters.BooleanParameter(
         "restraint_to_reference",
+        title="Restraint to reference",
         default=True,
         help_text="If True the starting reference system coordinates will be used "
         "to restraint the system",
@@ -437,6 +442,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     implicit_solvent = parameters.StringParameter(
         "implicit_solvent",
+        title="Implicit solvent",
         default="None",
         choices=["None", "HCT", "OBC1", "OBC2", "GBn", "GBn2"],
         help_text="Implicit Solvent Model. NOTE:"
@@ -445,6 +451,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     trajectory_interval = parameters.DecimalParameter(
         "trajectory_interval",
+        title="Trajectory interval",
         default=0.0,
         help_text="""Time interval for trajectory snapshots in ns. 
         If 0 the trajectory file will not be generated""",
@@ -452,6 +459,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     reporter_interval = parameters.DecimalParameter(
         "reporter_interval",
+        title="Reporter interval",
         default=0.0,
         help_text="""Time interval for reporting data in ns. 
         If 0 the reporter file will not be generated""",
@@ -459,6 +467,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     trajectory_frames = parameters.IntegerParameter(
         "trajectory_frames",
+        title="Trajectory frames",
         default=0,
         help_text="""The total number of trajectory frames. If it is 
         set to zero and the trajectory interval parameter is set 
@@ -484,13 +493,14 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     hmr = parameters.BooleanParameter(
         "hmr",
+        title="Hydrogen Mass Repartitioning",
         default=False,
-        help_text="On enables Hydrogen Mass Repartitioning. NOTE: "
-        "Not currently implemented in Gromacs",
+        help_text="Give hydrogens more mass to speed up the MD",
     )
 
     save_md_stage = parameters.BooleanParameter(
         "save_md_stage",
+        title="Save MD stage",
         default=False,
         help_text="""Save the MD simulation stage. If True the MD,
            simulation data will be appended to the md simulation stages 
@@ -499,9 +509,10 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
 
     md_engine = parameters.StringParameter(
         "md_engine",
+        title="MD engine",
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
-        help_text="Select the MD available engine",
+        help_text="Select the available MD engine",
     )
 
     def begin(self):
@@ -736,6 +747,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     restraint_to_reference = parameters.BooleanParameter(
         "restraint_to_reference",
+        title="Restraint to reference",
         default=True,
         help_text="If True the starting reference system coordinates will be used "
         "to restraint the system",
@@ -769,6 +781,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     implicit_solvent = parameters.StringParameter(
         "implicit_solvent",
+        title="Implicit Solvent",
         default="None",
         choices=["None", "HCT", "OBC1", "OBC2", "GBn", "GBn2"],
         help_text="Implicit Solvent Model. Not Currently implemented in Gromacs",
@@ -776,6 +789,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     trajectory_interval = parameters.DecimalParameter(
         "trajectory_interval",
+        title="Trajectory interval",
         default=0.0,
         help_text="""Time interval for trajectory snapshots in ns. 
         If 0 the trajectory file will not be generated""",
@@ -783,6 +797,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     reporter_interval = parameters.DecimalParameter(
         "reporter_interval",
+        title="Reporter interval",
         default=0.0,
         help_text="""Time interval for reporting data in ns. 
         If 0 the reporter file will not be generated""",
@@ -790,6 +805,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     trajectory_frames = parameters.IntegerParameter(
         "trajectory_frames",
+        title="Trajectory frames",
         default=0,
         help_text="""The total number of trajectory frames. If it is 
             set to zero and the trajectory interval parameter is set 
@@ -815,12 +831,14 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     hmr = parameters.BooleanParameter(
         "hmr",
+        title='Hydrogen Mass Repartitioning',
         default=True,
-        help_text="On enables Hydrogen Mass Repartitioning. Not currently implemented in Gromacs",
+        help_text="Give hydrogens more mass to speed up the MD",
     )
 
     save_md_stage = parameters.BooleanParameter(
         "save_md_stage",
+        title="Save MD stage",
         default=False,
         help_text="""Save the MD simulation stage. If True the MD,
            simulation data will be appended to the md simulation stages 
@@ -829,9 +847,10 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
 
     md_engine = parameters.StringParameter(
         "md_engine",
+        title="MD engine",
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
-        help_text="Select the MD available engine",
+        help_text="Select the available MD engine",
     )
 
     def begin(self):
@@ -1042,6 +1061,7 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
 
     trajectory_interval = parameters.DecimalParameter(
         "trajectory_interval",
+        title="Trajectory interval",
         default=0.10,
         help_text="""Time interval per cycle for trajectory snapshots in ns. 
         If 0 the trajectory file will not be generated""",
@@ -1049,13 +1069,14 @@ class MDProxyCube(RecordPortsMixin, ComputeCube):
 
     reporter_interval = parameters.DecimalParameter(
         "reporter_interval",
+        title="Reporter interval",
         default=0.01,
         help_text="""Time interval for reporting data in ns. 
         If 0 the reporter file will not be generated""",
     )
 
     cube_max_run_time = parameters.DecimalParameter(
-        "cube_max_run_time", default=10, help_text="Max Cube Running Time in hrs. Max 11hrs"
+        "cube_max_run_time", title="Cube max run time", default=10, help_text="Max Cube Running Time in hrs. Max 11hrs"
     )
 
     cycle_out_port = RecordOutputPort(
