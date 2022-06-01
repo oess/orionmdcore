@@ -202,7 +202,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         title="MD engine",
         default="OpenMM",
         choices=["OpenMM", "Gromacs"],
-        help_text="Select the MD available engine",
+        help_text="Select the available MD engine",
     )
 
     def begin(self):
