@@ -376,6 +376,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
         "cpu_count": {"default": 16},
         "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
+        "disk_space": {"default": 20000},
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -712,6 +713,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
         "cpu_count": {"default": 16},
         "instance_type": {"default": GPU_INSTANCE_TYPES_SUPPORT_FOR_MD},  # Gpu Family selection
         # "instance_type": {"default": ""},  # Gpu Family selection
+        "disk_space": {"default": 20000},
         "memory_mb": {"default": 14000},
         "spot_policy": {"default": "Prohibited"},
         "prefetch_count": {"default": 1},  # 1 molecule at a time
