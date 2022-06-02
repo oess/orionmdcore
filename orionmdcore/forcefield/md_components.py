@@ -901,7 +901,7 @@ class ParametrizeMDComponents:
                     ]
 
                     raise ValueError(
-                        "The following protein residues cannot be parametrize: {}".format(
+                        "The following protein residues cannot be parametrized: {}".format(
                             info_fail
                         )
                     )
