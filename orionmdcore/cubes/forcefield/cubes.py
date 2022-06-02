@@ -89,13 +89,15 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
 
     protein_forcefield = parameters.StringParameter(
         "protein_forcefield",
+        title='Protein force field',
         default=sorted(ff_library.proteinff)[0],
         choices=sorted(ff_library.proteinff),
-        help_text="Force field parameters to be applied to the protein",
+        help_text="Force field to be applied to the protein",
     )
 
     ligand_forcefield = parameters.StringParameter(
         "ligand_forcefield",
+        title='Ligand force field',
         default=sorted(ff_library.ligandff)[0],
         choices=sorted(ff_library.ligandff),
         help_text="Force field to be applied to the ligand",

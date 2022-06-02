@@ -191,6 +191,7 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
 
     write_new_collection = parameters.StringParameter(
         "write_new_collection",
+        title='Write a new collection',
         default=CollectionsNames.none,
         choices=[CollectionsNames.none, CollectionsNames.md, CollectionsNames.nes],
         help_text="Write a new collection",
@@ -382,12 +383,14 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     padding_distance = parameters.DecimalParameter(
         "padding_distance",
+        title='Padding distance',
         default=8.0,
         help_text="The padding distance between the solute and the box edge in A",
     )
 
     distance_between_atoms = parameters.DecimalParameter(
         "distance_between_atoms",
+        title='Minimum distance between atoms',
         default=2.0,
         help_text="The minimum distance between atoms in A",
     )
@@ -401,6 +404,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     molar_fractions = parameters.StringParameter(
         "molar_fractions",
+        title='Molar fractions',
         default="1.0",
         help_text="Molar fractions of each solvent components. The molar fractions are specified"
         "as comma separated molar fractions strings e.g. 0.5,0.2,0.3",
@@ -420,6 +424,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     close_solvent = parameters.BooleanParameter(
         "close_solvent",
+        title='Close solvent',
         default=False,
         help_text="If Checked/True solvent molecules will be placed very close to the solute",
     )
@@ -433,11 +438,12 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
     )
 
     salt_concentration = parameters.DecimalParameter(
-        "salt_concentration", default=50.0, help_text="Salt concentration in millimolar"
+        "salt_concentration", title='Salt concentration', default=50.0, help_text="Salt concentration in millimolar"
     )
 
     neutralize_solute = parameters.BooleanParameter(
         "neutralize_solute",
+        title='Neutralize solute',
         default=True,
         help_text="Neutralize the solute by adding Na+ and Cl- counter-ions based on"
         "the solute formal charge",
@@ -677,17 +683,19 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
     }
 
     flask_title = parameters.StringParameter(
-        "flask_title", default="", help_text="Flask Title"
+        "flask_title", title='Flask Title', default="", help_text="Flask Title"
     )
 
     multiple_flasks = parameters.BooleanParameter(
         "multiple_flasks",
+        title='Multiple flasks',
         default=False,
         help_text="If Checked/True multiple receptors will be allowed",
     )
 
     ignore_du = parameters.BooleanParameter(
         "ignore_du",
+        title='Ignore DU',
         default=False,
         help_text="If True the Du present on the record is ignored and the md components are "
         "built from the record primary molecule",
