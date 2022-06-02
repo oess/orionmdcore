@@ -76,8 +76,9 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
 
     charge_ligands = parameters.BooleanParameter(
         "charge_ligands",
+        title="Assign Ligand Partial Charges",
         default=True,
-        description="Flag used to set if charge the ligands or not",
+        description="Assign ligand partial charges or not",
     )
 
     def begin(self):
@@ -160,15 +161,16 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
 
     # Ligand Residue Name
     lig_res_name = parameters.StringParameter(
-        "lig_res_name", default="LIG", help_text="The new ligand residue name"
+        "lig_res_name", title="Ligand residue name", default="LIG", help_text="The new ligand residue name"
     )
 
     max_md_runs = parameters.IntegerParameter(
-        "max_md_runs", default=500, help_text="The maximum allowed number of md runs"
+        "max_md_runs", title="Max MD runs", default=500, help_text="The maximum allowed number of md runs"
     )
 
     n_md_starts = parameters.IntegerParameter(
         "n_md_starts",
+        title="Number of MD starts",
         default=1,
         help_text="The number of md starts for each ligand/conformer",
     )
