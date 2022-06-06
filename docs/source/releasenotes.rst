@@ -3,6 +3,27 @@ Release Notes
 #############
 
 
+v 1.1.6 June 2022
+=================
+
+General Notes
+---------------------------------------------------------------------------------
+* Add new cube for checking the wall clock time of production runs
+* G4/G5 AWS instances support for OpenMM/Gromacs
+* Minor bug fixing
+
+New Cubes
+--------------------------------------------------------------------------------
+* MDSpeedChecker cube. This Cube estimates the wall clock time a production run will 
+  require and if the estimated time exceeds the 12 hour time limit, the cube will fail the job. 
+
+Cube Updates
+--------------------------------------------------------------------------------
+* All cubes have been updated for improved exception handling.
+
+======================
+
+
 v 1.1.5 April 2022
 =================
 
