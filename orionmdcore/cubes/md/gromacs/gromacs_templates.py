@@ -126,7 +126,7 @@ ref_t		= {temperature:f} ; reference temperature in K
 ; Pressure coupling is on
 pcoupl		        = {pcoupl}	    ; Pressure coupling on in NPT
 pcoupltype	        = isotropic	            ; uniform scaling of box vectors
-tau_p		        = 0.5		            ; time constant, in ps
+tau_p		        = {tau_p:f}		            ; time constant, in ps
 ref_p		        = {pressure:f}		            ; reference pressure, in bar
 compressibility     = 4.5e-5	            ; isothermal compressibility of water, bar^-1
 refcoord_scaling        = com

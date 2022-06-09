@@ -25,6 +25,9 @@ try:
     from oeommtools import utils as oeommutils
 
     from orionplatform.mixins import RecordPortsMixin
+
+    from snowball.utils.log_params import LogFieldParam
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -53,6 +56,9 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
 
     uuid = "ea184f6e-feb8-46f1-a89a-6b87270063a3"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
@@ -70,8 +76,9 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
 
     charge_ligands = parameters.BooleanParameter(
         "charge_ligands",
+        title="Assign Ligand Partial Charges",
         default=True,
-        description="Flag used to set if charge the ligands or not",
+        description="Assign ligand partial charges or not",
     )
 
     def begin(self):
@@ -82,7 +89,8 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
         try:
 
             if not record.has_value(Fields.primary_molecule):
-                raise ValueError("Missing Primary Molecule field")
+                # raise ValueError("Missing Primary Molecule field")
+                raise ValueError('The record does not have field {}'.format(Fields.primary_molecule.get_name()))
 
             ligand = record.get_value(Fields.primary_molecule)
 
@@ -112,11 +120,18 @@ class LigandChargeCube(RecordPortsMixin, ComputeCube):
             self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
 
 class LigandSetting(RecordPortsMixin, ComputeCube):
@@ -133,6 +148,9 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
 
     uuid = "fce16dd4-ce3a-4374-92f0-4ed24259d2f6"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 2000},
@@ -143,15 +161,16 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
 
     # Ligand Residue Name
     lig_res_name = parameters.StringParameter(
-        "lig_res_name", default="LIG", help_text="The new ligand residue name"
+        "lig_res_name", title="Ligand residue name", default="LIG", help_text="The new ligand residue name"
     )
 
     max_md_runs = parameters.IntegerParameter(
-        "max_md_runs", default=500, help_text="The maximum allowed number of md runs"
+        "max_md_runs", title="Max MD runs", default=500, help_text="The maximum allowed number of md runs"
     )
 
     n_md_starts = parameters.IntegerParameter(
         "n_md_starts",
+        title="Number of MD starts",
         default=1,
         help_text="The number of md starts for each ligand/conformer",
     )
@@ -162,33 +181,44 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
         self.ligand_count = 0
         self.max_runs = 0
 
-    def process(self, initialRecord, port):
+    def process(self, init_record, port):
+
         try:
-            if not initialRecord.has_value(Fields.primary_molecule):
-                raise ValueError("Missing Primary Molecule field")
+            if init_record.has_value(Fields.primary_molecule):
+                ligand = init_record.get_value(Fields.primary_molecule)
 
-            ligand = initialRecord.get_value(Fields.primary_molecule)
+            elif init_record.has_value(Fields.design_unit_from_spruce):
+                du = init_record.get_value(Fields.design_unit_from_spruce)
+                ligand = oechem.OEMol()
+                if not du.GetLigand(ligand):
+                    raise ValueError("It was not possible to extract the Ligand from the Design Unit")
+                self.log.info("[{}] Ligand extracted from the DU".format(self.title))
 
-            # place the entire initial record as a sub-record, to be restored when conformer runs are gathered
+            else:
+                raise ValueError("It was not possible to find the ligand in a Du or as Primary molecule on the record")
+
             record = OERecord()
-            record.set_value(Fields.ligInit_rec, initialRecord)
+            record.set_value(Fields.ligInit_rec, init_record)
 
-            if initialRecord.has_field(Fields.design_unit_from_spruce):
+            if init_record.has_field(Fields.design_unit_from_spruce):
                 record.set_value(
                     Fields.design_unit_from_spruce,
-                    initialRecord.get_value(Fields.design_unit_from_spruce),
+                    init_record.get_value(Fields.design_unit_from_spruce),
                 )
 
             if (
                 oechem.OECalculateMolecularWeight(ligand) > 1500.0
             ):  # Units are in Dalton
+                # raise ValueError(
+                #     "[{}] The molecule {} seems to have a large molecular weight for a "
+                #     "ligand: {:.2f} Da)".format(
+                #         self.title,
+                #         ligand.GetTitle(),
+                #         oechem.OECalculateMolecularWeight(ligand),
+                #     )
+                # )
                 raise ValueError(
-                    "[{}] The molecule {} seems to have a large molecular weight for a "
-                    "ligand: {:.2f} Da)".format(
-                        self.title,
-                        ligand.GetTitle(),
-                        oechem.OECalculateMolecularWeight(ligand),
-                    )
+                    "The ligand molecular weight is too large to handle"
                 )
 
             # Removing Interaction Hint Container, Style and PDB Data
@@ -242,11 +272,18 @@ class LigandSetting(RecordPortsMixin, ComputeCube):
             self.max_runs += ligand.NumConfs()
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
-            self.failure.emit(initialRecord)
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
+            self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
     def end(self):
 

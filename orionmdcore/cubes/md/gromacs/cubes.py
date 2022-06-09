@@ -39,6 +39,9 @@ try:
     from orionclient.session import in_orion
 
     from datarecord import OEWriteRecord
+
+    from snowball.utils.log_params import LogFieldParam
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -69,6 +72,7 @@ class InputGromacs(SourceCube):
 
     prefix_name = parameters.StringParameter(
         "prefix_name",
+        title="Prefix name",
         description="The system prefix name",
         required=True,
         default="PROT",
@@ -121,6 +125,9 @@ class InputGromacs(SourceCube):
 class GromacsProxyCube(RecordPortsMixin, ComputeCube):
     uuid = "d04b093d-f710-4cdc-a62a-f901183c1847"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     title = "Gromacs Proxy Cube"
     description = """
     This Cube is used to implement a cycle with the Gromacs running cube
@@ -155,7 +162,8 @@ class GromacsProxyCube(RecordPortsMixin, ComputeCube):
                 # Read from the .tpr file the max  number of iterations
                 # ad set it on the record
                 if not record.has_value(Fields.tpr_field):
-                    raise ValueError("Gromacs Tpr field is missing")
+                    # raise ValueError("Gromacs Tpr field is missing")
+                    raise ValueError('The record does not have field {}'.format(Fields.tpr_field.get_name()))
 
                 tpr = record.get_value(Fields.tpr_field)
 
@@ -183,11 +191,18 @@ class GromacsProxyCube(RecordPortsMixin, ComputeCube):
                 self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -213,7 +228,7 @@ class GromacsRunCube(RecordPortsMixin, ComputeCube):
     }
 
     cube_run_time = parameters.DecimalParameter(
-        "cube_run_time", default=10.0, help_text="Gromacs Max Cube Running Time in hrs"
+        "cube_run_time", title="Cube max run time", default=10.0, help_text="Gromacs Max Cube Running Time in hrs"
     )
 
     verbose = parameters.BooleanParameter(
@@ -229,19 +244,22 @@ class GromacsRunCube(RecordPortsMixin, ComputeCube):
         opt = dict(self.opt)
 
         if not record.has_value(Fields.cycle_id):
-            raise ValueError("Missing the current cycle ID")
+            # raise ValueError("Missing the current cycle ID")
+            raise ValueError('The record does not have field {}'.format(Fields.cycle_id.get_name()))
 
         cycle_id = record.get_value(Fields.cycle_id)
         opt["cycle_id"] = cycle_id
 
         if not record.has_value(Fields.tpr_field):
-            raise ValueError("Gromacs Tpr field is missing")
+            # raise ValueError("Gromacs Tpr field is missing")
+            raise ValueError('The record does not have field {}'.format(Fields.tpr_field.get_name()))
 
         tpr = record.get_value(Fields.tpr_field)
         opt["tpr"] = tpr
 
         if not record.has_value(Fields.prefix_name_field):
-            raise ValueError("Flask prefix name is missing")
+            # raise ValueError("Flask prefix name is missing")
+            raise ValueError('The record does not have field {}'.format(Fields.prefix_name_field.get_name()))
 
         opt["prefix_name"] = record.get_value(Fields.prefix_name_field)
 
@@ -270,12 +288,14 @@ class WriterRecordCube(SinkCube):
     def write(self, record, port):
 
         if not record.has_value(Fields.cycle_id):
-            raise ValueError("Missing the current cycle ID")
+            # raise ValueError("Missing the current cycle ID")
+            raise ValueError('The record does not have field {}'.format(Fields.cycle_id.get_name()))
 
         cycle_id = record.get_value(Fields.cycle_id)
 
         if not record.has_value(Fields.prefix_name_field):
-            raise ValueError("Flask prefix name is missing")
+            # raise ValueError("Flask prefix name is missing")
+            raise ValueError('The record does not have field {}'.format(Fields.prefix_name_field.get_name()))
 
         prefix_name = record.get_value(Fields.prefix_name_field)
 

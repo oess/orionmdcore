@@ -76,6 +76,9 @@ class IDSettingCube(RecordPortsMixin, ComputeCube):
 
     uuid = "d3c1dac4-544f-4273-8b17-1b75c058f4bd"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
@@ -94,7 +97,9 @@ class IDSettingCube(RecordPortsMixin, ComputeCube):
         try:
 
             if not record.has_value(Fields.primary_molecule):
-                raise ValueError("Primary Molecule is missing")
+                # raise ValueError("Primary Molecule is missing")
+                raise ValueError('The record does not have field {}'.format(Fields.primary_molecule.get_name()))
+
             flask = record.get_value(Fields.primary_molecule)
 
             # There should be a ligid; if not, increment the last one
@@ -110,7 +115,8 @@ class IDSettingCube(RecordPortsMixin, ComputeCube):
                     )
                 )
 
-            name = flask.GetTitle()[0:12]
+            # name = flask.GetTitle()[0:12]
+            name = flask.GetTitle()[0:50]
             if not name:
                 name = "SYS"
 
@@ -137,11 +143,18 @@ class IDSettingCube(RecordPortsMixin, ComputeCube):
                 self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -161,6 +174,9 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
 
     uuid = "b3821952-a5ed-4028-867c-3f71185442aa"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
@@ -175,6 +191,7 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
 
     write_new_collection = parameters.StringParameter(
         "write_new_collection",
+        title='Write a new collection',
         default=CollectionsNames.none,
         choices=[CollectionsNames.none, CollectionsNames.md, CollectionsNames.nes],
         help_text="Write a new collection",
@@ -285,11 +302,18 @@ class CollectionSetting(RecordPortsMixin, ComputeCube):
             self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -342,6 +366,9 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     uuid = "2e6130f6-2cba-48a4-9ef3-351a2970258a"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
     # Override defaults for some parameters
     parameter_overrides = {
         "memory_mb": {"default": 14000},
@@ -356,12 +383,14 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     padding_distance = parameters.DecimalParameter(
         "padding_distance",
+        title='Padding distance',
         default=8.0,
         help_text="The padding distance between the solute and the box edge in A",
     )
 
     distance_between_atoms = parameters.DecimalParameter(
         "distance_between_atoms",
+        title='Minimum distance between atoms',
         default=2.0,
         help_text="The minimum distance between atoms in A",
     )
@@ -375,6 +404,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     molar_fractions = parameters.StringParameter(
         "molar_fractions",
+        title='Molar fractions',
         default="1.0",
         help_text="Molar fractions of each solvent components. The molar fractions are specified"
         "as comma separated molar fractions strings e.g. 0.5,0.2,0.3",
@@ -394,6 +424,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
     close_solvent = parameters.BooleanParameter(
         "close_solvent",
+        title='Close solvent',
         default=False,
         help_text="If Checked/True solvent molecules will be placed very close to the solute",
     )
@@ -407,11 +438,12 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
     )
 
     salt_concentration = parameters.DecimalParameter(
-        "salt_concentration", default=50.0, help_text="Salt concentration in millimolar"
+        "salt_concentration", title='Salt concentration', default=50.0, help_text="Salt concentration in millimolar"
     )
 
     neutralize_solute = parameters.BooleanParameter(
         "neutralize_solute",
+        title='Neutralize solute',
         default=True,
         help_text="Neutralize the solute by adding Na+ and Cl- counter-ions based on"
         "the solute formal charge",
@@ -427,7 +459,8 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
             opt = dict(self.opt)
 
             if not record.has_value(Fields.md_components):
-                raise ValueError("Missing the MD Components Field")
+                # raise ValueError("Missing the MD Components Field")
+                raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
             md_components = record.get_value(Fields.md_components)
 
@@ -544,11 +577,18 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
             self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt["Logger"].info("Exception {} {}".format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -643,17 +683,19 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
     }
 
     flask_title = parameters.StringParameter(
-        "flask_title", default="", help_text="Flask Title"
+        "flask_title", title='Flask Title', default="", help_text="Flask Title"
     )
 
     multiple_flasks = parameters.BooleanParameter(
         "multiple_flasks",
+        title='Multiple flasks',
         default=False,
         help_text="If Checked/True multiple receptors will be allowed",
     )
 
     ignore_du = parameters.BooleanParameter(
         "ignore_du",
+        title='Ignore DU',
         default=False,
         help_text="If True the Du present on the record is ignored and the md components are "
         "built from the record primary molecule",
@@ -698,7 +740,8 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
             else:  # The extended protein is already prepared to MD standard
 
                 if not record.has_value(Fields.primary_molecule):
-                    raise ValueError("Missing Primary Molecule field")
+                    # raise ValueError("Missing Primary Molecule field")
+                    raise ValueError('The record does not have field {}'.format(Fields.primary_molecule.get_name()))
 
                 molecules = record.get_value(Fields.primary_molecule)
 
@@ -720,9 +763,22 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
 
             self.count += 1
 
+            # hj: set primary molecule in case the field is missing
+            if not record.has_value(Fields.primary_molecule):
+                self.opt["Logger"].warn("Primary Molecule is missing. Setting the ligand "
+                                        "(or protein if ligand component is missing) from MD "
+                                        "components as Primary Molecule.")
+                if md_components.has_ligand:
+                    record.set_value(Fields.primary_molecule, md_components.get_ligand)
+                elif md_components.has_protein:
+                    record.set_value(Fields.primary_molecule, md_components.get_protein)
+                else:
+                    raise ValueError("Failed to set Primary Molecule. MD components is missing ligand and protein")
+
             self.success.emit(record)
 
         except Exception as e:
+
             msg = "{} Cube exception: {}".format(self.title, str(e))
             self.opt["Logger"].info(msg)
             # Write field for Exception Handler
@@ -743,6 +799,9 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
     This cube emits complexes on the bound port and non-complexes on
     the standard out port. The Flask ids are re-set
     """
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     uuid = "80e656e8-33c5-4560-99b5-95e4f69c1701"
 
@@ -765,7 +824,8 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
 
         try:
             if not record.has_value(Fields.md_components):
-                raise ValueError("MD Components Field is missing")
+                # raise ValueError("MD Components Field is missing")
+                raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
             md_components = record.get_value(Fields.md_components)
 
@@ -783,11 +843,18 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
                 self.success.emit(record)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
         return
 
@@ -804,6 +871,9 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
     """
 
     uuid = "0ecced53-811b-4da4-8e20-ca64a5af24df"
+
+    # for Exception Handler
+    log_field = LogFieldParam()
 
     # Override defaults for some parameters
     parameter_overrides = {
@@ -825,11 +895,18 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
             self.success.emit(rec)
 
         except Exception as e:
-
-            print("Failed to complete", str(e), flush=True)
-            self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
             self.failure.emit(record)
+
+            # print("Failed to complete", str(e), flush=True)
+            # self.opt['Logger'].info('Exception {} {}'.format(str(e), self.title))
+            # self.log.error(traceback.format_exc())
+            # self.failure.emit(record)
 
 
 class ParallelSolvationCube(ParallelMixin, SolvationCube):

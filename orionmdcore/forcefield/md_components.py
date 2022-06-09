@@ -117,6 +117,7 @@ class MDComponents:
         for pair in du.GetTaggedComponents():
 
             comp_name = pair[0]
+
             comp_id = du.GetComponentID(comp_name)
 
             if comp_name in self._components:
@@ -141,6 +142,9 @@ class MDComponents:
             oechem.OEDeleteInteractionsHintSerializationData(comp)
             oechem.OEDeleteInteractionsHintSerializationIds(comp)
             oechem.OEClearStyle(comp)
+
+            if comp_name == 'protein':
+                oechem.OEAddExplicitHydrogens(comp)
 
             # Clean R-Groups
             R_group = False
@@ -228,7 +232,6 @@ class MDComponents:
             self._initialize_from_du(du)
             print("Design Unit Built from Spruce")
         else:
-
             # Split the complex in components
             (
                 protein,
@@ -245,42 +248,35 @@ class MDComponents:
 
             if protein.NumAtoms():
                 protein = clean_tags(protein)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(protein, False)
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
                 ligand = sanitizeOEMolecule(ligand)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(ligand, False)
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(water, False)
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(excipients)
                 cofactors = sanitizeOEMolecule(cofactors)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(cofactors, False)
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(lipids, False)
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(metals, False)
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
-                # TODO ENABLE THIS ?
                 # oechem.OEPDBOrderAtoms(excipients, False)
                 self._components["excipients"] = excipients
 
@@ -332,11 +328,15 @@ class MDComponents:
             return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
 
         state = dict()
+        list_comp_name = list()
+        for comp_name in self._components:
+            state[comp_name] = mol_to_bytes(self._components[comp_name])
+            list_comp_name.append(comp_name)
+
         for name in self._component_names:
-            if name in self._components:
-                state[name] = mol_to_bytes(self._components[name])
-            else:
+            if name not in list_comp_name:
                 state[name] = None
+
         state["components_title"] = self._components_title
         state["box_vectors"] = (
             data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
@@ -763,6 +763,9 @@ class ParametrizeMDComponents:
         other_ff=ff_library.Default.otherff.name,
     ):
 
+        if not isinstance(md_component, MDComponents):
+            raise ValueError("The passed argument is not a MDComponent object type: {}".format(type(md_component)))
+
         # MD Components
         self.md_components = md_component
 
@@ -898,7 +901,7 @@ class ParametrizeMDComponents:
                     ]
 
                     raise ValueError(
-                        "The following protein residues cannot be parametrize: {}".format(
+                        "The following protein residues cannot be parametrized: {}".format(
                             info_fail
                         )
                     )
@@ -948,6 +951,20 @@ class ParametrizeMDComponents:
                 print("Ligand Parametrized by using the ff: {}".format(self.cofactors_ff))
                 return ligand_pmd
 
+            # # Try to check if the ligand is a peptide made of natural amino acids
+            # forcefield = app.ForceField()
+            # forcefield.loadFile(self.protein_ff)
+            # unmatched_res_list = forcefield.getUnmatchedResidues(topology)
+            #
+            # if not unmatched_res_list:
+            #     omm_components = forcefield.createSystem(topology, rigidWater=False, constraints=None)
+            #     ligand_pmd = parmed.openmm.load_topology(topology, omm_components, xyz=positions)
+            #     self._check_formal_vs_partial_charge("ligand", self.md_components.get_ligand, ligand_pmd)
+            #     print("Ligand Peptide detected")
+            #     print("Ligand Parametrized by using the ff: {}".format(self.protein_ff))
+            #     return ligand_pmd
+
+            # Use Gaff or OpenFF
             print("Ligand Parametrized by using the ff: {}".format(self.ligand_ff))
             prefix_name = 'LIG'
 

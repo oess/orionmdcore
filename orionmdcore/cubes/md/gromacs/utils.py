@@ -179,7 +179,8 @@ def gmx_run(opt):
 
             # Download the Restart File from S3
             if not record.has_value(Fields.gmx_restart):
-                raise ValueError("Missing the GMX restart Field")
+                # raise ValueError("Missing the GMX restart Field")
+                raise ValueError('The record does not have field {}'.format(Fields.gmx_restart.get_name()))
 
             file_restart_id = record.get_value(Fields.gmx_restart)
 

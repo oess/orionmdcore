@@ -222,6 +222,9 @@ def upload_file(filename, orion_ui_name="OrionFile"):
 
         file_id = file_upload.id
 
+        # Delete the local Orion file after uploading it
+        os.remove(filename)
+
     else:
         file_id = filename
 

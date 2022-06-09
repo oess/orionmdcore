@@ -31,6 +31,8 @@ try:
 
     from oeommtools import utils as oeommutils
 
+    from snowball.utils.mixins import ExceptHandlerMixin
+
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -45,7 +47,7 @@ from orionmdcore.cubes.complexprep.utils import clash_detection
 from orionmdcore.forcefield import MDComponents
 
 
-class ComplexPrepCube(RecordPortsMixin, ComputeCube):
+class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
     title = "Complex Preparation"
 
     classification = [["Flask Preparation"]]
@@ -103,7 +105,8 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
             if port == "intake":
 
                 if not record.has_value(Fields.primary_molecule):
-                    raise ValueError("Missing the ligand primary molecule field")
+                    # raise ValueError("Missing the ligand primary molecule field")
+                    raise ValueError('The record does not have field {}'.format(Fields.primary_molecule.get_name()))
 
                 ligand = record.get_value(Fields.primary_molecule)
 
@@ -129,28 +132,37 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                                 )
                             )
                         else:
+                            # raise ValueError(
+                            #     "It was not possible to detect the Protein Component "
+                            #     "from the protein nor from the ligand ports"
+                            # )
                             raise ValueError(
-                                "It was not possible to detect the Protein Component "
-                                "from the protein nor from the ligand ports"
-                            )
+                                "Protein has not been found on either the protein port "
+                                "nor the ligand port"
+                        )
                     else:
+                        # raise ValueError(
+                        #     "Protein has not been found on either the protein port "
+                        #     "nor the ligand port. no protein to complex with ligand {}".format(
+                        #         ligand.GetTitle()
+                        #     )
+                        # )
                         raise ValueError(
                             "Protein has not been found on either the protein port "
-                            "nor the ligand port. no protein to complex with ligand {}".format(
-                                ligand.GetTitle()
-                            )
+                            "nor the ligand port"
                         )
-
                 else:
                     md_components = self.md_components
 
                 if ligand.NumConfs() > 1:
+                    # raise ValueError(
+                    #     "The ligand {} has multiple conformers: {}".format(
+                    #         ligand.GetTitle(), ligand.GetNumConfs()
+                    #     )
+                    # )
                     raise ValueError(
-                        "The ligand {} has multiple conformers: {}".format(
-                            ligand.GetTitle(), ligand.GetNumConfs()
-                        )
+                        "The ligand has multiple conformers"
                     )
-
                 if not record.has_value(Fields.title):
                     self.log.warn(
                         "Missing title field '{}' field; improvising".format(
@@ -187,12 +199,14 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                         ) = clash_detection(ligand, comp)
 
                         if len(protein_severe_clashes[0]) >= 2:
+                            # raise ValueError(
+                            #     "Severe clashes detected between the protein and the ligand: {}\n{}".format(
+                            #         ligand_title, protein_severe_clashes[1]
+                            #     )
+                            # )
                             raise ValueError(
-                                "Severe clashes detected between the protein and the ligand: {}\n{}".format(
-                                    ligand_title, protein_severe_clashes[1]
-                                )
+                                "Severe clashes detected between the protein and the ligand"
                             )
-
                         if len(protein_severe_clashes[0]) == 1:
                             self.log.warn(
                                 "One severe clash detected between the protein and the ligand: {}\n{}".format(
@@ -216,10 +230,13 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                         ) = clash_detection(ligand, comp)
 
                         if len(cofactor_severe_clashes[0]) >= 1:
+                            # raise ValueError(
+                            #     "Severe clashes detected between the cofactors and the ligand: {}\n{}".format(
+                            #         ligand_title, cofactor_severe_clashes[1]
+                            #     )
+                            # )
                             raise ValueError(
-                                "Severe clashes detected between the cofactors and the ligand: {}\n{}".format(
-                                    ligand_title, cofactor_severe_clashes[1]
-                                )
+                                "Severe clashes detected between the cofactors and the ligand"
                             )
 
                     # Remove Metal clashes if the distance between the metal and the ligand
@@ -267,10 +284,13 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                 smi_ligand = oechem.OECreateSmiString(ligand)
 
                 if smi_ligand != smi_lig_check:
+                    # raise ValueError(
+                    #     "Ligand IsoSmiles String check failure: {} vs {}".format(
+                    #         smi_lig_check, smi_ligand
+                    #     )
+                    # )
                     raise ValueError(
-                        "Ligand IsoSmiles String check failure: {} vs {}".format(
-                            smi_lig_check, smi_ligand
-                        )
+                        "Ligand IsoSmiles String check failed"
                     )
 
                 # the ligand is the primary molecule
@@ -292,11 +312,11 @@ class ComplexPrepCube(RecordPortsMixin, ComputeCube):
                 self.success.emit(new_record)
 
         except Exception as e:
-            msg = "{}: {} Cube exception: {}".format(ligand_title, self.title, str(e))
+            msg = "{} Cube exception: {}".format(self.title, str(e))
             self.opt["Logger"].info(msg)
             self.log.error(traceback.format_exc())
             # Write field for Exception Handler
-            record.set_value(self.args.log_field, msg)
+            record.set_value(self.args.log_field, str(msg))
             # Return failed mol
             self.failure.emit(record)
 
