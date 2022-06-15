@@ -17,17 +17,19 @@
 
 __author__ = "Gaetano Calabro"
 __email__ = "gcalabro@eyesopen.com"
-__version__ = '1.1.6b27'
+__version__ = '1.1.6b28'
 
 
 __installation__error__ = """
-ERROR: The ORIOMDCORE package requires to work the manual installation of the OpenEye 
-orionplatform and snowball packages. Customers that have access and correctly set
-their local pip credentials can have them installed typing:
+The ORIONMDCORE package requires the manual installation of the
+OpenEye orionplatform and snowball packages in their working conda environment.
 
-pip install OpenEye-orionplatform[artemis]==4.3.0 OpenEye-snowball==0.23.1
+Customers that have access to OpenEye MagPie repository and correctly set
+their local pip credentials can have them installed by typing:
 
-In case of issues please contact the OpenEye support
+pip install OpenEye-orionplatform[artemis]==4.4.0 OpenEye-toolkits==2022.1.0 OpenEye-snowball==0.24.0
+
+In case of issues please contact the OpenEye support.
 """
 
 # try:
