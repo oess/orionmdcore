@@ -192,6 +192,11 @@ def check_filename(filename):
 
 def upload_file(filename, orion_ui_name="OrionFile"):
 
+    # Check if file is empty
+    file_size = os.path.getsize(filename)
+    if file_size == 0:
+        raise ValueError("The file is empty")
+
     if in_orion():
 
         # session = APISession
@@ -222,8 +227,8 @@ def upload_file(filename, orion_ui_name="OrionFile"):
 
         file_id = file_upload.id
 
-        # Delete the local Orion file after uploading it
-        os.remove(filename)
+        # # Delete the local Orion file after uploading it
+        # os.remove(filename)
 
     else:
         file_id = filename
