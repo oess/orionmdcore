@@ -49,6 +49,32 @@ from os import environ
 import os
 
 
+def orion_session(f):
+    def wrap(*args, **kwargs):
+
+        if in_orion():
+            session = OrionSession(
+                requests_session=get_session(
+                    retry_dict={
+                        403: 5,
+                        404: 20,
+                        409: 45,
+                        460: 15,
+                        500: 2,
+                        502: 45,
+                        503: 45,
+                        504: 45,
+                    }
+                )
+            )
+        else:
+            session = None
+
+        return f(*args, session=session, **kwargs)
+
+    return wrap
+
+
 class ParmedData(CustomHandler):
     @staticmethod
     def get_name():
@@ -190,7 +216,8 @@ def check_filename(filename):
         return filename
 
 
-def upload_file(filename, orion_ui_name="OrionFile"):
+@orion_session
+def upload_file(filename, session=None, orion_ui_name="OrionFile"):
 
     # Check if file is empty
     file_size = os.path.getsize(filename)
@@ -199,22 +226,8 @@ def upload_file(filename, orion_ui_name="OrionFile"):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         file_upload = File.upload(session, orion_ui_name, filename)
 
@@ -236,26 +249,13 @@ def upload_file(filename, orion_ui_name="OrionFile"):
     return file_id
 
 
-def download_file(file_id, filename):
+@orion_session
+def download_file(file_id, filename, session=None):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         resource = session.get_resource(File, file_id)
 
@@ -272,26 +272,13 @@ def download_file(file_id, filename):
     return fn_local
 
 
-def delete_file(file_id):
+@orion_session
+def delete_file(file_id, session=None):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         resource = session.get_resource(File, file_id)
 
@@ -303,30 +290,16 @@ def delete_file(file_id):
     return True
 
 
-def upload_data(filename, collection_id=None, shard_name=""):
+@orion_session
+def upload_data(filename, session=None, collection_id=None, shard_name=""):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
-
         collection = session.get_resource(ShardCollection, collection_id)
 
         if collection.state == "open":
@@ -348,29 +321,16 @@ def upload_data(filename, collection_id=None, shard_name=""):
     return file_id
 
 
-def download_data(file_id, path, collection_id=None):
+@orion_session
+def download_data(file_id, path, session=None, collection_id=None):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
 
         collection = session.get_resource(ShardCollection, collection_id)
 
@@ -393,29 +353,16 @@ def download_data(file_id, path, collection_id=None):
     return fn_local
 
 
-def delete_data(file_id, collection_id=None):
+@orion_session
+def delete_data(file_id, session=None, collection_id=None):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
 
         collection = session.get_resource(ShardCollection, collection_id)
 

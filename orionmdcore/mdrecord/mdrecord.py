@@ -58,9 +58,11 @@ from orionmdcore.forcefield import MDComponents
 
 from orionmdcore.standards import CollectionsNames
 
-from orionmdcore.standards.utils import check_filename
+from orionmdcore.standards.utils import (check_filename,
+                                         orion_session)
 
 from functools import wraps
+
 
 def mdstages(f):
     @wraps(f)
@@ -630,7 +632,8 @@ class MDDataRecord(object):
 
         return True
 
-    def create_collection(self, name):
+    @orion_session
+    def create_collection(self, name, session=None):
         """
         This method sets a collection field on the record to be used in Orion
 
@@ -638,6 +641,9 @@ class MDDataRecord(object):
         -----------
         name: String
             A string used to identify in the Orion UI the collection
+
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
@@ -647,25 +653,11 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             if self.rec.has_field(Fields.collections):
                 raise ValueError("Collection field already present on the record")
-
-            # session = APISession
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
 
             collection = ShardCollection.create(session, name)
 
@@ -1401,7 +1393,8 @@ class MDDataRecord(object):
 
         return True
 
-    def get_parmed(self, sync_stage_name=None):
+    @orion_session
+    def get_parmed(self, sync_stage_name=None, session=None):
         """
         This method returns the Parmed object. An exception is raised if the Parmed object cannot
         be found. If sync_stage_name is not None the parmed structure positions, velocities and
@@ -1411,6 +1404,10 @@ class MDDataRecord(object):
         ----------
         sync_stage_name: String or None
             The stage name that is used to synchronize the Parmed structure
+
+        session: Orion Session
+            An Orion Session obj
+
 
         Returns
         -------
@@ -1424,22 +1421,9 @@ class MDDataRecord(object):
         pmd_structure = self.rec.get_value(Fields.pmd_structure)
 
         if in_orion():
-            # session = APISession
 
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
+            if session is None:
+                raise ValueError("Session cannot be None")
 
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
@@ -1474,7 +1458,8 @@ class MDDataRecord(object):
 
         return pmd_structure
 
-    def set_parmed(self, pmd, sync_stage_name=None, shard_name=""):
+    @orion_session
+    def set_parmed(self, pmd, sync_stage_name=None, shard_name="", session=None):
         """
         This method sets the Parmed object. Return True if the setting was successful.
         If sync_stage_name is not None the parmed structure positions, velocities and
@@ -1489,6 +1474,9 @@ class MDDataRecord(object):
             The stage name that is used to synchronize the Parmed structure
         shard_name: String
             In Orion tha shard will be named by using the shard_name
+
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
@@ -1516,6 +1504,9 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             with TemporaryDirectory() as output_directory:
 
                 parmed_fn = os.path.join(output_directory, "parmed.pickle")
@@ -1529,21 +1520,6 @@ class MDDataRecord(object):
                 if self.rec.has_field(Fields.pmd_structure):
                     fid = self.rec.get_value(Fields.pmd_structure)
                     utils.delete_data(fid, collection_id=self.collection_id)
-
-                session = OrionSession(
-                    requests_session=get_session(
-                        retry_dict={
-                            403: 5,
-                            404: 20,
-                            409: 45,
-                            460: 15,
-                            500: 2,
-                            502: 45,
-                            503: 45,
-                            504: 45,
-                        }
-                    )
-                )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
@@ -1583,14 +1559,17 @@ class MDDataRecord(object):
         else:
             return True
 
+    @orion_session
     @property
-    def delete_parmed(self):
+    def delete_parmed(self, session=None):
         """
         This method deletes the Parmed object from the record. True is returned if the deletion was
         successful.
 
         Parameters
         ----------
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
@@ -1603,23 +1582,11 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
 
             collection = session.get_resource(ShardCollection, self.collection_id)
 
@@ -1657,13 +1624,18 @@ class MDDataRecord(object):
         else:
             return True
 
+    @orion_session
     @property
-    def get_protein_traj(self):
+    def get_protein_traj(self, session=None):
         """
         This method returns the protein molecule where conformers have been set as trajectory frames
 
         Parameters
         ----------
+        session: Orion Session
+            An Orion Session obj
+
+
         Returns
         -------
         multi_conformer_protein: OEMol
@@ -1679,22 +1651,8 @@ class MDDataRecord(object):
 
         if in_orion():
 
-            # session = APISession
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
+            if session is None:
+                raise ValueError("Session cannot be None")
 
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
@@ -1720,7 +1678,8 @@ class MDDataRecord(object):
 
         return protein_conf
 
-    def set_protein_traj(self, protein_conf, shard_name=""):
+    @orion_session
+    def set_protein_traj(self, protein_conf, shard_name="", session=None):
         """
         This method sets the multi conformer protein trajectory on the record
 
@@ -1730,6 +1689,8 @@ class MDDataRecord(object):
             Th multi conformer protein trajectory
         shard_name: String
             In Orion tha shard will be named by using the shard_name
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
@@ -1746,6 +1707,9 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             with TemporaryDirectory() as output_directory:
 
                 protein_fn = os.path.join(
@@ -1761,23 +1725,6 @@ class MDDataRecord(object):
                 if self.rec.has_field(Fields.protein_traj_confs):
                     fid = self.rec.get_value(Fields.protein_traj_confs)
                     utils.delete_data(fid, collection_id=self.collection_id)
-
-                # session = APISession
-
-                session = OrionSession(
-                    requests_session=get_session(
-                        retry_dict={
-                            403: 5,
-                            404: 20,
-                            409: 45,
-                            460: 15,
-                            500: 2,
-                            502: 45,
-                            503: 45,
-                            504: 45,
-                        }
-                    )
-                )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
@@ -1819,13 +1766,18 @@ class MDDataRecord(object):
         else:
             return True
 
+    @orion_session
     @property
-    def get_ligand_traj(self):
+    def get_ligand_traj(self, session=None):
         """
         This method returns the ligand molecule where conformers have been set as trajectory frames
 
         Parameters
         ----------
+        session: Orion Session
+            An Orion Session obj
+
+
         Returns
         -------
         multi_conformer_ligand: OEMol
@@ -1841,22 +1793,8 @@ class MDDataRecord(object):
 
         if in_orion():
 
-            # session = APISession
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
+            if session is None:
+                raise ValueError("Session cannot be None")
 
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
@@ -1882,7 +1820,8 @@ class MDDataRecord(object):
 
         return ligand_conf
 
-    def set_ligand_traj(self, ligand_conf, shard_name=""):
+    @orion_session
+    def set_ligand_traj(self, ligand_conf, shard_name="", session=None):
         """
         This method sets the multi conformer ligand trajectory on the record
 
@@ -1892,6 +1831,9 @@ class MDDataRecord(object):
             Th multi conformer ligand trajectory
         shard_name: String
             In Orion tha shard will be named by using the shard_name
+        session: Orion Session
+            An Orion Session obj
+
 
         Returns
         -------
@@ -1908,6 +1850,9 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             with TemporaryDirectory() as output_directory:
 
                 ligand_fn = os.path.join(
@@ -1923,23 +1868,6 @@ class MDDataRecord(object):
                 if self.rec.has_field(Fields.ligand_traj_confs):
                     fid = self.rec.get_value(Fields.ligand_traj_confs)
                     utils.delete_data(fid, collection_id=self.collection_id)
-
-                # session = APISession
-
-                session = OrionSession(
-                    requests_session=get_session(
-                        retry_dict={
-                            403: 5,
-                            404: 20,
-                            409: 45,
-                            460: 15,
-                            500: 2,
-                            502: 45,
-                            503: 45,
-                            504: 45,
-                        }
-                    )
-                )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
@@ -1981,13 +1909,18 @@ class MDDataRecord(object):
         else:
             return True
 
+    @orion_session
     @property
-    def get_water_traj(self):
+    def get_water_traj(self, session=None):
         """
         This method returns the water molecule where conformers have been set as trajectory frames
 
         Parameters
         ----------
+        session: Orion Session
+            An Orion Session obj
+
+
         Returns
         -------
         multi_conformer_water: OEMol
@@ -2003,22 +1936,8 @@ class MDDataRecord(object):
 
         if in_orion():
 
-            # session = APISession
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
+            if session is None:
+                raise ValueError("Session cannot be None")
 
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
@@ -2044,7 +1963,8 @@ class MDDataRecord(object):
 
         return water_conf
 
-    def set_water_traj(self, water_conf, shard_name=""):
+    @orion_session
+    def set_water_traj(self, water_conf, shard_name="", session=None):
         """
         This method sets the multi conformer water trajectory on the record
 
@@ -2054,6 +1974,9 @@ class MDDataRecord(object):
             Th multi conformer water trajectory
         shard_name: String
             In Orion tha shard will be named by using the shard_name
+        session: Orion Session
+            An Orion Session obj
+
 
         Returns
         -------
@@ -2070,6 +1993,9 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             with TemporaryDirectory() as output_directory:
 
                 water_fn = os.path.join(
@@ -2085,23 +2011,6 @@ class MDDataRecord(object):
                 if self.rec.has_field(Fields.water_traj_confs):
                     fid = self.rec.get_value(Fields.water_traj_confs)
                     utils.delete_data(fid, collection_id=self.collection_id)
-
-                # session = APISession
-
-                session = OrionSession(
-                    requests_session=get_session(
-                        retry_dict={
-                            403: 5,
-                            404: 20,
-                            409: 45,
-                            460: 15,
-                            500: 2,
-                            502: 45,
-                            503: 45,
-                            504: 45,
-                        }
-                    )
-                )
 
                 collection = session.get_resource(ShardCollection, self.collection_id)
 
@@ -2201,13 +2110,18 @@ class MDDataRecord(object):
         else:
             return False
 
+    @orion_session
     @property
-    def get_extra_data_tar(self):
+    def get_extra_data_tar(self, session=None):
         """
         This method returns the directory file name where extra data file tar has been unpacked
 
         Parameters
         ----------
+        session: Orion Session
+            An Orion Session obj
+
+
         Returns
         -------
         directory file name: String
@@ -2221,22 +2135,8 @@ class MDDataRecord(object):
 
         if in_orion():
 
-            # session = APISession
-
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
+            if session is None:
+                raise ValueError("Session cannot be None")
 
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
@@ -2255,7 +2155,8 @@ class MDDataRecord(object):
 
         return extra_data
 
-    def set_extra_data_tar(self, tar_fn, shard_name=""):
+    @orion_session
+    def set_extra_data_tar(self, tar_fn, shard_name="", session=None):
         """
         This method sets the extra data file on the record
 
@@ -2265,6 +2166,9 @@ class MDDataRecord(object):
             The compressed data file name
         shard_name: String
             In Orion tha shard will be named by using the shard_name
+        session: Orion Session
+            An Orion Session obj
+
 
         Returns
         -------
@@ -2277,24 +2181,11 @@ class MDDataRecord(object):
 
         if in_orion():
 
+            if session is None:
+                raise ValueError("Session cannot be None")
+
             if self.collection_id is None:
                 raise ValueError("The Collection ID is None")
-
-            # session = APISession
-            session = OrionSession(
-                requests_session=get_session(
-                    retry_dict={
-                        403: 5,
-                        404: 20,
-                        409: 45,
-                        460: 15,
-                        500: 2,
-                        502: 45,
-                        503: 45,
-                        504: 45,
-                    }
-                )
-            )
 
             collection = session.get_resource(ShardCollection, self.collection_id)
 
