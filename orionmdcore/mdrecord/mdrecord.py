@@ -24,10 +24,6 @@ try:
 
     from orionclient.session import in_orion, OrionSession, get_session
 
-    from orionclient.helpers.collections import (
-        try_hard_to_create_shard,
-        try_hard_to_download_shard,
-    )
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -1436,7 +1432,7 @@ class MDDataRecord(object):
 
                 parmed_fn = os.path.join(output_directory, "parmed.pickle")
 
-                try_hard_to_download_shard(shard, parmed_fn)
+                shard.download_to_file(parmed_fn)
 
                 with open(parmed_fn, "rb") as f:
                     parm_dic = pickle.load(f)
@@ -1530,7 +1526,8 @@ class MDDataRecord(object):
                 else:
                     raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-                shard = try_hard_to_create_shard(collection, parmed_fn, name=shard_name)
+                shard = Shard.create(collection, name=shard_name)
+                shard.upload_file(parmed_fn)
 
                 shard.close()
 
@@ -1559,8 +1556,8 @@ class MDDataRecord(object):
         else:
             return True
 
-    @orion_session
     @property
+    @orion_session
     def delete_parmed(self, session=None):
         """
         This method deletes the Parmed object from the record. True is returned if the deletion was
@@ -1624,8 +1621,8 @@ class MDDataRecord(object):
         else:
             return True
 
-    @orion_session
     @property
+    @orion_session
     def get_protein_traj(self, session=None):
         """
         This method returns the protein molecule where conformers have been set as trajectory frames
@@ -1667,7 +1664,7 @@ class MDDataRecord(object):
                     output_directory, MDFileNames.trajectory_conformers
                 )
 
-                try_hard_to_download_shard(shard, protein_fn)
+                shard.download_to_file(protein_fn)
 
                 protein_conf = oechem.OEMol()
 
@@ -1735,9 +1732,8 @@ class MDDataRecord(object):
                 else:
                     raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-                shard = try_hard_to_create_shard(
-                    collection, protein_fn, name=shard_name
-                )
+                shard = Shard.create(collection, name=shard_name)
+                shard.upload_file(protein_fn)
 
                 shard.close()
 
@@ -1766,8 +1762,8 @@ class MDDataRecord(object):
         else:
             return True
 
-    @orion_session
     @property
+    @orion_session
     def get_ligand_traj(self, session=None):
         """
         This method returns the ligand molecule where conformers have been set as trajectory frames
@@ -1809,7 +1805,7 @@ class MDDataRecord(object):
                     output_directory, MDFileNames.trajectory_conformers
                 )
 
-                try_hard_to_download_shard(shard, ligand_fn)
+                shard.download_to_file(ligand_fn)
 
                 ligand_conf = oechem.OEMol()
 
@@ -1878,9 +1874,8 @@ class MDDataRecord(object):
                 else:
                     raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-                shard = try_hard_to_create_shard(
-                    collection, ligand_fn, name=shard_name
-                )
+                shard = Shard.create(collection, name=shard_name)
+                shard.upload_file(ligand_fn)
 
                 shard.close()
 
@@ -1909,8 +1904,8 @@ class MDDataRecord(object):
         else:
             return True
 
-    @orion_session
     @property
+    @orion_session
     def get_water_traj(self, session=None):
         """
         This method returns the water molecule where conformers have been set as trajectory frames
@@ -1952,7 +1947,7 @@ class MDDataRecord(object):
                     output_directory, MDFileNames.trajectory_conformers
                 )
 
-                try_hard_to_download_shard(shard, water_fn)
+                shard.download_to_file(water_fn)
 
                 water_conf = oechem.OEMol()
 
@@ -2021,9 +2016,8 @@ class MDDataRecord(object):
                 else:
                     raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-                shard = try_hard_to_create_shard(
-                    collection, water_fn, name=shard_name
-                )
+                shard = Shard.create(collection, name=shard_name)
+                shard.upload_file(water_fn)
 
                 shard.close()
 
@@ -2110,8 +2104,8 @@ class MDDataRecord(object):
         else:
             return False
 
-    @orion_session
     @property
+    @orion_session
     def get_extra_data_tar(self, session=None):
         """
         This method returns the directory file name where extra data file tar has been unpacked
@@ -2147,7 +2141,7 @@ class MDDataRecord(object):
 
             fn = os.path.join(self.cwd, "extra_data.tar")
 
-            try_hard_to_download_shard(shard, fn)
+            shard.download_to_file(fn)
 
             shard.close()
 
@@ -2196,7 +2190,8 @@ class MDDataRecord(object):
             else:
                 raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-            shard = try_hard_to_create_shard(collection, tar_fn, name=shard_name)
+            shard = Shard.create(collection, name=shard_name)
+            shard.upload_file(tar_fn)
 
             self.rec.set_value(Fields.extra_data_tar, shard.id)
 

@@ -26,10 +26,6 @@ try:
 
     from orionclient.types import Shard, ShardCollection
 
-    from orionclient.helpers.collections import (
-        try_hard_to_create_shard,
-        try_hard_to_download_shard,
-    )
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -47,6 +43,8 @@ import copy
 from os import environ
 
 import os
+
+import json
 
 
 def orion_session(f):
@@ -124,6 +122,29 @@ class MDStateData(CustomHandler):
         new_state = pickle.loads(bytes(data))
         return new_state
 
+# class MDComponentData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "MDComponents"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, MDComponents)
+#
+#     @classmethod
+#     def copy(cls, components):
+#         return copy.deepcopy(components)
+#
+#     @staticmethod
+#     def serialize(components):
+#         pkl_obj = pickle.dumps(components)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(components):
+#         new_components = pickle.loads(bytes(components))
+#         return new_components
+
 
 class MDComponentData(CustomHandler):
     @staticmethod
@@ -140,13 +161,17 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        pkl_obj = pickle.dumps(components)
-        return bytes(pkl_obj)
+        comp_dic = components.__getstate__()
+        json_str = json.dumps(comp_dic)
+        return json_str.encode(encoding='utf8')
 
     @staticmethod
-    def deserialize(components):
-        new_components = pickle.loads(bytes(components))
-        return new_components
+    def deserialize(json_str_bytes):
+        json_str = json_str_bytes.decode()
+        comp_dic = json.loads(json_str)
+        new_md_components = MDComponents()
+        new_md_components.__setstate__(comp_dic)
+        return new_md_components
 
 
 class DesignUnit(CustomHandler):
@@ -291,7 +316,7 @@ def delete_file(file_id, session=None):
 
 
 @orion_session
-def upload_data(filename, session=None, collection_id=None, shard_name=""):
+def upload_data(filename, collection_id=None, shard_name="", session=None):
 
     if in_orion():
 
@@ -300,6 +325,7 @@ def upload_data(filename, session=None, collection_id=None, shard_name=""):
 
         if collection_id is None:
             raise ValueError("The Collection ID is None")
+
         collection = session.get_resource(ShardCollection, collection_id)
 
         if collection.state == "open":
@@ -309,7 +335,8 @@ def upload_data(filename, session=None, collection_id=None, shard_name=""):
         else:
             raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-        shard = try_hard_to_create_shard(collection, filename, name=shard_name)
+        shard = Shard.create(collection, name=shard_name)
+        shard.upload_file(filename)
 
         file_id = shard.id
 
@@ -340,7 +367,7 @@ def download_data(file_id, path, session=None, collection_id=None):
 
         fn_local = os.path.join(path, MDFileNames.mddata)
 
-        try_hard_to_download_shard(shard, fn_local)
+        shard.download_to_file(fn_local)
 
         shard.close()
 
