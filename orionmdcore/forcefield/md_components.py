@@ -42,7 +42,9 @@ import parmed
 
 from orionmdcore.forcefield import nsr_template_generator
 
-from orionmdcore.mdengine import json_numpy
+# from orionmdcore.mdengine import json_numpy
+
+import json
 
 from io import StringIO
 
@@ -368,15 +370,16 @@ class MDComponents:
 
         if self.get_box_vectors is not None:
             box_vec_list = list()
-            for vec in self.get_box_vectors:
-                for ln in vec:
-                    box_vec_list.append(ln.value_in_unit(unit.angstroms))
+            for ln in self.get_box_vectors:
+                box_vec_list.append((ln.value_in_unit(unit.angstroms)[0],
+                                     ln.value_in_unit(unit.angstroms)[1],
+                                     ln.value_in_unit(unit.angstroms)[2]))
 
-            box_vec = np.array(box_vec_list)
+            box_vec = tuple(box_vec_list)
         else:
             box_vec = None
 
-        state["box_vectors"] = json_numpy.dumps(box_vec)
+        state["box_vectors"] = json.dumps(box_vec)
 
         return state
 
@@ -466,7 +469,7 @@ class MDComponents:
 
             if comp_name == "box_vectors":
                 if comp is not None:
-                    box_vec = json_numpy.loads(comp)
+                    box_vec = json.loads(comp)
                     self._box_vectors = box_vec
                 else:
                     self._box_vectors = None
@@ -789,9 +792,9 @@ class MDComponents:
     @property
     def get_box_vectors(self):
         if self._box_vectors is not None:
-            box_vec = (Vec3(x=self._box_vectors[0], y=self._box_vectors[1], z=self._box_vectors[2]),
-                       Vec3(x=self._box_vectors[3], y=self._box_vectors[4], z=self._box_vectors[5]),
-                       Vec3(x=self._box_vectors[6], y=self._box_vectors[7], z=self._box_vectors[8])) * unit.angstroms
+
+            box_vec = Vec3(self._box_vectors[0], self._box_vectors[1], self._box_vectors[2]) * unit.angstroms
+
             return box_vec
         else:
             print("WARNING: MDComponents Box Vectors cannot be found")
@@ -800,13 +803,12 @@ class MDComponents:
     def set_box_vectors(self, box_vectors):
 
         box_vec_list = list()
-        for vec in box_vectors:
-            for ln in vec:
-                box_vec_list.append(ln.value_in_unit(unit.angstroms))
+        for ln in box_vectors:
+            box_vec_list.append((ln.value_in_unit(unit.angstroms)[0],
+                                 ln.value_in_unit(unit.angstroms)[1],
+                                 ln.value_in_unit(unit.angstroms)[2]))
 
-        box_vec = np.array(box_vec_list)
-
-        self._box_vectors = box_vec
+        self._box_vectors = tuple(box_vec_list)
 
     @property
     def get_title(self):
