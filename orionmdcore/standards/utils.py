@@ -161,17 +161,22 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        comp_dic = components.__getstate__()
+        comp_dic = components.__getstate_new_api__()
         json_str = json.dumps(comp_dic)
         return json_str.encode(encoding='utf8')
 
     @staticmethod
     def deserialize(json_str_bytes):
-        json_str = json_str_bytes.decode()
-        comp_dic = json.loads(json_str)
-        new_md_components = MDComponents()
-        new_md_components.__setstate__(comp_dic)
-        return new_md_components
+        try:
+            json_str = json_str_bytes.decode()
+            comp_dic = json.loads(json_str)
+            new_md_components = MDComponents()
+            new_md_components.__setstate_new_api__(comp_dic)
+            return new_md_components
+        except:
+            print("Deprecation Warning: Old API in use. This will not be supported in further releases at any point")
+            new_components = pickle.loads(bytes(json_str_bytes))
+            return new_components
 
 
 class DesignUnit(CustomHandler):

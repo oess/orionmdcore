@@ -329,28 +329,28 @@ class MDComponents:
             du, self._components["protein"], oechem.OEDesignUnitComponents_Protein
         )
 
-    # def __getstate__(self):
-    #     def mol_to_bytes(mol):
-    #         return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
-    #
-    #     state = dict()
-    #     list_comp_name = list()
-    #     for comp_name in self._components:
-    #         state[comp_name] = mol_to_bytes(self._components[comp_name])
-    #         list_comp_name.append(comp_name)
-    #
-    #     for name in self._component_names:
-    #         if name not in list_comp_name:
-    #             state[name] = None
-    #
-    #     state["components_title"] = self._components_title
-    #     state["box_vectors"] = (
-    #         data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
-    #     )
-    #
-    #     return state
-
     def __getstate__(self):
+        def mol_to_bytes(mol):
+            return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+
+        state = dict()
+        list_comp_name = list()
+        for comp_name in self._components:
+            state[comp_name] = mol_to_bytes(self._components[comp_name])
+            list_comp_name.append(comp_name)
+
+        for name in self._component_names:
+            if name not in list_comp_name:
+                state[name] = None
+
+        state["components_title"] = self._components_title
+        state["box_vectors"] = (
+            data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
+        )
+
+        return state
+
+    def __getstate_new_api__(self):
         def mol_to_json(mol):
             return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All ^ oechem.OEOFlavor_JSON_Smiles)
 
@@ -380,56 +380,56 @@ class MDComponents:
 
         return state
 
-    # def __setstate__(self, state):
-    #
-    #     # MD allowed components
-    #     self._component_names = [
-    #         "protein",
-    #         "ligand",
-    #         "other_ligands",
-    #         "counter_ions",
-    #         "metals",
-    #         "excipients",
-    #         "solvent",
-    #         "water",
-    #         "cofactors",
-    #         "other_cofactors",
-    #         "lipids",
-    #         "nucleic",
-    #         "other_nucleic",
-    #     ]
-    #
-    #     def mol_from_bytes(mol_bytes):
-    #         mol = oechem.OEMol()
-    #         oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
-    #         return mol
-    #
-    #     self._components = dict()
-    #     # self._total_atoms = 0
-    #
-    #     for comp_name, comp in state.items():
-    #
-    #         if comp_name == "components_title":
-    #             self._components_title = comp
-    #             continue
-    #
-    #         if comp_name == "box_vectors":
-    #             if comp is not None:
-    #                 box_vec = data_utils.decodePyObj(comp)
-    #                 self._box_vectors = box_vec
-    #             else:
-    #                 self._box_vectors = None
-    #             continue
-    #
-    #         if comp_name not in self._component_names:
-    #             raise ValueError("Cannot Deserialize Component {}".format(comp_name))
-    #
-    #         mol = mol_from_bytes(comp) if comp else None
-    #
-    #         if mol is not None and mol.IsValid():
-    #             self._components[comp_name] = mol
-
     def __setstate__(self, state):
+
+        # MD allowed components
+        self._component_names = [
+            "protein",
+            "ligand",
+            "other_ligands",
+            "counter_ions",
+            "metals",
+            "excipients",
+            "solvent",
+            "water",
+            "cofactors",
+            "other_cofactors",
+            "lipids",
+            "nucleic",
+            "other_nucleic",
+        ]
+
+        def mol_from_bytes(mol_bytes):
+            mol = oechem.OEMol()
+            oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
+            return mol
+
+        self._components = dict()
+        # self._total_atoms = 0
+
+        for comp_name, comp in state.items():
+
+            if comp_name == "components_title":
+                self._components_title = comp
+                continue
+
+            if comp_name == "box_vectors":
+                if comp is not None:
+                    box_vec = data_utils.decodePyObj(comp)
+                    self._box_vectors = box_vec
+                else:
+                    self._box_vectors = None
+                continue
+
+            if comp_name not in self._component_names:
+                raise ValueError("Cannot Deserialize Component {}".format(comp_name))
+
+            mol = mol_from_bytes(comp) if comp else None
+
+            if mol is not None and mol.IsValid():
+                self._components[comp_name] = mol
+
+    def __setstate_new_api__(self, state):
 
         # MD allowed components
         self._component_names = [
