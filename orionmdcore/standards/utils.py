@@ -99,6 +99,29 @@ class ParmedData(CustomHandler):
         return new_structure
 
 
+# class MDStateData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "MDState"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, MDState)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return copy.deepcopy(value)
+#
+#     @staticmethod
+#     def serialize(state):
+#         pkl_obj = pickle.dumps(state)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(data):
+#         new_state = pickle.loads(bytes(data))
+#         return new_state
+
 class MDStateData(CustomHandler):
     @staticmethod
     def get_name():
@@ -113,14 +136,23 @@ class MDStateData(CustomHandler):
         return copy.deepcopy(value)
 
     @staticmethod
-    def serialize(state):
-        pkl_obj = pickle.dumps(state)
-        return bytes(pkl_obj)
+    def serialize(mdstate):
+        mdstate_dic = mdstate.__getstate__()
+        json_str = json.dumps(mdstate_dic)
+        json_str.encode(encoding='utf8')
+        return json_str.encode(encoding='utf8')
 
     @staticmethod
-    def deserialize(data):
-        new_state = pickle.loads(bytes(data))
-        return new_state
+    def deserialize(json_str_bytes):
+        #try:
+            json_str = json_str_bytes.decode()
+            mdstate_dic = json.loads(json_str)
+            new_md_state = MDState()
+            new_md_state.__setstate_new_api__(mdstate_dic)
+            return new_md_state
+        # except:
+        #     new_state = pickle.loads(bytes(json_str_bytes))
+        #     return new_state
 
 # class MDComponentData(CustomHandler):
 #     @staticmethod
@@ -161,7 +193,7 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        comp_dic = components.__getstate_new_api__()
+        comp_dic = components.__getstate__()
         json_str = json.dumps(comp_dic)
         return json_str.encode(encoding='utf8')
 
@@ -177,34 +209,6 @@ class MDComponentData(CustomHandler):
             print("Deprecation Warning: Old API in use. This will not be supported in further releases at any point")
             new_components = pickle.loads(bytes(json_str_bytes))
             return new_components
-
-
-class DesignUnit(CustomHandler):
-    @staticmethod
-    def get_name():
-        return "DesignUnit"
-
-    @classmethod
-    def validate(cls, value):
-        return isinstance(value, oechem.OEDesignUnit)
-
-    @classmethod
-    def copy(cls, value):
-        return copy.deepcopy(value)
-
-    @staticmethod
-    def serialize(du):
-        return oechem.OEWriteDesignUnitToBytes(du)
-
-    @staticmethod
-    def deserialize(du_bytes):
-
-        design_unit = oechem.OEDesignUnit()
-
-        if not oechem.OEReadDesignUnitFromBytes(design_unit, du_bytes):
-            raise ValueError("It was not possible to deserialize the Design Unit")
-
-        return design_unit
 
 
 def check_filename(filename):

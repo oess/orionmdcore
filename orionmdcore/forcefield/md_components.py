@@ -354,7 +354,7 @@ class MDComponents:
     #
     #     return state
 
-    def __getstate_new_api__(self):
+    def __getstate__(self):
         def mol_to_json(mol):
             return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All ^ oechem.OEOFlavor_JSON_Smiles)
 
@@ -487,8 +487,11 @@ class MDComponents:
 
     @property
     def copy(self):
-        data = copy.deepcopy(self)
-        return data
+        new_md_comp = MDComponents()
+        new_md_comp._components = self._components
+        new_md_comp._components_title = self._components_title
+        new_md_comp._box_vectors = self._box_vectors
+        return new_md_comp
 
     @property
     def num_atoms(self):

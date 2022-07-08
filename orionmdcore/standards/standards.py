@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
+import parmed
 
 try:
     from openeye import oechem
@@ -25,7 +26,6 @@ except ImportError:
 from orionmdcore.standards.utils import (
     ParmedData,
     MDStateData,
-    DesignUnit,
     MDComponentData,
 )
 
@@ -70,7 +70,7 @@ class MDEngines:
 
 class MDFileNames:
     topology = "topology.oeb"
-    state = "state.pickle"
+    state = "state.json"
     trajectory = "trajectory.tar.gz"
     trajectory_conformers = "trajectory_confs.oeb"
     mddata = "data.tar.gz"
@@ -135,7 +135,7 @@ class Fields:
     cube_parameters_update = OEField(
         "Cube_Parameters_Update_OPLMD", Types.JSONObject, meta=_metaHidden
     )
-
+    parmed.Structure
     # Parmed Structure, Trajectory, MDData and Protein trajectory conformers Fields
     if in_orion():
         pmd_structure = OEField("Structure_Parmed_OPLMD", Types.Int, meta=_metaHidden)
@@ -179,9 +179,6 @@ class Fields:
 
     # MD Stage Info dictionary
     stage_info = OEField("Stage_info_OPLMD", Types.JSONObject)
-
-    # Design Unit Field
-    design_unit = OEField("Design_Unit_OPLMD", DesignUnit)
 
     # Design Unit Field from Spruce
     # design_unit_from_spruce = OEField('du_single', Types.Blob)
