@@ -36,6 +36,8 @@ from simtk.openmm import app
 
 from simtk import unit
 
+import simtk
+
 from simtk.openmm import Vec3
 
 import parmed
@@ -331,26 +333,26 @@ class MDComponents:
             du, self._components["protein"], oechem.OEDesignUnitComponents_Protein
         )
 
-    def __getstate__(self):
-        def mol_to_bytes(mol):
-            return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
-
-        state = dict()
-        list_comp_name = list()
-        for comp_name in self._components:
-            state[comp_name] = mol_to_bytes(self._components[comp_name])
-            list_comp_name.append(comp_name)
-
-        for name in self._component_names:
-            if name not in list_comp_name:
-                state[name] = None
-
-        state["components_title"] = self._components_title
-        state["box_vectors"] = (
-            data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
-        )
-
-        return state
+    # def __getstate__(self):
+    #     def mol_to_bytes(mol):
+    #         return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+    #
+    #     state = dict()
+    #     list_comp_name = list()
+    #     for comp_name in self._components:
+    #         state[comp_name] = mol_to_bytes(self._components[comp_name])
+    #         list_comp_name.append(comp_name)
+    #
+    #     for name in self._component_names:
+    #         if name not in list_comp_name:
+    #             state[name] = None
+    #
+    #     state["components_title"] = self._components_title
+    #     state["box_vectors"] = (
+    #         data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
+    #     )
+    #
+    #     return state
 
     def __getstate_new_api__(self):
         def mol_to_json(mol):
@@ -793,9 +795,15 @@ class MDComponents:
     def get_box_vectors(self):
         if self._box_vectors is not None:
 
-            box_vec = Vec3(self._box_vectors[0], self._box_vectors[1], self._box_vectors[2]) * unit.angstroms
+            # old API
+            if isinstance(self._box_vectors, simtk.unit.quantity.Quantity):
+                return self._box_vectors
 
-            return box_vec
+            else:
+                return (Vec3(self._box_vectors[0][0], self._box_vectors[0][1], self._box_vectors[0][2]),
+                            Vec3(self._box_vectors[1][0], self._box_vectors[1][1], self._box_vectors[1][2]),
+                            Vec3(self._box_vectors[2][0], self._box_vectors[2][1], self._box_vectors[2][2])) * unit.angstroms
+
         else:
             print("WARNING: MDComponents Box Vectors cannot be found")
             return None
