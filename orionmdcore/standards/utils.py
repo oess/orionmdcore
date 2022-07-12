@@ -73,6 +73,32 @@ def orion_session(f):
     return wrap
 
 
+# class ParmedData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "Parmed"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, parmed.structure.Structure)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return parmed.structure.copy(value)
+#
+#     @staticmethod
+#     def serialize(structure):
+#         struct_dict = structure.__getstate__()
+#         pkl_obj = pickle.dumps(struct_dict)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(data):
+#         new_structure = parmed.structure.Structure()
+#         new_structure.__setstate__(pickle.loads(bytes(data)))
+#         return new_structure
+
+
 class ParmedData(CustomHandler):
     @staticmethod
     def get_name():
@@ -88,15 +114,22 @@ class ParmedData(CustomHandler):
 
     @staticmethod
     def serialize(structure):
-        struct_dict = structure.__getstate__()
-        pkl_obj = pickle.dumps(struct_dict)
-        return bytes(pkl_obj)
+        pmd_struct_dict = structure.__getstate__()
+        json_str = json.dumps(pmd_struct_dict)
+        return json_str.encode(encoding='utf8')
 
     @staticmethod
-    def deserialize(data):
-        new_structure = parmed.structure.Structure()
-        new_structure.__setstate__(pickle.loads(bytes(data)))
-        return new_structure
+    def deserialize(json_str_bytes):
+        try:
+            json_str = json_str_bytes.decode()
+            pmd_dic = json.loads(json_str)
+            new_structure = parmed.structure.Structure()
+            new_structure.__setstate__(pmd_dic)
+            return new_structure
+        except:
+            new_structure = parmed.structure.Structure()
+            new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+            return new_structure
 
 
 # class MDStateData(CustomHandler):
@@ -139,20 +172,19 @@ class MDStateData(CustomHandler):
     def serialize(mdstate):
         mdstate_dic = mdstate.__getstate__()
         json_str = json.dumps(mdstate_dic)
-        json_str.encode(encoding='utf8')
         return json_str.encode(encoding='utf8')
 
     @staticmethod
     def deserialize(json_str_bytes):
-        #try:
+        try:
             json_str = json_str_bytes.decode()
             mdstate_dic = json.loads(json_str)
             new_md_state = MDState()
             new_md_state.__setstate_new_api__(mdstate_dic)
             return new_md_state
-        # except:
-        #     new_state = pickle.loads(bytes(json_str_bytes))
-        #     return new_state
+        except:
+            new_state = pickle.loads(bytes(json_str_bytes))
+            return new_state
 
 # class MDComponentData(CustomHandler):
 #     @staticmethod

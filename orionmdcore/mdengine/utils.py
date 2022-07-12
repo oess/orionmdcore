@@ -92,6 +92,11 @@ class MDState(object):
             return None
 
     def get_box_vectors(self):
+
+        # OLD API TRAP
+        if '__box_vectors__' in self.__dict__:
+                return  self.__box_vectors__
+
         if self.__box__ is not None:
 
             av = [self.__box__[0], 0.0, 0.0]
@@ -99,6 +104,7 @@ class MDState(object):
             cv = [0.0, 0.0, self.__box__[2]]
 
             return (av, bv, cv) * unit.angstrom
+
         else:
             return None
 

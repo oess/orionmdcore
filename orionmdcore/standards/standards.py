@@ -135,7 +135,7 @@ class Fields:
     cube_parameters_update = OEField(
         "Cube_Parameters_Update_OPLMD", Types.JSONObject, meta=_metaHidden
     )
-    parmed.Structure
+
     # Parmed Structure, Trajectory, MDData and Protein trajectory conformers Fields
     if in_orion():
         pmd_structure = OEField("Structure_Parmed_OPLMD", Types.Int, meta=_metaHidden)
