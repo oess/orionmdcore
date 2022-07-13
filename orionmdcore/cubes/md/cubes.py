@@ -122,7 +122,7 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     # HJ
     tolerance = parameters.DecimalParameter(
         "tolerance",
-        default=1.0,
+        default=10.0,
         help_text="tolerance parameter in kj/mol for OpenMM minimizeEnergy method",
     )
 
