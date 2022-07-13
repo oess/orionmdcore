@@ -119,6 +119,13 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         help_text="Restraint weight for xyz atom restraints in kcal/(mol A^2)",
     )
 
+    # HJ
+    tolerance = parameters.DecimalParameter(
+        "tolerance",
+        default=1.0,
+        help_text="tolerance parameter in kj/mol for OpenMM minimizeEnergy method",
+    )
+
     restraint_to_reference = parameters.BooleanParameter(
         "restraint_to_reference",
         title="Restraint to reference",
