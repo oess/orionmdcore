@@ -260,7 +260,7 @@ class MDComponents:
                 # oechem.OEPDBOrderAtoms(water, False)
                 self._components["water"] = water
             if cofactors.NumAtoms():
-                cofactors = clean_tags(excipients)
+                cofactors = clean_tags(cofactors)
                 cofactors = sanitizeOEMolecule(cofactors)
                 # oechem.OEPDBOrderAtoms(cofactors, False)
                 self._components["cofactors"] = cofactors
