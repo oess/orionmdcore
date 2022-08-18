@@ -1,11 +1,6 @@
 package:
   name: orionmdcore
-<<<<<<< HEAD
   version: '1.1.7b4'
-=======
-  version: '1.1.7b4'
->>>>>>> master
-
 source:
   path: ../../
 
