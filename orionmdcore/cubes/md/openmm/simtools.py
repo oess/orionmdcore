@@ -506,7 +506,7 @@ class OpenMMSimulations(MDSimulations):
 
             state_start = self.omm_simulation.context.getState(getEnergy=True)
 
-            self.omm_simulation.minimizeEnergy(maxIterations=self.opt["steps"])
+            self.omm_simulation.minimizeEnergy(tolerance=self.opt["tolerance"]*unit.kilojoules_per_mole, maxIterations=self.opt["steps"]) # HJ: added tolerance
 
             state = self.omm_simulation.context.getState(
                 getPositions=True, getEnergy=True
