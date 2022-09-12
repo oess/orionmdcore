@@ -1017,7 +1017,7 @@ class MDDataRecord(object):
             state.__setstate_new_api__(state_dic)
         except:
             state_fn = os.path.join(dir_stage, "state.pickle")
-
+            print("Deprecation Warning: Old API in use. This will not be supported in further releases at any point")
             with open(state_fn, "rb") as f:
                 state = pickle.load(f)
 
