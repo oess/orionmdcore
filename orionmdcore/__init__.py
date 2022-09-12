@@ -19,7 +19,6 @@ __author__ = "Gaetano Calabro"
 __email__ = "gcalabro@eyesopen.com"
 __version__ = '2.0.0a5'
 
-
 __installation__error__ = """
 The ORIONMDCORE package requires the manual installation of the
 OpenEye orionplatform and snowball packages in their working conda environment.

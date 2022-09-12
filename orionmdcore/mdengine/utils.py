@@ -95,7 +95,7 @@ class MDState(object):
 
         # OLD API TRAP
         if '__box_vectors__' in self.__dict__:
-                return  self.__box_vectors__
+            return self.__box_vectors__
 
         if self.__box__ is not None:
 

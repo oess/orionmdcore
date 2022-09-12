@@ -260,7 +260,7 @@ def gmx_run(opt):
             prefix + "_" + Gromacs.gmx_restart_prefix + "_" + str(cycle_id) + ".tar"
         )
 
-        with tarfile.open(tar_restart_fn, mode="w:gz") as archive:
+        with tarfile.open(tar_restart_fn, mode="w") as archive:
             archive.add(restart_fn, arcname=os.path.basename(restart_fn))
             archive.add(fn_tpr, arcname=os.path.basename(fn_tpr))
 
@@ -275,7 +275,7 @@ def gmx_run(opt):
             prefix + "_" + Gromacs.gmx_traj_dir_prefix + "_" + str(cycle_id) + ".tar"
         )
 
-        with tarfile.open(tar_trj_dir_fn, mode="w:gz") as archive:
+        with tarfile.open(tar_trj_dir_fn, mode="w") as archive:
             archive.add(outdir, arcname=os.path.basename(outdir))
 
         file_traj_id = upload_file(

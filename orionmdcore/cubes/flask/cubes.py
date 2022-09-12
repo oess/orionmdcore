@@ -417,7 +417,7 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
     geometry = parameters.StringParameter(
         "geometry",
         default="box",
-        choices=["box", "sphere"],
+        choices=["box", "sphere", "rectangle"],
         help_text="Geometry selection: box or sphere. Sphere cannot be used as periodic system "
         "along with MD simulation",
     )

@@ -1084,7 +1084,7 @@ class MDDataRecord(object):
                 + stage.get_value(Fields.stage_type)
                 + ".tar.gz")
 
-            with tarfile.open(data_fn, mode="w:gz") as archive:
+            with tarfile.open(data_fn, mode="w") as archive:
                 archive.add(top_fn, arcname=os.path.basename(top_fn))
                 archive.add(state_fn, arcname=os.path.basename(state_fn))
 
@@ -1238,7 +1238,7 @@ class MDDataRecord(object):
             with open(state_fn, "w") as f:
                 json.dump(mdstate.__getstate__(), f)
 
-            with tarfile.open(data_fn, mode="w:gz") as archive:
+            with tarfile.open(data_fn, mode="w") as archive:
                 archive.add(top_fn, arcname=os.path.basename(top_fn))
                 archive.add(state_fn, arcname=os.path.basename(state_fn))
 
