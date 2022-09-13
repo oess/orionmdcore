@@ -63,6 +63,10 @@ import json
 
 from orionmdcore.mdengine.utils import MDState
 
+import logging
+
+from orionmdcore.standards.utils import old_api_warning_msg
+
 
 def mdstages(f):
     @wraps(f)
@@ -1017,7 +1021,7 @@ class MDDataRecord(object):
             state.__setstate_new_api__(state_dic)
         except:
             state_fn = os.path.join(dir_stage, "state.pickle")
-            print("Deprecation Warning: Old API in use. This will not be supported in further releases at any point")
+            logging.warning(old_api_warning_msg)
             with open(state_fn, "rb") as f:
                 state = pickle.load(f)
 

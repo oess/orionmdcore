@@ -1,4 +1,4 @@
-# (C) 2020 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2022 OpenEye Scientific Software Inc. All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
 # provided to current licensees or subscribers of OpenEye products or
@@ -45,6 +45,14 @@ from os import environ
 import os
 
 import json
+
+from orionmdcore.standards.pmd_json import (parmed_to_json,
+                                            json_to_parmed)
+
+import logging
+
+
+old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
 
 
 def orion_session(f):
@@ -98,38 +106,38 @@ def orion_session(f):
 #         new_structure.__setstate__(pickle.loads(bytes(data)))
 #         return new_structure
 
-
-class ParmedData(CustomHandler):
-    @staticmethod
-    def get_name():
-        return "Parmed"
-
-    @classmethod
-    def validate(cls, value):
-        return isinstance(value, parmed.structure.Structure)
-
-    @classmethod
-    def copy(cls, value):
-        return parmed.structure.copy(value)
-
-    @staticmethod
-    def serialize(structure):
-        pmd_struct_dict = structure.__getstate__()
-        json_str = json.dumps(pmd_struct_dict)
-        return json_str.encode(encoding='utf8')
-
-    @staticmethod
-    def deserialize(json_str_bytes):
-        try:
-            json_str = json_str_bytes.decode()
-            pmd_dic = json.loads(json_str)
-            new_structure = parmed.structure.Structure()
-            new_structure.__setstate__(pmd_dic)
-            return new_structure
-        except:
-            new_structure = parmed.structure.Structure()
-            new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
-            return new_structure
+#
+# class ParmedData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "Parmed"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, parmed.structure.Structure)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return parmed.structure.copy(value)
+#
+#     @staticmethod
+#     def serialize(structure):
+#         pmd_struct_dict = structure.__getstate__()
+#         json_str = json.dumps(pmd_struct_dict)
+#         return json_str.encode(encoding='utf8')
+#
+#     @staticmethod
+#     def deserialize(json_str_bytes):
+#         try:
+#             json_str = json_str_bytes.decode()
+#             pmd_dic = json.loads(json_str)
+#             new_structure = parmed.structure.Structure()
+#             new_structure.__setstate__(pmd_dic)
+#             return new_structure
+#         except:
+#             new_structure = parmed.structure.Structure()
+#             new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+#             return new_structure
 
 
 # class MDStateData(CustomHandler):
@@ -154,6 +162,43 @@ class ParmedData(CustomHandler):
 #     def deserialize(data):
 #         new_state = pickle.loads(bytes(data))
 #         return new_state
+
+
+class ParmedData(CustomHandler):
+    @staticmethod
+    def get_name():
+        return "Parmed"
+
+    @classmethod
+    def validate(cls, value):
+        return isinstance(value, parmed.structure.Structure)
+
+    @classmethod
+    def copy(cls, value):
+        return parmed.structure.copy(value)
+
+    @staticmethod
+    def serialize(structure):
+        json_str = parmed_to_json(structure)
+        return json_str.encode(encoding='utf8')
+
+    @staticmethod
+    def deserialize(json_str_bytes):
+        try:
+            json_str = json_str_bytes.decode()
+            pmd_dic = json.loads(json_str)
+
+            new_structure = json_to_parmed(pmd_dic)
+
+            # new_structure = parmed.structure.Structure()
+            # new_structure.__setstate__(pmd_dic)
+            return new_structure
+        except:
+            logging.warning(old_api_warning_msg)
+            new_structure = parmed.structure.Structure()
+            new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+            return new_structure
+
 
 class MDStateData(CustomHandler):
     @staticmethod
@@ -183,6 +228,7 @@ class MDStateData(CustomHandler):
             new_md_state.__setstate_new_api__(mdstate_dic)
             return new_md_state
         except:
+            logging.warning(old_api_warning_msg)
             new_state = pickle.loads(bytes(json_str_bytes))
             return new_state
 
@@ -238,7 +284,7 @@ class MDComponentData(CustomHandler):
             new_md_components.__setstate_new_api__(comp_dic)
             return new_md_components
         except:
-            print("Deprecation Warning: Old API in use. This will not be supported in further releases at any point")
+            logging.warning(old_api_warning_msg)
             new_components = pickle.loads(bytes(json_str_bytes))
             return new_components
 

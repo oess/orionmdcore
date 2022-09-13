@@ -74,7 +74,12 @@ class MDState(object):
                     self.__velocities__ = None
 
     def get_positions(self):
-        if self.__coordinates__ is not None:
+
+        # OLD API TRAP
+        if '__positions__' in self.__dict__:
+            return self.__positions__
+
+        elif self.__coordinates__ is not None:
             return [Vec3(coord[0], coord[1], coord[2]) for coord in self.__coordinates__] * unit.angstroms
         else:
             return None
@@ -87,7 +92,7 @@ class MDState(object):
 
     def get_velocities(self):
         if self.__velocities__ is not None:
-            return self.__velocities__ * unit.angstrom / unit.picosecond
+            return self.__velocities__
         else:
             return None
 
@@ -97,7 +102,7 @@ class MDState(object):
         if '__box_vectors__' in self.__dict__:
             return self.__box_vectors__
 
-        if self.__box__ is not None:
+        elif self.__box__ is not None:
 
             av = [self.__box__[0], 0.0, 0.0]
             bv = [0.0, self.__box__[1], 0.0]
