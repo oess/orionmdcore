@@ -45,7 +45,12 @@ def parmed_to_json(pmd_structure):
     class AtomTypeEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, parmed.AtomType):
-                return str(obj.__str__())
+                dic = dict(name=obj.name, number=obj.number, mass=obj.mass,
+                           atomic_number=obj.atomic_number, bond_type=obj._bond_type,
+                           charge=obj.charge, epsilon=obj.epsilon, rmin=obj.rmin,
+                           epsilon_14=obj.epsilon_14, rmin_14=obj.rmin_14, nbfix=obj.nbfix.copy())
+                return dic
+                # return str(obj.__str__())
 
             return json.JSONEncoder.default(self, obj)
 
@@ -151,7 +156,6 @@ def parmed_to_json(pmd_structure):
 def json_to_parmed(pmd_dic):
 
     for attr in pmd_dic:
-
         if attr == 'residues':
             residues_list = pmd_dic['residues']
             pmd_residues_list = parmed.ResidueList()
@@ -161,8 +165,21 @@ def json_to_parmed(pmd_dic):
                     atoms_list = res_dic['atoms']
                     new_pmd_atom_list = list()
                     for at_dic in atoms_list:
+                        at_type = at_dic['atom_type']
+                        pmd_atom_type = parmed.AtomType(at_type['name'],
+                                                        at_type['number'],
+                                                        at_type['mass'],
+                                                        atomic_number=at_type['atomic_number'],
+                                                        bond_type=at_type['bond_type'],
+                                                        charge=at_type['charge']
+                                                        )
+                        pmd_atom_type.set_lj_params(at_type['epsilon'],
+                                                    at_type['rmin'],
+                                                    eps14=at_type['epsilon_14'],
+                                                    rmin14=at_type['rmin_14'])
                         pmd_atom = parmed.Atom()
                         pmd_atom.__setstate__(at_dic)
+                        pmd_atom.atom_type = pmd_atom_type
                         new_pmd_atom_list.append(pmd_atom)
 
                     res_dic['atoms'] = new_pmd_atom_list

@@ -1274,7 +1274,7 @@ class GromacsSimulations(MDSimulations):
 
         gro_structure = parmed.gromacs.GromacsGroFile().parse(gro_fn, skip_bonds=True)
 
-        new_mdstate = copy.deepcopy(self.mdstate)
+        new_mdstate = self.mdstate.__copy__()
 
         new_mdstate.set_positions(gro_structure.positions)
 

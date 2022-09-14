@@ -52,6 +52,14 @@ class MDState(object):
 
         return state
 
+    def __copy__(self):
+        new_md_state = MDState()
+        new_md_state.__coordinates__ = self.__coordinates__
+        new_md_state.__velocities__ = self.__velocities__
+        new_md_state.__box__ = self.__box__
+
+        return new_md_state
+
     def __setstate_new_api__(self, state):
         for state_name, state_val in state.items():
 
@@ -92,7 +100,7 @@ class MDState(object):
 
     def get_velocities(self):
         if self.__velocities__ is not None:
-            return self.__velocities__
+            return self.__velocities__ * unit.angstrom / unit.picosecond
         else:
             return None
 

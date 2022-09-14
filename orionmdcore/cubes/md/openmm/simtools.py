@@ -657,7 +657,7 @@ class OpenMMSimulations(MDSimulations):
                 "The OpenMM State has not been defined. The MD simulation has not been performed"
             )
 
-        new_mdstate = copy.deepcopy(self.mdstate)
+        new_mdstate = self.mdstate.__copy__()
 
         new_mdstate.set_positions(self.omm_state.getPositions(asNumpy=False))
 
