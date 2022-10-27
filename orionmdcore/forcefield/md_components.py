@@ -483,6 +483,12 @@ class MDComponents:
             mol = mol_from_json(comp) if comp else None
 
             if mol is not None and mol.IsValid():
+
+                # TODO DEBUGGUNG
+                if comp_name == 'protein':
+                    oechem.OEPDBOrderAtoms(mol, False)
+                ########
+
                 self._components[comp_name] = mol
 
     @property
