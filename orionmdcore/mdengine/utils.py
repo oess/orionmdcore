@@ -93,6 +93,11 @@ class MDState(object):
             return None
 
     def get_oe_positions(self):
+
+        # OLD API TRAP
+        if '__positions__' in self.__dict__:
+            return list(itertools.chain.from_iterable(self.__positions__))
+
         if self.__coordinates__ is not None:
             return list(itertools.chain.from_iterable(self.__coordinates__))
         else:
