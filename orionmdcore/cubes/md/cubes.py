@@ -212,6 +212,39 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
         help_text="Select the available MD engine",
     )
 
+    # HJ 2022.09
+    min_type = parameters.StringParameter(
+        "min_type",
+        title="Minimization Type",
+        default="Default",
+        choices=["Default", "Induced Fit1", "Induced Fit2"],
+        help_text="Select minimization type. Induced Fit1 will relax active site side chain only w rstr, "
+                  "and Induced Fit2 will relax all wo rstr.",
+    )
+    restraint1Wt = parameters.DecimalParameter(
+        "restraint1Wt",
+        default=2.0,
+        help_text="(For Min Type:'Induced Fit1' only) Restraint weight for the ligand in kcal/(mol A^2)",
+    )
+
+    restraint2Wt = parameters.DecimalParameter(
+        "restraint2Wt",
+        default=0.2,
+        help_text="(For Min Type:'Induced Fit1' only) Restraint weight for the active site side chains in kcal/(mol A^2)",
+    )
+
+    restraint3Wt = parameters.DecimalParameter(
+        "restraint3Wt",
+        default=1.0,
+        help_text="(For Min Type:'Induced Fit1' only) Restraint weight for the active site backbones in kcal/(mol A^2)",
+    )
+
+    restraint4Wt = parameters.DecimalParameter(
+        "restraint4Wt",
+        default=2.0,
+        help_text="(For Min Type:'Induced Fit1' only) Restraint weight for the non-active site in kcal/(mol A^2)",
+    )
+
     def begin(self):
         self.opt = vars(self.args)
         self.opt["Logger"] = self.log
@@ -224,7 +257,36 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
             # is necessary to avoid filename collisions due to
             # the parallel cube processes
             opt = dict(self.opt)
-            opt["CubeTitle"] = self.title
+            # HJ 2022.09
+            if opt["min_type"] == "Default":
+                opt["CubeTitle"] = self.title
+
+            elif opt["min_type"] == "Induced Fit1":
+                opt["CubeTitle"] = opt["min_type"]
+                # reset restraint opt
+                rst_set1 = record.get_value(Fields.lig_idx_fld)
+                rst_set2 = record.get_value(Fields.as_atom_idx_fld)
+                rst_set3 = record.get_value(Fields.as_sc_backbone_idx_fld)
+                md_components = record.get_value(Fields.md_components)
+                flask, _ = md_components.create_flask
+                rst_set4 = list()
+                for atom in flask.GetAtoms():
+                    if atom.GetIdx() not in list(rst_set1)+list(rst_set2)+list(rst_set3):
+                        rst_set4.append(atom.GetIdx())
+                opt["restraints"] = ""
+                opt["restraints_by_groups"] = [(set(rst_set1), opt["restraint1Wt"]), (set(rst_set2), opt["restraint2Wt"]), (set(rst_set3), opt["restraint3Wt"]), (set(rst_set4), opt["restraint4Wt"])]
+                # reset freeze opt
+                opt["freeze"] = ""
+                opt["freeze_by_idx"] = ""
+
+            elif opt["min_type"] == "Induced Fit2":
+                opt["CubeTitle"] = opt["min_type"]
+                # reset restraint opt
+                opt["restraints"] = ""
+                opt["restraints_by_idx"] = ""
+                # reset freeze opt
+                opt["freeze"] = ""
+                opt["freeze_by_idx"] = ""
 
             # Update Cube Parameters
             update_cube_parameters_in_place(record, opt)

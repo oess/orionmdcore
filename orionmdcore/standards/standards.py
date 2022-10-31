@@ -238,3 +238,8 @@ class Fields:
     # TODO THIS MUST BE REMOVED
     # The Lig_Conf_Data Field is for the record containing Traj conf data for all confs
     oetrajconf_rec = OEField("Lig_Conf_Data", Types.RecordVec, meta=_metaHidden)
+
+    # HJ 2022.09
+    lig_idx_fld = OEField("LigAtomIdx", Types.FloatVec, meta=_metaHidden)
+    as_atom_idx_fld = OEField("ActiveSiteAtomIdx", Types.FloatVec, meta=_metaHidden)
+    as_sc_backbone_idx_fld = OEField("ActiveSiteBackboneIdx", Types.FloatVec, meta=_metaHidden)

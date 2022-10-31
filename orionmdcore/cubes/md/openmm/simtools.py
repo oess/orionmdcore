@@ -133,18 +133,26 @@ class OpenMMSimulations(MDSimulations):
 
                 cutoff_distance = threshold * unit.angstroms
 
+            if constraints == "None":
+                eval_const = None
+            else:
+                eval_const = eval("app.%s" % constraints)
             self.system = parmed_structure.createSystem(
                 nonbondedMethod=app.PME,
                 nonbondedCutoff=cutoff_distance,
-                constraints=eval("app.%s" % constraints),
+                constraints=eval_const,
                 removeCMMotion=False,
                 hydrogenMass=3.0 * unit.amu if opt["hmr"] else None,
             )
         else:  # Vacuum
+            if constraints == "None":
+                eval_const = None
+            else:
+                eval_const = eval("app.%s" % constraints)
             self.system = parmed_structure.createSystem(
                 nonbondedMethod=app.CutoffNonPeriodic,
                 nonbondedCutoff=opt["nonbondedCutoff"] * unit.angstroms,
-                constraints=eval("app.%s" % constraints),
+                constraints=eval_const,
                 removeCMMotion=False,
                 hydrogenMass=3.0 * unit.amu if opt["hmr"] else None,
             )
@@ -191,22 +199,94 @@ class OpenMMSimulations(MDSimulations):
                         opt["CubeTitle"]))
 
         # Apply restraints
-        if opt["restraints"]:
+        # HJ 2022.09
+        if opt["restraint_to_reference"] and box is not None:
             opt["Logger"].info(
-                "[{}] RESTRAINT mask applied to: {}"
-                "\tRestraint weight: {}".format(
-                    opt["CubeTitle"],
-                    opt["restraints"],
-                    opt["restraintWt"]
-                    * unit.kilocalories_per_mole
-                    / unit.angstroms ** 2,
+                "[{}] Restraint to the Reference State Enabled".format(
+                    opt["CubeTitle"]
                 )
             )
+            reference_positions = opt["reference_state"].get_positions()
+            coords = np.array(reference_positions.value_in_unit(unit.nanometers))
+            # Flask Center of Geometry
+            cog = np.mean(coords, axis=0)
 
-            # Select atom to restraint
-            res_atom_set = oeommutils.select_oemol_atom_idx_by_language(
-                opt["molecule"], mask=opt["restraints"]
+            # Flask box vectors
+            box_v = (
+                opt["reference_state"]
+                .get_box_vectors()
+                .value_in_unit(unit.nanometers)
             )
+            box_v = np.array([box_v[0][0], box_v[1][1], box_v[2][2]])
+
+            # Translation vector
+            delta = box_v / 2 - cog
+            # New Coordinates
+            corrected_reference_positions = coords + delta
+        else:
+            reference_positions = opt["reference_state"].get_positions()
+            coords = np.array(reference_positions.value_in_unit(unit.nanometers))
+            corrected_reference_positions = coords
+
+        if "restraints_by_idx" not in list(opt.keys()):
+            opt["restraints_by_idx"] = ""
+        
+        if "restraints_by_groups" in list(opt.keys()):
+            for idx, (atom_set, restraintwt) in enumerate( opt["restraints_by_groups"]):
+                res_atom_set = set(atom_set)
+
+                opt["Logger"].info(
+                    "[{}] restraint set {}: Number of restraint atoms: {}, Restraint Wt: {:.1f} kcal/(mol A^2)".format(
+                        opt["CubeTitle"], idx+1, len(res_atom_set), restraintwt
+                    )
+                )
+                # define the custom force to restrain atoms to their starting positions
+                force_restr = openmm.CustomExternalForce(
+                    "k_restr*periodicdistance(x, y, z, x0, y0, z0)^2"
+                )
+                # Add the restraint weight as a global parameter in kcal/mol/A^2
+                force_restr.addGlobalParameter(
+                    "k_restr",
+                    restraintwt * unit.kilocalories_per_mole / unit.angstroms ** 2,
+                )
+                # Define the target xyz coords for the restraint as per-atom (per-particle) parameters
+                force_restr.addPerParticleParameter("x0")
+                force_restr.addPerParticleParameter("y0")
+                force_restr.addPerParticleParameter("z0")
+
+                for idx in range(0, len(positions)):
+                    if idx in res_atom_set:
+                        if opt["restraint_to_reference"]:
+                            xyz = corrected_reference_positions[idx]  # nanometers unit
+                        else:
+                            xyz = (
+                                positions[idx].in_units_of(unit.nanometers)
+                                / unit.nanometers
+                            )
+                        force_restr.addParticle(idx, xyz)
+
+            self.system.addForce(force_restr)
+
+        elif opt["restraints"] or opt["restraints_by_idx"]:
+            if opt["restraints"]:
+                opt["Logger"].info(
+                    "[{}] RESTRAINT mask applied to: {}"
+                    "\tRestraint weight: {}".format(
+                        opt["CubeTitle"],
+                        opt["restraints"],
+                        opt["restraintWt"]
+                        * unit.kilocalories_per_mole
+                        / unit.angstroms ** 2,
+                    )
+                )
+
+                # Select atom to restraint
+                res_atom_set = oeommutils.select_oemol_atom_idx_by_language(
+                    opt["molecule"], mask=opt["restraints"]
+                )
+            else:
+                res_atom_set = set(opt["restraints_by_idx"])
+
             opt["Logger"].info(
                 "[{}] Number of restraint atoms: {}".format(
                     opt["CubeTitle"], len(res_atom_set)
@@ -226,34 +306,6 @@ class OpenMMSimulations(MDSimulations):
             force_restr.addPerParticleParameter("y0")
             force_restr.addPerParticleParameter("z0")
 
-            if opt["restraint_to_reference"] and box is not None:
-                opt["Logger"].info(
-                    "[{}] Restraint to the Reference State Enabled".format(
-                        opt["CubeTitle"]
-                    )
-                )
-                reference_positions = opt["reference_state"].get_positions()
-                coords = np.array(reference_positions.value_in_unit(unit.nanometers))
-                # Flask Center of Geometry
-                cog = np.mean(coords, axis=0)
-
-                # Flask box vectors
-                box_v = (
-                    opt["reference_state"]
-                    .get_box_vectors()
-                    .value_in_unit(unit.nanometers)
-                )
-                box_v = np.array([box_v[0][0], box_v[1][1], box_v[2][2]])
-
-                # Translation vector
-                delta = box_v / 2 - cog
-                # New Coordinates
-                corrected_reference_positions = coords + delta
-            else:
-                reference_positions = opt["reference_state"].get_positions()
-                coords = np.array(reference_positions.value_in_unit(unit.nanometers))
-                corrected_reference_positions = coords
-
             for idx in range(0, len(positions)):
                 if idx in res_atom_set:
                     if opt["restraint_to_reference"]:
@@ -268,16 +320,23 @@ class OpenMMSimulations(MDSimulations):
             self.system.addForce(force_restr)
 
         # Freeze atoms
-        if opt["freeze"]:
-            opt["Logger"].info(
-                "[{}] FREEZE mask applied to: {}".format(
-                    opt["CubeTitle"], opt["freeze"]
-                )
-            )
+        # HJ 2022.09
+        if "freeze_by_idx" not in list(opt.keys()):
+            opt["freeze_by_idx"] = ""
 
-            freeze_atom_set = oeommutils.select_oemol_atom_idx_by_language(
-                opt["molecule"], mask=opt["freeze"]
-            )
+        if opt["freeze"] or opt["freeze_by_idx"]:
+            if opt["freeze"]:
+                opt["Logger"].info(
+                    "[{}] FREEZE mask applied to: {}".format(
+                        opt["CubeTitle"], opt["freeze"]
+                    )
+                )
+
+                freeze_atom_set = oeommutils.select_oemol_atom_idx_by_language(
+                    opt["molecule"], mask=opt["freeze"]
+                )
+            else:
+                freeze_atom_set = set(opt["freeze_by_idx"])
             opt["Logger"].info(
                 "[{}] Number of frozen atoms: {}".format(
                     opt["CubeTitle"], len(freeze_atom_set)
