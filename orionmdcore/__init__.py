@@ -17,7 +17,7 @@
 
 __author__ = "Gaetano Calabro"
 __email__ = "gcalabro@eyesopen.com"
-__version__ = '2.0.0a5'
+__version__ = '2.0.0a6'
 
 __installation__error__ = """
 The ORIONMDCORE package requires the manual installation of the
