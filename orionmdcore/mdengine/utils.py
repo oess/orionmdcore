@@ -104,6 +104,11 @@ class MDState(object):
             return None
 
     def get_velocities(self):
+
+        # OLD API TRAP
+        if unit.is_quantity(self.__velocities__):
+            return self.__velocities__
+
         if self.__velocities__ is not None:
             return self.__velocities__ * unit.angstrom / unit.picosecond
         else:
