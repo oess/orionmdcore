@@ -85,10 +85,7 @@ class MDState(object):
 
         # OLD API TRAP
         if '__positions__' in self.__dict__:
-            pos = self.__positions__.in_units_of(unit.angstrom) / unit.angstrom
-            pos = list(itertools.chain.from_iterable(pos))
-
-            return pos
+            return self.__positions__
 
         elif self.__coordinates__ is not None:
             return [Vec3(coord[0], coord[1], coord[2]) for coord in self.__coordinates__] * unit.angstroms
@@ -99,7 +96,7 @@ class MDState(object):
 
         # OLD API TRAP
         if '__positions__' in self.__dict__:
-            return list(itertools.chain.from_iterable(self.__positions__))
+            return list(itertools.chain.from_iterable(self.__positions__.value_in_unit(unit.angstrom)))
 
         if self.__coordinates__ is not None:
             return list(itertools.chain.from_iterable(self.__coordinates__))
