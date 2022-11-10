@@ -21,7 +21,7 @@ try:
 
     from datarecord import OERecord
 
-    from floe.api import ComputeCube
+    from floe.api import ComputeCube, parameters
 
     from orionplatform.mixins import RecordPortsMixin
 
@@ -81,6 +81,14 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
 
     protein_port = RecordInputPort("protein_port", initializer=True)
 
+    # HJ 2022.10
+    ignore_protein_ligand_clashes = parameters.BooleanParameter(
+        'ignore_protein_ligand_clashes',
+        title="Ignore Protein Ligand Clashes",
+        default=False,
+        required=True,
+        help_text="If True, it will ignore all protein ligand clashes detected.")
+
     def begin(self):
 
         self.opt = vars(self.args)
@@ -101,6 +109,7 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
         ligand_title = ""
 
         try:
+            opt = dict(self.opt)
 
             if port == "intake":
 
@@ -198,27 +207,32 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                             protein_no_clashes,
                         ) = clash_detection(ligand, comp)
 
-                        if len(protein_severe_clashes[0]) >= 2:
-                            # raise ValueError(
-                            #     "Severe clashes detected between the protein and the ligand: {}\n{}".format(
-                            #         ligand_title, protein_severe_clashes[1]
-                            #     )
-                            # )
-                            raise ValueError(
-                                "Severe clashes detected between the protein and the ligand"
-                            )
-                        if len(protein_severe_clashes[0]) == 1:
-                            self.log.warn(
-                                "One severe clash detected between the protein and the ligand: {}\n{}".format(
-                                    ligand_title, protein_severe_clashes[1]
+                        if not opt["ignore_protein_ligand_clashes"]:
+                            if len(protein_severe_clashes[0]) >= 2:
+                                # raise ValueError(
+                                #     "Severe clashes detected between the protein and the ligand: {}\n{}".format(
+                                #         ligand_title, protein_severe_clashes[1]
+                                #     )
+                                # )
+                                raise ValueError(
+                                    "Severe clashes detected between the protein and the ligand"
                                 )
-                            )
+                            if len(protein_severe_clashes[0]) == 1:
+                                self.log.warn(
+                                    "One severe clash detected between the protein and the ligand: {}\n{}".format(
+                                        ligand_title, protein_severe_clashes[1]
+                                    )
+                                )
 
-                        if protein_moderate_clashes[0]:
-                            self.log.warn(
-                                "Moderate clashes detected between the protein and the ligand: {}\n{}".format(
-                                    ligand_title, protein_moderate_clashes[1]
+                            if protein_moderate_clashes[0]:
+                                self.log.warn(
+                                    "Moderate clashes detected between the protein and the ligand: {}\n{}".format(
+                                        ligand_title, protein_moderate_clashes[1]
+                                    )
                                 )
+                        else:
+                            self.log.warn(
+                                f"Ignore clashes. # moderate clashes: {len(protein_moderate_clashes)}, # severe clashes: {len(protein_severe_clashes)}"
                             )
 
                     # Check clashes between the ligand and cofactors
