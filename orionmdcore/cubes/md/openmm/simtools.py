@@ -699,7 +699,7 @@ class OpenMMSimulations(MDSimulations):
 
                     tar_fn = self.opt["trj_fn"]
 
-                    with tarfile.open(tar_fn, mode="w:gz") as archive:
+                    with tarfile.open(tar_fn, mode="w") as archive:
                         archive.add(
                             self.opt["omm_trj_fn"],
                             arcname=os.path.basename(self.opt["omm_trj_fn"]),
