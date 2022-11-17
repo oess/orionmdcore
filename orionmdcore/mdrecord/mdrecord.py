@@ -1138,13 +1138,23 @@ class MDDataRecord(object):
         if not stage.has_field(Fields.trajectory):
             return None
 
-        trj_tar = utils.download_file(
-            stage.get_value(Fields.trajectory),
-            os.path.join(traj_dir, MDFileNames.trajectory),
-        )
+        # HJ: attempt downloading up to 10 times.
+        attempts = 0
+        while attempts < 10:
+            try:
+                trj_tar = utils.download_file(
+                    stage.get_value(Fields.trajectory),
+                    os.path.join(traj_dir, MDFileNames.trajectory),
+                )
+                
+                with tarfile.open(trj_tar) as tar:
+                    tar.extractall(path=traj_dir)
 
-        with tarfile.open(trj_tar) as tar:
-            tar.extractall(path=traj_dir)
+                break
+
+            except:
+                attempts += 1
+                print(f" *** Trajectory file download trial # {attempts} failed.")
 
         trj_field = stage.get_field(Fields.trajectory.get_name())
         trj_meta = trj_field.get_meta()
@@ -1286,6 +1296,7 @@ class MDDataRecord(object):
                 lft = utils.upload_file(
                     trajectory_fn, orion_ui_name=trajectory_orion_ui
                 )
+
                 record.set_value(trj_field, lft)
 
             stages = self.get_stages
