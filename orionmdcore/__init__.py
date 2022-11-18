@@ -18,7 +18,7 @@
 
 __author__ = "OpenEye, Cadence Molecular Sciences"
 __email__ = "support@eyesopen.com"
-__version__ = '1.1.8b9'
+__version__ = '1.1.8b10'
 
 
 __installation__error__ = """
