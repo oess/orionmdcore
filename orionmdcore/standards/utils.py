@@ -48,6 +48,8 @@ from os import environ
 
 import os
 
+import hashlib
+
 
 class ParmedData(CustomHandler):
     @staticmethod
@@ -190,6 +192,17 @@ def check_filename(filename):
         return filename
 
 
+def md5_chk_sum(fn):
+    with open(fn, "rb") as f:
+        file_hash = hashlib.md5()
+        chunk = f.read(8192)
+        while chunk:
+            file_hash.update(chunk)
+            chunk = f.read(8192)
+
+    return file_hash.hexdigest()
+
+
 def upload_file(filename, orion_ui_name="OrionFile"):
 
     # Check if file is empty
@@ -216,7 +229,25 @@ def upload_file(filename, orion_ui_name="OrionFile"):
             )
         )
 
-        file_upload = File.upload(session, orion_ui_name, filename)
+        max_attempt = 5
+
+        for try_count in range(0, max_attempt):
+
+            print("....Attempt {} to upload the file {}".format(try_count + 1, filename))
+
+            file_upload = File.upload(session, orion_ui_name, filename)
+
+            resource = session.get_resource(File, file_upload.id)
+            tmp_fn = os.path.join(os.path.basename(filename), "tmp_download_{}".format(try_count))
+            resource.download_to_file(tmp_fn)
+
+            if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                break
+
+            os.remove(tmp_fn)
+
+        if try_count == max_attempt - 1:
+            raise ValueError("Failed to Upload the file: {}".format(filename))
 
         session.tag_resource(file_upload, "Trajectory")
 

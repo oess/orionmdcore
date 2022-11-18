@@ -60,6 +60,8 @@ from orionmdcore.standards import CollectionsNames
 
 from orionmdcore.standards.utils import check_filename
 
+from orionmdcore.standards.utils import md5_chk_sum
+
 from functools import wraps
 
 def mdstages(f):
@@ -1250,6 +1252,7 @@ class MDDataRecord(object):
 
             trj_meta = OEFieldMeta()
             trj_meta.set_attribute(Meta.Annotation.Description, trajectory_engine)
+            trj_meta.set_attribute(Meta.Annotation.Comments, md5_chk_sum(trajectory_fn))
             trj_field = OEField(
                 Fields.trajectory.get_name(),
                 Fields.trajectory.get_type(),
