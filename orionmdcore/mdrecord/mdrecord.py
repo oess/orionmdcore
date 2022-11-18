@@ -1140,17 +1140,22 @@ class MDDataRecord(object):
         if not stage.has_field(Fields.trajectory):
             return None
 
+        trj_field = stage.get_field(Fields.trajectory.get_name())
+        trj_meta = trj_field.get_meta()
+        md_engine = trj_meta.get_attribute(Meta.Annotation.Description)
+
+        md5_chks = None
+        if trj_meta.has_attribute(Meta.Annotation.Comments):
+            md5_chks = trj_meta.get_attribute(Meta.Annotation.Comments)
+
         trj_tar = utils.download_file(
             stage.get_value(Fields.trajectory),
             os.path.join(traj_dir, MDFileNames.trajectory),
+            md5_chks=md5_chks
         )
 
         with tarfile.open(trj_tar) as tar:
             tar.extractall(path=traj_dir)
-
-        trj_field = stage.get_field(Fields.trajectory.get_name())
-        trj_meta = trj_field.get_meta()
-        md_engine = trj_meta.get_attribute(Meta.Annotation.Description)
 
         if md_engine == MDEngines.OpenMM and not stg_type == MDStageTypes.FEC:
             traj_fn = glob.glob(os.path.join(traj_dir, "*.h5"))[0]

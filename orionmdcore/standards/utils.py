@@ -267,7 +267,7 @@ def upload_file(filename, orion_ui_name="OrionFile"):
     return file_id
 
 
-def download_file(file_id, filename):
+def download_file(file_id, filename, md5_chks=None):
 
     if in_orion():
 
@@ -288,9 +288,23 @@ def download_file(file_id, filename):
             )
         )
 
-        resource = session.get_resource(File, file_id)
+        if md5_chk_sum is not None:
 
-        resource.download_to_file(filename)
+            max_attempt = 5
+
+            for try_count in range(0, max_attempt):
+
+                print("....Attempt {} to Downloading the file {}".format(try_count + 1, filename))
+
+                resource = session.get_resource(File, file_id)
+                resource.download_to_file(filename)
+
+                if md5_chk_sum(filename) == md5_chks:
+                    break
+
+        else:
+            resource = session.get_resource(File, file_id)
+            resource.download_to_file(filename)
 
         fn_local = filename
 
@@ -298,7 +312,7 @@ def download_file(file_id, filename):
         fn_local = file_id
 
     if not os.path.isfile(fn_local):
-        raise IOError("The trajectory file has not been found: {}".format(fn_local))
+        raise IOError("The file has not been found: {}".format(fn_local))
 
     return fn_local
 
