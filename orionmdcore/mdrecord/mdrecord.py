@@ -1,17 +1,18 @@
-# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2022 Cadence Design Systems, Inc. (Cadence) 
+# All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
-# provided to current licensees or subscribers of OpenEye products or
+# provided to current licensees or subscribers of Cadence products or
 # SaaS offerings (each a "Customer").
 # Customer is hereby permitted to use, copy, and modify the Sample Code,
-# subject to these terms. OpenEye claims no rights to Customer's
+# subject to these terms. Cadence claims no rights to Customer's
 # modifications. Modification of Sample Code is at Customer's sole and
 # exclusive risk. Sample Code may require Customer to have a then
-# current license or subscription to the applicable OpenEye offering.
+# current license or subscription to the applicable Cadence offering.
 # THE SAMPLE CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED.  OPENEYE DISCLAIMS ALL WARRANTIES, INCLUDING, BUT
 # NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
@@ -1138,24 +1139,14 @@ class MDDataRecord(object):
         if not stage.has_field(Fields.trajectory):
             return None
 
-        # HJ: attempt downloading up to 10 times.
-        attempts = 0
-        while attempts < 10:
-            try:
-                trj_tar = utils.download_file(
-                    stage.get_value(Fields.trajectory),
-                    os.path.join(traj_dir, MDFileNames.trajectory),
-                )
-                
-                with tarfile.open(trj_tar) as tar:
-                    tar.extractall(path=traj_dir)
+        trj_tar = utils.download_file(
+            stage.get_value(Fields.trajectory),
+            os.path.join(traj_dir, MDFileNames.trajectory),
+        )
 
-                break
-
-            except:
-                attempts += 1
-                print(f" *** Trajectory file download trial # {attempts} failed.")
-
+        with tarfile.open(trj_tar) as tar:
+            tar.extractall(path=traj_dir)
+            
         trj_field = stage.get_field(Fields.trajectory.get_name())
         trj_meta = trj_field.get_meta()
         md_engine = trj_meta.get_attribute(Meta.Annotation.Description)

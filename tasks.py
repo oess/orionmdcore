@@ -189,3 +189,7 @@ def _clean_out_dir(dir_path):
                     shutil.rmtree(file_path)
             except Exception as e:
                 print(e)
+
+@task
+def update_copyright(ctx):
+	run('oecopyright --type example orionmdcore')
