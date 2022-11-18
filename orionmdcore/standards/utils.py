@@ -49,6 +49,8 @@ from os import environ
 
 import os
 
+import hashlib
+
 
 class ParmedData(CustomHandler):
     @staticmethod
@@ -191,6 +193,17 @@ def check_filename(filename):
         return filename
 
 
+def md5_chk_sum(fn):
+    with open(fn, "rb") as f:
+        file_hash = hashlib.md5()
+        chunk = f.read(8192)
+        while chunk:
+            file_hash.update(chunk)
+            chunk = f.read(8192)
+
+    return file_hash.hexdigest()
+
+
 def upload_file(filename, orion_ui_name="OrionFile"):
 
     # Check if file is empty
@@ -217,7 +230,26 @@ def upload_file(filename, orion_ui_name="OrionFile"):
             )
         )
 
-        file_upload = File.upload(session, orion_ui_name, filename)
+        max_attempt = 5
+
+        for try_count in range(0, max_attempt):
+
+            print("....Attempt {} to upload the file {}".format(try_count + 1, filename))
+
+            file_upload = File.upload(session, orion_ui_name, filename)
+
+            resource = session.get_resource(File, file_upload.id)
+            tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
+            resource.download_to_file(tmp_fn)
+
+            if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                print("....Done uploading the file {}".format(filename))
+                break
+
+            os.remove(tmp_fn)
+
+        if try_count == max_attempt - 1:
+            raise ValueError("Failed to Upload the file: {}".format(filename))
 
         session.tag_resource(file_upload, "Trajectory")
 
@@ -237,7 +269,7 @@ def upload_file(filename, orion_ui_name="OrionFile"):
     return file_id
 
 
-def download_file(file_id, filename):
+def download_file(file_id, filename, md5_chks=None):
 
     if in_orion():
 
@@ -258,9 +290,24 @@ def download_file(file_id, filename):
             )
         )
 
-        resource = session.get_resource(File, file_id)
+        if md5_chk_sum is not None:
 
-        resource.download_to_file(filename)
+            max_attempt = 5
+
+            for try_count in range(0, max_attempt):
+
+                print("....Attempt {} to download the file {}".format(try_count + 1, filename))
+
+                resource = session.get_resource(File, file_id)
+                resource.download_to_file(filename)
+
+                if md5_chk_sum(filename) == md5_chks:
+                    print("....Done downloading the file {}".format(filename))
+                    break
+
+        else:
+            resource = session.get_resource(File, file_id)
+            resource.download_to_file(filename)
 
         fn_local = filename
 
@@ -268,7 +315,7 @@ def download_file(file_id, filename):
         fn_local = file_id
 
     if not os.path.isfile(fn_local):
-        raise IOError("The trajectory file has not been found: {}".format(fn_local))
+        raise IOError("The file has not been found: {}".format(fn_local))
 
     return fn_local
 

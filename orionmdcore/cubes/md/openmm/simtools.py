@@ -15,7 +15,7 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
-
+import tempfile
 
 try:
     from oeommtools import utils as oeommutils
@@ -705,6 +705,16 @@ class OpenMMSimulations(MDSimulations):
                             self.opt["omm_trj_fn"],
                             arcname=os.path.basename(self.opt["omm_trj_fn"]),
                         )
+
+                    # Check trajectory file
+                    with tempfile.TemporaryDirectory() as tmp_dir:
+                        try:
+                            with tarfile.open(tar_fn) as tar:
+                                tar.extractall(path=tmp_dir)
+                            tmp_trj_fn = os.path.join(tmp_dir, os.path.basename(self.opt["omm_trj_fn"]))
+                            mdtraj.load(tmp_trj_fn)
+                        except:
+                            raise ValueError("Trajectory Check Error")
 
         self.omm_state = state
 

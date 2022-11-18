@@ -70,6 +70,9 @@ from parmed.gromacs.gromacstop import _Defaults
 
 import time
 
+import tempfile
+
+import mdtraj
 
 class GromacsSimulations(MDSimulations):
     def __init__(self, mdstate, parmed_structure, opt):
@@ -1259,6 +1262,18 @@ class GromacsSimulations(MDSimulations):
                     archive.add(
                         self.opt["mdp_fn"], arcname=os.path.basename(self.opt["mdp_fn"])
                     )
+
+                # Check trajectory file
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    try:
+                        with tarfile.open(tar_fn) as tar:
+                            tar.extractall(path=tmp_dir)
+
+                        tmp_trj_fn = os.path.join(tmp_dir, os.path.basename(self.opt["grm_trj_fn"]))
+                        tmp_top_fn = os.path.join(tmp_dir, os.path.basename(self.opt["grm_pdb_fn"]))
+                        mdtraj.load(tmp_trj_fn, top=tmp_top_fn)
+                    except:
+                        raise ValueError("Trajectory Check Error")
 
                 # with tarfile.open(tar_fn, mode='w') as archive:
                 #     archive.add(self.opt['out_directory'], arcname=os.path.basename(self.opt['out_directory']))
