@@ -238,10 +238,11 @@ def upload_file(filename, orion_ui_name="OrionFile"):
             file_upload = File.upload(session, orion_ui_name, filename)
 
             resource = session.get_resource(File, file_upload.id)
-            tmp_fn = os.path.join(os.path.basename(filename), "tmp_download_{}".format(try_count))
+            tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
             resource.download_to_file(tmp_fn)
 
             if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                print("....Done uploading the file {}".format(filename))
                 break
 
             os.remove(tmp_fn)
@@ -294,12 +295,13 @@ def download_file(file_id, filename, md5_chks=None):
 
             for try_count in range(0, max_attempt):
 
-                print("....Attempt {} to Downloading the file {}".format(try_count + 1, filename))
+                print("....Attempt {} to download the file {}".format(try_count + 1, filename))
 
                 resource = session.get_resource(File, file_id)
                 resource.download_to_file(filename)
 
                 if md5_chk_sum(filename) == md5_chks:
+                    print("....Done downloading the file {}".format(filename))
                     break
 
         else:
