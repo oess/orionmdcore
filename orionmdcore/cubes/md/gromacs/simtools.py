@@ -1,17 +1,18 @@
-# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2022 Cadence Design Systems, Inc. (Cadence) 
+# All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
-# provided to current licensees or subscribers of OpenEye products or
+# provided to current licensees or subscribers of Cadence products or
 # SaaS offerings (each a "Customer").
 # Customer is hereby permitted to use, copy, and modify the Sample Code,
-# subject to these terms. OpenEye claims no rights to Customer's
+# subject to these terms. Cadence claims no rights to Customer's
 # modifications. Modification of Sample Code is at Customer's sole and
 # exclusive risk. Sample Code may require Customer to have a then
-# current license or subscription to the applicable OpenEye offering.
+# current license or subscription to the applicable Cadence offering.
 # THE SAMPLE CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED.  OPENEYE DISCLAIMS ALL WARRANTIES, INCLUDING, BUT
 # NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
@@ -69,6 +70,9 @@ from parmed.gromacs.gromacstop import _Defaults
 
 import time
 
+import tempfile
+
+import mdtraj
 
 class GromacsSimulations(MDSimulations):
     def __init__(self, mdstate, parmed_structure, opt):
@@ -1258,6 +1262,18 @@ class GromacsSimulations(MDSimulations):
                     archive.add(
                         self.opt["mdp_fn"], arcname=os.path.basename(self.opt["mdp_fn"])
                     )
+
+                # Check trajectory file
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    try:
+                        with tarfile.open(tar_fn) as tar:
+                            tar.extractall(path=tmp_dir)
+
+                        tmp_trj_fn = os.path.join(tmp_dir, os.path.basename(self.opt["grm_trj_fn"]))
+                        tmp_top_fn = os.path.join(tmp_dir, os.path.basename(self.opt["grm_pdb_fn"]))
+                        mdtraj.load(tmp_trj_fn, top=tmp_top_fn)
+                    except:
+                        raise ValueError("Trajectory Check Error")
 
                 # with tarfile.open(tar_fn, mode='w') as archive:
                 #     archive.add(self.opt['out_directory'], arcname=os.path.basename(self.opt['out_directory']))

@@ -1,17 +1,18 @@
-# (C) 2021 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2022 Cadence Design Systems, Inc. (Cadence) 
+# All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
-# provided to current licensees or subscribers of OpenEye products or
+# provided to current licensees or subscribers of Cadence products or
 # SaaS offerings (each a "Customer").
 # Customer is hereby permitted to use, copy, and modify the Sample Code,
-# subject to these terms. OpenEye claims no rights to Customer's
+# subject to these terms. Cadence claims no rights to Customer's
 # modifications. Modification of Sample Code is at Customer's sole and
 # exclusive risk. Sample Code may require Customer to have a then
-# current license or subscription to the applicable OpenEye offering.
+# current license or subscription to the applicable Cadence offering.
 # THE SAMPLE CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED.  OPENEYE DISCLAIMS ALL WARRANTIES, INCLUDING, BUT
 # NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
@@ -56,6 +57,8 @@ from orionmdcore.standards import CollectionsNames
 
 from orionmdcore.standards.utils import (check_filename,
                                          orion_session)
+
+from orionmdcore.standards.utils import md5_chk_sum
 
 from functools import wraps
 
@@ -1143,17 +1146,22 @@ class MDDataRecord(object):
         if not stage.has_field(Fields.trajectory):
             return None
 
+        trj_field = stage.get_field(Fields.trajectory.get_name())
+        trj_meta = trj_field.get_meta()
+        md_engine = trj_meta.get_attribute(Meta.Annotation.Description)
+
+        md5_chks = None
+        if trj_meta.has_attribute(Meta.Annotation.Comments):
+            md5_chks = trj_meta.get_attribute(Meta.Annotation.Comments)
+
         trj_tar = utils.download_file(
             stage.get_value(Fields.trajectory),
             os.path.join(traj_dir, MDFileNames.trajectory),
+            md5_chks=md5_chks
         )
 
         with tarfile.open(trj_tar) as tar:
             tar.extractall(path=traj_dir)
-
-        trj_field = stage.get_field(Fields.trajectory.get_name())
-        trj_meta = trj_field.get_meta()
-        md_engine = trj_meta.get_attribute(Meta.Annotation.Description)
 
         if md_engine == MDEngines.OpenMM and not stg_type == MDStageTypes.FEC:
             traj_fn = glob.glob(os.path.join(traj_dir, "*.h5"))[0]
@@ -1255,6 +1263,7 @@ class MDDataRecord(object):
 
             trj_meta = OEFieldMeta()
             trj_meta.set_attribute(Meta.Annotation.Description, trajectory_engine)
+            trj_meta.set_attribute(Meta.Annotation.Comments, md5_chk_sum(trajectory_fn))
             trj_field = OEField(
                 Fields.trajectory.get_name(),
                 Fields.trajectory.get_type(),
@@ -1291,6 +1300,7 @@ class MDDataRecord(object):
                 lft = utils.upload_file(
                     trajectory_fn, orion_ui_name=trajectory_orion_ui
                 )
+
                 record.set_value(trj_field, lft)
 
             stages = self.get_stages

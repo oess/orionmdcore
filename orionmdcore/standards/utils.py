@@ -1,17 +1,18 @@
-# (C) 2022 OpenEye Scientific Software Inc. All rights reserved.
+# (C) 2022 Cadence Design Systems, Inc. (Cadence)
+# All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
-# provided to current licensees or subscribers of OpenEye products or
+# provided to current licensees or subscribers of Cadence products or
 # SaaS offerings (each a "Customer").
 # Customer is hereby permitted to use, copy, and modify the Sample Code,
-# subject to these terms. OpenEye claims no rights to Customer's
+# subject to these terms. Cadence claims no rights to Customer's
 # modifications. Modification of Sample Code is at Customer's sole and
 # exclusive risk. Sample Code may require Customer to have a then
-# current license or subscription to the applicable OpenEye offering.
+# current license or subscription to the applicable Cadence offering.
 # THE SAMPLE CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED.  OPENEYE DISCLAIMS ALL WARRANTIES, INCLUDING, BUT
 # NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall OpenEye be
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
 
@@ -50,6 +51,8 @@ from orionmdcore.standards.pmd_json import (parmed_to_json,
                                             json_to_parmed)
 
 import logging
+
+import hashlib
 
 
 old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
@@ -328,6 +331,17 @@ def check_filename(filename):
         return filename
 
 
+def md5_chk_sum(fn):
+    with open(fn, "rb") as f:
+        file_hash = hashlib.md5()
+        chunk = f.read(8192)
+        while chunk:
+            file_hash.update(chunk)
+            chunk = f.read(8192)
+
+    return file_hash.hexdigest()
+
+
 @orion_session
 def upload_file(filename, session=None, orion_ui_name="OrionFile"):
 
@@ -341,7 +355,26 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile"):
         if session is None:
             raise ValueError("Session cannot be None")
 
-        file_upload = File.upload(session, orion_ui_name, filename)
+        max_attempt = 5
+
+        for try_count in range(0, max_attempt):
+
+            print("....Attempt {} to upload the file {}".format(try_count + 1, filename))
+
+            file_upload = File.upload(session, orion_ui_name, filename)
+
+            resource = session.get_resource(File, file_upload.id)
+            tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
+            resource.download_to_file(tmp_fn)
+
+            if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                print("....Done uploading the file {}".format(filename))
+                break
+
+            os.remove(tmp_fn)
+
+        if try_count == max_attempt - 1:
+            raise ValueError("Failed to Upload the file: {}".format(filename))
 
         session.tag_resource(file_upload, "Trajectory")
 
@@ -362,16 +395,31 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile"):
 
 
 @orion_session
-def download_file(file_id, filename, session=None):
+def download_file(file_id, filename,  session=None, md5_chks=None):
 
     if in_orion():
 
         if session is None:
             raise ValueError("Session cannot be None")
 
-        resource = session.get_resource(File, file_id)
+        if md5_chk_sum is not None:
 
-        resource.download_to_file(filename)
+            max_attempt = 5
+
+            for try_count in range(0, max_attempt):
+
+                print("....Attempt {} to download the file {}".format(try_count + 1, filename))
+
+                resource = session.get_resource(File, file_id)
+                resource.download_to_file(filename)
+
+                if md5_chk_sum(filename) == md5_chks:
+                    print("....Done downloading the file {}".format(filename))
+                    break
+
+        else:
+            resource = session.get_resource(File, file_id)
+            resource.download_to_file(filename)
 
         fn_local = filename
 
@@ -379,7 +427,7 @@ def download_file(file_id, filename, session=None):
         fn_local = file_id
 
     if not os.path.isfile(fn_local):
-        raise IOError("The trajectory file has not been found: {}".format(fn_local))
+        raise IOError("The file has not been found: {}".format(fn_local))
 
     return fn_local
 
