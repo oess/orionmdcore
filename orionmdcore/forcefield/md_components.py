@@ -494,7 +494,7 @@ class MDComponents:
             if mol is not None and mol.IsValid():
 
                 # TODO DEBUGGUNG
-                if comp_name == 'protein':
+                if comp_name == 'protein' or 'nucleic' or 'other_nucleic':
                     oechem.OEPDBOrderAtoms(mol, False)
                 ########
 
