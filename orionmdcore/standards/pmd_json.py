@@ -153,7 +153,9 @@ def parmed_to_json(pmd_structure):
     return json_str
 
 
-def json_to_parmed(pmd_dic):
+def json_to_parmed(json_str):
+
+    pmd_dic = json.loads(json_str)
 
     for attr in pmd_dic:
         if attr == 'residues':

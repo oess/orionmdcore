@@ -70,6 +70,9 @@ import logging
 
 from orionmdcore.standards.utils import old_api_warning_msg
 
+from orionmdcore.standards.pmd_json import (parmed_to_json,
+                                            json_to_parmed)
+
 
 def mdstages(f):
     @wraps(f)
@@ -1457,15 +1460,27 @@ class MDDataRecord(object):
 
             with TemporaryDirectory() as output_directory:
 
-                parmed_fn = os.path.join(output_directory, "parmed.pickle")
+                try:
+                    parmed_fn = os.path.join(output_directory, "parmed.json")
 
-                shard.download_to_file(parmed_fn)
+                    shard.download_to_file(parmed_fn)
 
-                with open(parmed_fn, "rb") as f:
-                    parm_dic = pickle.load(f)
+                    with open(parmed_fn, 'r') as f:
+                        pmd_json = json.load(f)
 
-                pmd_structure = parmed.structure.Structure()
-                pmd_structure.__setstate__(parm_dic)
+                    pmd_structure = json_to_parmed(pmd_json)
+                except:
+                    logging.warning(old_api_warning_msg)
+
+                    parmed_fn = os.path.join(output_directory, "parmed.pickle")
+
+                    shard.download_to_file(parmed_fn)
+
+                    with open(parmed_fn, "rb") as f:
+                        parm_dic = pickle.load(f)
+
+                    pmd_structure = parmed.structure.Structure()
+                    pmd_structure.__setstate__(parm_dic)
 
             shard.close()
 
@@ -1482,7 +1497,7 @@ class MDDataRecord(object):
         return pmd_structure
 
     @orion_session
-    def set_parmed(self, pmd, sync_stage_name=None, shard_name="", session=None):
+    def set_parmed(self, pmd, sync_stage_name=None, shard_name="Parmed", session=None):
         """
         This method sets the Parmed object. Return True if the setting was successful.
         If sync_stage_name is not None the parmed structure positions, velocities and
@@ -1532,10 +1547,12 @@ class MDDataRecord(object):
 
             with TemporaryDirectory() as output_directory:
 
-                parmed_fn = os.path.join(output_directory, "parmed.pickle")
+                parmed_fn = os.path.join(output_directory, "parmed.json")
 
-                with open(parmed_fn, "wb") as f:
-                    pickle.dump(pmd.__getstate__(), f)
+                pmd_json = parmed_to_json(pmd)
+
+                with open(parmed_fn, "w") as f:
+                    json.dump(pmd_json, f)
 
                 if self.collection_id is None:
                     raise ValueError("The Collection ID is None")
@@ -2055,12 +2072,15 @@ class MDDataRecord(object):
         return True
 
     @property
-    def get_md_components(self):
+    @orion_session
+    def get_md_components(self, session=None):
         """
         This method returns the MD Components if present on the record
 
         Parameters
         -----------
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
@@ -2071,9 +2091,40 @@ class MDDataRecord(object):
         if not self.rec.has_field(Fields.md_components):
             raise ValueError("The MD Components Field has not been found on the record")
 
-        return self.rec.get_value(Fields.md_components)
+        md_components = self.rec.get_value(Fields.md_components)
 
-    def set_md_components(self, md_components):
+        if in_orion():
+
+            if session is None:
+                raise ValueError("Session cannot be None")
+
+            if self.collection_id is None:
+                raise ValueError("The Collection ID is None")
+
+            collection = session.get_resource(ShardCollection, self.collection_id)
+
+            shard = session.get_resource(Shard(collection=collection), md_components)
+
+            with TemporaryDirectory() as output_directory:
+
+                try:
+                    md_comp_fn = os.path.join(output_directory, "md_components.json")
+
+                    shard.download_to_file(md_comp_fn)
+
+                    with open(md_comp_fn, 'r') as f:
+                        md_comp_dic = json.load(f)
+
+                    md_components = MDComponents()
+                    md_components.__setstate_new_api__(md_comp_dic)
+
+                except:
+                    md_components = self.rec.get_value(Fields.md_components)
+
+        return md_components
+
+    @orion_session
+    def set_md_components(self, md_components, shard_name="MDComponents", session=None):
         """
         This method sets the MD Components on the record
 
@@ -2081,11 +2132,15 @@ class MDDataRecord(object):
         ----------
         md_components: MDComponents
             The MD Components instance
+        shard_name: String
+            In Orion tha shard will be named by using the shard_name
+        session: Orion Session
+            An Orion Session obj
 
         Returns
         -------
         boolean : Bool
-            True if the the md components field was successfully set on the record
+            True if the md components field was successfully set on the record
         """
 
         if not isinstance(md_components, MDComponents):
@@ -2095,7 +2150,41 @@ class MDDataRecord(object):
                 )
             )
 
-        self.rec.set_value(Fields.md_components, md_components)
+        if in_orion():
+            if session is None:
+                raise ValueError("Session cannot be None")
+
+            with TemporaryDirectory() as output_directory:
+
+                md_comp_fn = os.path.join(output_directory, "md_components.json")
+
+                with open(md_comp_fn, "w") as f:
+                    json.dump(md_components.__getstate__(), f)
+
+                if self.collection_id is None:
+                    raise ValueError("The Collection ID is None")
+
+                if self.rec.has_field(Fields.md_components):
+                    fid = self.rec.get_value(Fields.md_components)
+                    utils.delete_data(fid, collection_id=self.collection_id)
+                    collection = session.get_resource(ShardCollection, self.collection_id)
+
+                if collection.state == "open":
+                    pass
+                elif collection.state == "ready":
+                    collection.open()
+                else:
+                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
+
+                shard = Shard.create(collection, name=shard_name)
+
+                shard.upload_file(md_comp_fn)
+
+                shard.close()
+
+                self.rec.set_value(Fields.pmd_structure, shard.id)
+        else:
+            self.rec.set_value(Fields.md_components, md_components)
 
         return True
 

@@ -142,6 +142,7 @@ class Fields:
         pmd_structure = OEField("Structure_Parmed_OPLMD", Types.Int, meta=_metaHidden)
         trajectory = OEField("Trajectory_OPLMD", Types.Int, meta=_metaHidden)
         mddata = OEField("MDData_OPLMD", Types.Int, meta=_metaHidden)
+        md_components = OEField("MDComponents_OPLMD", Types.Int, meta=_metaHidden)
 
         protein_traj_confs = OEField("ProtTraj_OPLMD", Types.Int, meta=_metaHidden)
         ligand_traj_confs = OEField("LigandTraj_OPLMD", Types.Int, meta=_metaHidden)
@@ -152,6 +153,7 @@ class Fields:
         pmd_structure = OEField("Structure_Parmed_OPLMD", ParmedData, meta=_metaHidden)
         trajectory = OEField("Trajectory_OPLMD", Types.String, meta=_metaHidden)
         mddata = OEField("MDData_OPLMD", Types.String, meta=_metaHidden)
+        md_components = OEField("MDComponents_OPLMD", MDComponentData, meta=_metaHidden)
 
         protein_traj_confs = OEField("ProtTraj_OPLMD", Types.Chem.Mol, meta=_metaHidden)
         ligand_traj_confs = OEField("LigandTraj_OPLMD", Types.Chem.Mol, meta=_metaHidden)
@@ -186,7 +188,7 @@ class Fields:
     design_unit_from_spruce = OEField("designunit", Types.Chem.DesignUnit)
 
     # MD Components
-    md_components = OEField("MDComponents_OPLMD", MDComponentData)
+    # md_components = OEField("MDComponents_OPLMD", MDComponentData)
 
     # Collection is used to offload data from the record which must be < 100Mb
     # collection = OEField("Collection_ID_OPLMD", Types.Int, meta=_metaHidden)

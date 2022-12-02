@@ -189,12 +189,7 @@ class ParmedData(CustomHandler):
     def deserialize(json_str_bytes):
         try:
             json_str = json_str_bytes.decode()
-            pmd_dic = json.loads(json_str)
-
-            new_structure = json_to_parmed(pmd_dic)
-
-            # new_structure = parmed.structure.Structure()
-            # new_structure.__setstate__(pmd_dic)
+            new_structure = json_to_parmed(json_str)
             return new_structure
         except:
             logging.warning(old_api_warning_msg)

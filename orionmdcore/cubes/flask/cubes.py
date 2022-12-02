@@ -57,6 +57,8 @@ from orionmdcore.standards import Fields
 
 from orionmdcore.forcefield import MDComponents
 
+from orionmdcore.mdrecord import MDDataRecord
+
 from orionmdcore.standards import CollectionsNames
 
 from orionmdcore.cubes.flask.utils import (api_convert_4,
@@ -464,7 +466,8 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
                 # raise ValueError("Missing the MD Components Field")
                 raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
-            md_components = record.get_value(Fields.md_components)
+            md_rec = MDDataRecord(record)
+            md_components = md_rec.get_md_components
 
             solute, map_comp = md_components.create_flask
 
@@ -572,7 +575,10 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
             md_components.set_box_vectors(box_vec)
 
             flask, map_comp = md_components.create_flask
-            record.set_value(Fields.md_components, md_components)
+
+            md_rec = MDDataRecord(record)
+            md_rec.set_md_components(md_components)
+
             record.set_value(Fields.flask, flask)
             record.set_value(Fields.title, solute_title)
 
@@ -759,7 +765,9 @@ class MDComponentCube(RecordPortsMixin, ComputeCube):
 
             # self.opt['Logger'].info(md_components.get_info)
 
-            record.set_value(Fields.md_components, md_components)
+            md_rec = MDDataRecord(record)
+            md_rec.set_md_components(md_components)
+
             record.set_value(Fields.title, name)
             record.set_value(Fields.flaskid, self.count)
 
@@ -829,7 +837,8 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
                 # raise ValueError("MD Components Field is missing")
                 raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
-            md_components = record.get_value(Fields.md_components)
+            md_rec = MDComponents(record)
+            md_components = md_rec.get_md_components
 
             if not record.has_value(Fields.flaskid):
                 record.set_value(Fields.flaskid, self.count)
