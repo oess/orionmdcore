@@ -54,6 +54,8 @@ import logging
 
 import hashlib
 
+import gzip
+
 
 old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
 
@@ -183,12 +185,14 @@ class ParmedData(CustomHandler):
     @staticmethod
     def serialize(structure):
         json_str = parmed_to_json(structure)
-        return json_str.encode(encoding='utf8')
+        # return json_str.encode(encoding='utf8')
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
     def deserialize(json_str_bytes):
         try:
-            json_str = json_str_bytes.decode()
+            # json_str = json_str_bytes.decode()
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
             new_structure = json_to_parmed(json_str)
             return new_structure
         except:
@@ -215,12 +219,14 @@ class MDStateData(CustomHandler):
     def serialize(mdstate):
         mdstate_dic = mdstate.__getstate__()
         json_str = json.dumps(mdstate_dic)
-        return json_str.encode(encoding='utf8')
+        # return json_str.encode(encoding='utf8')
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
     def deserialize(json_str_bytes):
         try:
-            json_str = json_str_bytes.decode()
+            # json_str = json_str_bytes.decode()
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
             mdstate_dic = json.loads(json_str)
             new_md_state = MDState()
             new_md_state.__setstate_new_api__(mdstate_dic)
@@ -271,12 +277,16 @@ class MDComponentData(CustomHandler):
     def serialize(components):
         comp_dic = components.__getstate__()
         json_str = json.dumps(comp_dic)
-        return json_str.encode(encoding='utf8')
+        # return json_str.encode(encoding='utf8')
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
     def deserialize(json_str_bytes):
         try:
-            json_str = json_str_bytes.decode()
+            # comp_dic = json.loads(gzip.decompress(a).decode(encoding='utf8'))
+            # json_str = json_str_bytes.decode()
+
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
             comp_dic = json.loads(json_str)
             new_md_components = MDComponents()
             new_md_components.__setstate_new_api__(comp_dic)

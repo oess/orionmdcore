@@ -73,6 +73,7 @@ from orionmdcore.standards.utils import old_api_warning_msg
 from orionmdcore.standards.pmd_json import (parmed_to_json,
                                             json_to_parmed)
 
+import gzip
 
 def mdstages(f):
     @wraps(f)
@@ -1020,8 +1021,11 @@ class MDDataRecord(object):
         try:
             state_fn = os.path.join(dir_stage, MDFileNames.state)
 
-            with open(state_fn, "r") as f:
+            with gzip.open(state_fn, 'rt', encoding='utf8') as f:
                 state_dic = json.load(f)
+
+            # with open(state_fn, "r") as f:
+            #     state_dic = json.load(f)
 
             state = MDState()
             state.__setstate_new_api__(state_dic)
@@ -1032,39 +1036,6 @@ class MDDataRecord(object):
                 state = pickle.load(f)
 
         return state
-
-    @stage_system
-    @mdstages
-    def get_stage_topology(self, stg_name="last"):
-        """
-        This method returns the MD topology of the selected stage name. If no stage name is passed
-        the last stage is selected.
-
-        Parameters
-        -----------
-        stg_name: String
-            The MD stage name
-
-        Returns
-        -------
-        topology : OEMol
-            The topology of the selected MD stage
-        """
-
-        stage = self.get_stage_by_name(stg_name)
-
-        stage_name = stage.get_value(Fields.stage_name)
-
-        dir_stage = self.processed[stage_name]
-
-        topology_fn = os.path.join(dir_stage, MDFileNames.topology)
-
-        topology = oechem.OEMol()
-
-        with oechem.oemolistream(topology_fn) as ifs:
-            oechem.OEReadMolecule(ifs, topology)
-
-        return topology
 
     @stage_system
     @mdstages
@@ -1080,8 +1051,11 @@ class MDDataRecord(object):
 
             state_fn = os.path.join(output_directory, MDFileNames.state)
 
-            with open(state_fn, "w") as f:
+            with gzip.open(state_fn, 'wt', encoding='utf8') as f:
                 json.dump(mdstate.__getstate__(), f)
+
+            # with open(state_fn, "w") as f:
+            #     json.dump(mdstate.__getstate__(), f)
 
             stage = self.get_stage_by_name(stg_name)
 
@@ -1119,6 +1093,39 @@ class MDDataRecord(object):
             self.rec.set_value(Fields.md_stages, stages)
 
         return True
+
+    @stage_system
+    @mdstages
+    def get_stage_topology(self, stg_name="last"):
+        """
+        This method returns the MD topology of the selected stage name. If no stage name is passed
+        the last stage is selected.
+
+        Parameters
+        -----------
+        stg_name: String
+            The MD stage name
+
+        Returns
+        -------
+        topology : OEMol
+            The topology of the selected MD stage
+        """
+
+        stage = self.get_stage_by_name(stg_name)
+
+        stage_name = stage.get_value(Fields.stage_name)
+
+        dir_stage = self.processed[stage_name]
+
+        topology_fn = os.path.join(dir_stage, MDFileNames.topology)
+
+        topology = oechem.OEMol()
+
+        with oechem.oemolistream(topology_fn) as ifs:
+            oechem.OEReadMolecule(ifs, topology)
+
+        return topology
 
     @stage_system
     @mdstages
@@ -1250,8 +1257,11 @@ class MDDataRecord(object):
 
             state_fn = os.path.join(output_directory, MDFileNames.state)
 
-            with open(state_fn, "w") as f:
+            with gzip.open(state_fn, 'wt', encoding='utf8') as f:
                 json.dump(mdstate.__getstate__(), f)
+
+            # with open(state_fn, "w") as f:
+            #     json.dump(mdstate.__getstate__(), f)
 
             with tarfile.open(data_fn, mode="w") as archive:
                 archive.add(top_fn, arcname=os.path.basename(top_fn))
@@ -1465,8 +1475,11 @@ class MDDataRecord(object):
 
                     shard.download_to_file(parmed_fn)
 
-                    with open(parmed_fn, 'r') as f:
+                    with gzip.open(parmed_fn, 'rt', encoding='utf8') as f:
                         pmd_json = json.load(f)
+
+                    # with open(parmed_fn, 'r') as f:
+                    #     pmd_json = json.load(f)
 
                     pmd_structure = json_to_parmed(pmd_json)
                 except:
@@ -1551,8 +1564,11 @@ class MDDataRecord(object):
 
                 pmd_json = parmed_to_json(pmd)
 
-                with open(parmed_fn, "w") as f:
+                with gzip.open(parmed_fn, 'wt', encoding='utf8') as f:
                     json.dump(pmd_json, f)
+
+                # with open(parmed_fn, "w") as f:
+                #     json.dump(pmd_json, f)
 
                 if self.collection_id is None:
                     raise ValueError("The Collection ID is None")
@@ -2072,15 +2088,12 @@ class MDDataRecord(object):
         return True
 
     @property
-    @orion_session
-    def get_md_components(self, session=None):
+    def get_md_components(self):
         """
         This method returns the MD Components if present on the record
 
         Parameters
         -----------
-        session: Orion Session
-            An Orion Session obj
 
         Returns
         -------
@@ -2091,40 +2104,9 @@ class MDDataRecord(object):
         if not self.rec.has_field(Fields.md_components):
             raise ValueError("The MD Components Field has not been found on the record")
 
-        md_components = self.rec.get_value(Fields.md_components)
+        return self.rec.get_value(Fields.md_components)
 
-        if in_orion():
-
-            if session is None:
-                raise ValueError("Session cannot be None")
-
-            if self.collection_id is None:
-                raise ValueError("The Collection ID is None")
-
-            collection = session.get_resource(ShardCollection, self.collection_id)
-
-            shard = session.get_resource(Shard(collection=collection), md_components)
-
-            with TemporaryDirectory() as output_directory:
-
-                try:
-                    md_comp_fn = os.path.join(output_directory, "md_components.json")
-
-                    shard.download_to_file(md_comp_fn)
-
-                    with open(md_comp_fn, 'r') as f:
-                        md_comp_dic = json.load(f)
-
-                    md_components = MDComponents()
-                    md_components.__setstate_new_api__(md_comp_dic)
-
-                except:
-                    md_components = self.rec.get_value(Fields.md_components)
-
-        return md_components
-
-    @orion_session
-    def set_md_components(self, md_components, shard_name="MDComponents", session=None):
+    def set_md_components(self, md_components):
         """
         This method sets the MD Components on the record
 
@@ -2132,17 +2114,12 @@ class MDDataRecord(object):
         ----------
         md_components: MDComponents
             The MD Components instance
-        shard_name: String
-            In Orion tha shard will be named by using the shard_name
-        session: Orion Session
-            An Orion Session obj
 
         Returns
         -------
         boolean : Bool
             True if the md components field was successfully set on the record
         """
-
         if not isinstance(md_components, MDComponents):
             raise ValueError(
                 "The passed components is not an object of type MDComponents: {}".format(
@@ -2150,41 +2127,7 @@ class MDDataRecord(object):
                 )
             )
 
-        if in_orion():
-            if session is None:
-                raise ValueError("Session cannot be None")
-
-            with TemporaryDirectory() as output_directory:
-
-                md_comp_fn = os.path.join(output_directory, "md_components.json")
-
-                with open(md_comp_fn, "w") as f:
-                    json.dump(md_components.__getstate__(), f)
-
-                if self.collection_id is None:
-                    raise ValueError("The Collection ID is None")
-
-                if self.rec.has_field(Fields.md_components):
-                    fid = self.rec.get_value(Fields.md_components)
-                    utils.delete_data(fid, collection_id=self.collection_id)
-                    collection = session.get_resource(ShardCollection, self.collection_id)
-
-                if collection.state == "open":
-                    pass
-                elif collection.state == "ready":
-                    collection.open()
-                else:
-                    raise ValueError("Collection is not in an Open State: {}".format(collection.state))
-
-                shard = Shard.create(collection, name=shard_name)
-
-                shard.upload_file(md_comp_fn)
-
-                shard.close()
-
-                self.rec.set_value(Fields.pmd_structure, shard.id)
-        else:
-            self.rec.set_value(Fields.md_components, md_components)
+        self.rec.set_value(Fields.md_components, md_components)
 
         return True
 
