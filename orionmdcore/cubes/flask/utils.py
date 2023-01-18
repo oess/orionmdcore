@@ -22,6 +22,7 @@ from orionmdcore.mdengine.utils import MDState
 from orionmdcore.forcefield import MDComponents
 from orionmdcore.standards import Fields
 from openeye import oechem
+import tempfile
 
 
 def get_human_readable(size, precision=2):
@@ -270,7 +271,6 @@ def api_converter_5(rec_in, rec_out):
     for fd in rec_in.get_fields(include_meta=True):
 
         print(">>>>>>>>>>>", fd.get_name())
-        nm = fd.get_name()
 
         if fd.get_name() == Fields.md_components.get_name():
             md_comp = mdrec_in.get_md_components
@@ -293,7 +293,12 @@ def api_converter_5(rec_in, rec_out):
                 pmd = mdrec_in.get_parmed(sync_stage_name=stg_name)
                 mdstate = MDState(pmd)
 
-                data_fn = 'x' + stage_rec.get_value(Fields.mddata)
+                md_data = stage_rec.get_value(Fields.mddata)
+
+                if isinstance(md_data, str):
+                    data_fn = 'x' + stage_rec.get_value(Fields.mddata)
+                else:
+                    data_fn = 'xtmp_' + next(tempfile._get_candidate_names())
 
                 logs = mdrec_in.get_stage_logs(stg_name=stg_name)
                 info = mdrec_in.get_stage_info(stg_name=stg_name)

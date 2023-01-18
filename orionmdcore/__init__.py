@@ -18,7 +18,7 @@
 
 __author__ = "OpenEye, Cadence Molecular Sciences"
 __email__ = "support@eyesopen.com"
-__version__ = '2.0.0a14'
+__version__ = '2.0.0a15'
 
 __installation__error__ = """
 The ORIONMDCORE package requires the manual installation of the
