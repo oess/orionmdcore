@@ -30,7 +30,7 @@ requirements:
     - pyparsing==2.4.7
     - python==3.7.10
     - pytest==3.10.1
-    - setuptools
+    - setuptools==65.6.3
     - tqdm==4.57.0
   run:
     - invoke==1.2.0
