@@ -1029,12 +1029,13 @@ class MDDataRecord(object):
 
             state = MDState()
             state.__setstate_new_api__(state_dic)
+            state._new_api_in_use = True
         except:
             state_fn = os.path.join(dir_stage, "state.pickle")
             logging.warning(old_api_warning_msg)
             with open(state_fn, "rb") as f:
                 state = pickle.load(f)
-
+            state._new_api_in_use = False
         return state
 
     @stage_system
@@ -1451,11 +1452,11 @@ class MDDataRecord(object):
             The Parmed Structure object
         """
 
+
         if not self.rec.has_field(Fields.pmd_structure):
             raise ValueError("The Parmed reference is not present on the record")
 
         pmd_structure = self.rec.get_value(Fields.pmd_structure)
-
         if in_orion():
 
             if session is None:
@@ -1480,8 +1481,8 @@ class MDDataRecord(object):
 
                     # with open(parmed_fn, 'r') as f:
                     #     pmd_json = json.load(f)
-
                     pmd_structure = json_to_parmed(pmd_json)
+                    pmd_structure._new_api_in_use = True
                 except:
                     logging.warning(old_api_warning_msg)
 
@@ -1494,6 +1495,7 @@ class MDDataRecord(object):
 
                     pmd_structure = parmed.structure.Structure()
                     pmd_structure.__setstate__(parm_dic)
+                    pmd_structure._new_api_in_use = False
 
             shard.close()
 

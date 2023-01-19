@@ -58,6 +58,7 @@ import gzip
 
 
 old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
+old_api_error_msg = "Old API in use. Please use the MD API Conversion Cube or Floe"
 
 
 def orion_session(f):
@@ -194,11 +195,13 @@ class ParmedData(CustomHandler):
             # json_str = json_str_bytes.decode()
             json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
             new_structure = json_to_parmed(json_str)
+            new_structure._new_api_in_use = True
             return new_structure
         except:
             logging.warning(old_api_warning_msg)
             new_structure = parmed.structure.Structure()
             new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+            new_structure._new_api_in_use = False
             return new_structure
 
 
@@ -230,10 +233,12 @@ class MDStateData(CustomHandler):
             mdstate_dic = json.loads(json_str)
             new_md_state = MDState()
             new_md_state.__setstate_new_api__(mdstate_dic)
+            new_md_state._new_api_in_use = True
             return new_md_state
         except:
             logging.warning(old_api_warning_msg)
             new_state = pickle.loads(bytes(json_str_bytes))
+            new_state._new_api_in_use = False
             return new_state
 
 # class MDComponentData(CustomHandler):
@@ -290,10 +295,12 @@ class MDComponentData(CustomHandler):
             comp_dic = json.loads(json_str)
             new_md_components = MDComponents()
             new_md_components.__setstate_new_api__(comp_dic)
+            new_md_components._new_api_in_use = True
             return new_md_components
         except:
             logging.warning(old_api_warning_msg)
             new_components = pickle.loads(bytes(json_str_bytes))
+            new_components._new_api_in_use = False
             return new_components
 
 

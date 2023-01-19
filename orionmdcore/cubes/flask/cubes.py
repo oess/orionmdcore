@@ -64,6 +64,8 @@ from orionmdcore.standards import CollectionsNames
 from orionmdcore.cubes.flask.utils import (api_convert_4,
                                            api_converter_5)
 
+from orionmdcore.standards.utils import old_api_error_msg
+
 
 class IDSettingCube(RecordPortsMixin, ComputeCube):
     title = "Simulation Flask ID Setting"
@@ -837,8 +839,11 @@ class BoundUnboundSwitchCube(RecordPortsMixin, ComputeCube):
                 # raise ValueError("MD Components Field is missing")
                 raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
-            md_rec = MDComponents(record)
+            md_rec = MDDataRecord(record)
             md_components = md_rec.get_md_components
+
+            if not md_components._new_api_in_use:
+                raise ValueError(old_api_error_msg)
 
             if not record.has_value(Fields.flaskid):
                 record.set_value(Fields.flaskid, self.count)

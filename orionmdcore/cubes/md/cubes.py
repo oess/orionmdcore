@@ -61,6 +61,9 @@ from orionmdcore.cubes.md.utils import str_schedule, schedule_cycles
 
 from snowball import GPU_INSTANCE_TYPES_SUPPORT_FOR_MD
 
+# TODO REMOVE THIS
+from orionmdcore.standards.utils import old_api_error_msg
+
 
 class MDMinimizeCube(RecordPortsMixin, ComputeCube):
     title = "Minimization Cube"
@@ -267,6 +270,9 @@ class MDMinimizeCube(RecordPortsMixin, ComputeCube):
 
             flask = mdrecord.get_stage_topology()
             mdstate = mdrecord.get_stage_state()
+
+            if not mdstate._new_api_in_use:
+                raise ValueError(old_api_error_msg)
 
             if opt["restraint_to_reference"]:
                 opt["reference_state"] = mdrecord.get_stage_state(
@@ -575,6 +581,9 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
             flask = mdrecord.get_stage_topology()
             mdstate = mdrecord.get_stage_state()
 
+            if not mdstate._new_api_in_use:
+                raise ValueError(old_api_error_msg)
+
             if opt["restraint_to_reference"]:
                 opt["reference_state"] = mdrecord.get_stage_state(
                     stg_name=MDStageNames.ForceField
@@ -625,7 +634,7 @@ class MDNvtCube(RecordPortsMixin, ComputeCube):
             else:  # Empty Trajectory
                 trajectory_fn = None
                 trajectory_engine = None
-                trajectory_orion_ui = opt["system_title"]+ "_"+ str(opt["system_id"])+ "-"+ opt["suffix"]+ ".tar.gz" # HJ
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"] + ".tar.gz" # HJ
 
             data_fn = opt["out_fn"] + ".tar.gz"
 
@@ -914,6 +923,9 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
             flask = mdrecord.get_stage_topology()
             mdstate = mdrecord.get_stage_state()
 
+            if not mdstate._new_api_in_use:
+                raise ValueError(old_api_error_msg)
+
             if opt["restraint_to_reference"]:
                 opt["reference_state"] = mdrecord.get_stage_state(
                     stg_name=MDStageNames.ForceField
@@ -964,7 +976,7 @@ class MDNptCube(RecordPortsMixin, ComputeCube):
             else:  # Empty Trajectory
                 trajectory_fn = None
                 trajectory_engine = None
-                trajectory_orion_ui = opt["system_title"]+ "_"+ str(opt["system_id"])+ "-"+ opt["suffix"]+ ".tar.gz" # HJ
+                trajectory_orion_ui = opt["system_title"] + "_" + str(opt["system_id"]) + "-" + opt["suffix"] + ".tar.gz" # HJ
 
             data_fn = opt["out_fn"] + ".tar.gz"
 
