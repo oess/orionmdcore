@@ -266,7 +266,9 @@ def api_converter_5(rec_in, rec_out):
     mdrec_in = MDDataRecord(rec_in)
 
     mdrec_out = MDDataRecord(rec_out)
-    mdrec_out.collection_id = mdrec_in.collection_id
+    # mdrec_out.collection_id = mdrec_in.collection_id
+    if hasattr(mdrec_in, 'collection_id'):
+        mdrec_out.collection_id = mdrec_in.collection_id
 
     for fd in rec_in.get_fields(include_meta=True):
 
@@ -280,7 +282,6 @@ def api_converter_5(rec_in, rec_out):
             mdrec_out.set_parmed(pmd)
 
         elif fd.get_name() == Fields.md_stages.get_name():
-
             for stg_name in mdrec_in.get_stages_names:
 
                 print(">>>>>>>>>>>", stg_name)
