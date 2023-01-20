@@ -75,6 +75,7 @@ from orionmdcore.standards.pmd_json import (parmed_to_json,
 
 import gzip
 
+
 def mdstages(f):
     @wraps(f)
     def wrapper(*pos, **named):
@@ -1451,7 +1452,6 @@ class MDDataRecord(object):
         parmed : Parmed Structure
             The Parmed Structure object
         """
-
 
         if not self.rec.has_field(Fields.pmd_structure):
             raise ValueError("The Parmed reference is not present on the record")

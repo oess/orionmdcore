@@ -24,6 +24,8 @@ from orionmdcore.standards import Fields
 from openeye import oechem
 import tempfile
 
+from orionclient.session import in_orion
+
 
 def get_human_readable(size, precision=2):
 
@@ -266,7 +268,7 @@ def api_converter_5(rec_in, rec_out):
     mdrec_in = MDDataRecord(rec_in)
 
     mdrec_out = MDDataRecord(rec_out)
-    # mdrec_out.collection_id = mdrec_in.collection_id
+
     if hasattr(mdrec_in, 'collection_id'):
         mdrec_out.collection_id = mdrec_in.collection_id
 
@@ -304,23 +306,25 @@ def api_converter_5(rec_in, rec_out):
                 logs = mdrec_in.get_stage_logs(stg_name=stg_name)
                 info = mdrec_in.get_stage_info(stg_name=stg_name)
 
-                trj_fn = stage_rec.get_value(Fields.trajectory)
-                md_engine = None
-                if trj_fn:
-                    trj_field = stage_rec.get_field(Fields.trajectory.get_name())
-                    trj_meta = trj_field.get_meta()
-                    md_engine = trj_meta.get_attribute(oechem.Meta.Annotation.Description)
+                if not mdrec_out.add_new_stage(stg_name,
+                                               stage_type,
+                                               topology,
+                                               mdstate,
+                                               data_fn,
+                                               append=True,
+                                               log=logs,
+                                               info=info):
+                    raise ValueError("Failed to Add stage: {}".format(stg_name))
 
-                mdrec_out.add_new_stage(stg_name,
-                                        stage_type,
-                                        topology,
-                                        mdstate,
-                                        data_fn,
-                                        append=True,
-                                        log=logs,
-                                        info=info,
-                                        trajectory_fn=trj_fn,
-                                        trajectory_engine=md_engine)
+                trj_fn = stage_rec.get_value(Fields.trajectory)
+
+                if trj_fn:
+                    trj_field = stage_rec.get_field(Fields.trajectory.get_name(), include_meta=True)
+                    edit_stage_rec = mdrec_out.get_stage_by_name(stg_name)
+                    edit_stage_rec.set_value(trj_field, trj_fn)
+                    stages = mdrec_out.get_stages
+                    stages[-1] = edit_stage_rec
+                    mdrec_out.get_record.set_value(Fields.md_stages, stages)
 
         elif fd.get_type() == oechem.Types.Record:
             rec_tmp_in = rec_in.get_value(fd)
