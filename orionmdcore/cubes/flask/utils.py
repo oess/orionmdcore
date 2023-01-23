@@ -278,10 +278,16 @@ def api_converter_5(rec_in, rec_out):
 
         if fd.get_name() == Fields.md_components.get_name():
             md_comp = mdrec_in.get_md_components
+            if md_comp._new_api_in_use:
+                print(">>>>>\tAlready Converted to the NEW API")
             mdrec_out.set_md_components(md_comp)
         elif fd.get_name() == Fields.pmd_structure.get_name():
             pmd = mdrec_in.get_parmed()
-            mdrec_out.set_parmed(pmd)
+            if pmd._new_api_in_use:
+                print(">>>>>\tAlready Converted to the NEW API")
+                mdrec_out.set_value(Fields.pmd_structure, rec_in.get_value(Fields.pmd_structure))
+            else:
+                mdrec_out.set_parmed(pmd)
 
         elif fd.get_name() == Fields.md_stages.get_name():
             for stg_name in mdrec_in.get_stages_names:
@@ -289,6 +295,19 @@ def api_converter_5(rec_in, rec_out):
                 print(">>>>>>>>>>>", stg_name)
 
                 stage_rec = mdrec_in.get_stage_by_name(stg_name)
+
+                mdstate = mdrec_in.get_stage_state(stg_name=stg_name)
+
+                if mdstate._new_api_in_use:
+                    print(">>>>>\tAlready Converted to the NEW API")
+                    try:
+                        stages = mdrec_out.get_stages
+                        stages.append(stage_rec)
+                        mdrec_out.get_record.set_value(Fields.md_stages, stages)
+                    except:
+                        mdrec_out.get_record.set_value(Fields.md_stages, [stage_rec])
+
+                    continue
 
                 stage_type = stage_rec.get_value(Fields.stage_type)
                 topology = mdrec_in.get_stage_topology(stg_name=stg_name)

@@ -907,6 +907,13 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
         help_text="Select the MD Affinity pkg API version for conversion",
     )
 
+    bypass_conversion = parameters.BooleanParameter(
+        "bypass_conversion",
+        title='Bypass Conversion',
+        default=False,
+        help_text="If Checked/True No MD API dataset conversion will happen",
+    )
+
     def begin(self):
         self.opt = vars(self.args)
         self.opt['Logger'] = self.log
@@ -915,13 +922,17 @@ class MDAPIDatasetConverterCube(RecordPortsMixin, ComputeCube):
     def process(self, record, port):
 
         try:
-            if self.opt['mdaff_api_version'] == '5.5.0':
-                init_rec = oechem.OERecord()
-                rec = api_converter_5(record, init_rec)
-            else:
-                rec = api_convert_4(record)
+            if not self.opt['bypass_conversion']:
 
-            self.success.emit(rec)
+                if self.opt['mdaff_api_version'] == '5.5.0':
+                    init_rec = oechem.OERecord()
+                    rec = api_converter_5(record, init_rec)
+                else:
+                    rec = api_convert_4(record)
+
+                self.success.emit(rec)
+            else:
+                self.success.emit(record)
 
         except Exception as e:
             msg = "{} Cube exception: {}".format(self.title, str(e))
