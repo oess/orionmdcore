@@ -18,7 +18,7 @@ requirements:
     - lxml==4.6.0
     - numpy==1.21.2
     - mdtraj==1.9.6
-    - oeommtools==1.1.22b1
+    - oeommtools==1.1.22
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5
@@ -32,12 +32,13 @@ requirements:
     - pytest==3.10.1
     - setuptools==65.6.3
     - tqdm==4.57.0
+    - click==7.1.2
   run:
     - invoke==1.2.0
     - lxml==4.6.0
     - numpy==1.21.2
     - mdtraj==1.9.6
-    - oeommtools==1.1.22b1
+    - oeommtools==1.1.22
     - openff-toolkit==0.10.0
     - openff-forcefields==2.0.0
     - openmm==7.5
@@ -51,6 +52,7 @@ requirements:
     - pytest==3.10.1
     - setuptools==65.6.3
     - tqdm==4.57.0
+    - click==7.1.2
 test:
   requires:
     - pytest
