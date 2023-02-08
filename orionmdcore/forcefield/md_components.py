@@ -178,6 +178,7 @@ class MDComponents:
 
             # Reset Comp Order
             oechem.OEPDBOrderAtoms(comp, False)
+            comp.Sweep()
 
             if comp_id == oechem.OEDesignUnitComponents_Solvent:
                 # Separate Water from Spruce Solvent
@@ -268,35 +269,42 @@ class MDComponents:
             if protein.NumAtoms():
                 protein = clean_tags(protein)
                 # oechem.OEPDBOrderAtoms(protein, False)
+                # protein.Sweep()
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
                 ligand = sanitizeOEMolecule(ligand)
                 # oechem.OEPDBOrderAtoms(ligand, False)
+                # ligand.Sweep()
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
                 # oechem.OEPDBOrderAtoms(water, False)
+                # water.Sweep()
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(cofactors)
                 cofactors = sanitizeOEMolecule(cofactors)
                 # oechem.OEPDBOrderAtoms(cofactors, False)
+                # cofactors.Sweep()
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
                 # oechem.OEPDBOrderAtoms(lipids, False)
+                # lipids.Sweep()
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
                 # oechem.OEPDBOrderAtoms(metals, False)
+                # metals.Sweep()
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
                 # oechem.OEPDBOrderAtoms(excipients, False)
+                # excipients.Sweep()
                 self._components["excipients"] = excipients
 
             print("Design Unit Built from Molecule")
@@ -493,12 +501,12 @@ class MDComponents:
 
             if mol is not None and mol.IsValid():
 
-                # TODO DEBUGGUNG
-                if comp_name == 'protein' or \
-                        comp_name == 'nucleic' or \
-                        comp_name == 'other_nucleic':
-                    oechem.OEPDBOrderAtoms(mol, False)
-                ########
+                # # TODO DEBUGGUNG
+                # if comp_name == 'protein' or \
+                #         comp_name == 'nucleic' or \
+                #         comp_name == 'other_nucleic':
+                #     oechem.OEPDBOrderAtoms(mol, False)
+                # ########
 
                 self._components[comp_name] = mol
 
@@ -1331,36 +1339,77 @@ class ParametrizeMDComponents:
     @property
     def parametrize_components(self):
 
-        flask_pmd = parmed.Structure()
+        # flask_pmd = parmed.Structure()
+
+        flask_pmd = None
 
         for comp_name, comp in self.md_components.get_components.items():
 
             if comp_name == "protein":
-                flask_pmd += self.parametrize_protein
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_protein
+                else:
+                    flask_pmd += self.parametrize_protein
             elif comp_name == "ligand":
-                flask_pmd += self.parametrize_ligand
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_ligand
+                else:
+                    flask_pmd += self.parametrize_ligand
             elif comp_name == "other_ligands":
-                flask_pmd += self.parametrize_other_ligands
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_ligands
+                else:
+                    flask_pmd += self.parametrize_other_ligands
             elif comp_name == "counter_ions":
-                flask_pmd += self.parametrize_counter_ions
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_counter_ions
+                else:
+                    flask_pmd += self.parametrize_counter_ions
             elif comp_name == "metals":
-                flask_pmd += self.parametrize_counter_ions
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_counter_ions
+                else:
+                    flask_pmd += self.parametrize_counter_ions
             elif comp_name == "excipients":
-                flask_pmd += self.parametrize_excipients
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_excipients
+                else:
+                    flask_pmd += self.parametrize_excipients
             elif comp_name == "solvent":
-                flask_pmd += self.parametrize_solvent
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_solvent
+                else:
+                    flask_pmd += self.parametrize_solvent
             elif comp_name == "water":
-                flask_pmd += self.parametrize_water
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_water
+                else:
+                    flask_pmd += self.parametrize_water
             elif comp_name == "cofactors":
-                flask_pmd += self.parametrize_cofactors
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_cofactors
+                else:
+                    flask_pmd += self.parametrize_cofactors
             elif comp_name == "other_cofactors":
-                flask_pmd += self.parametrize_other_cofactors
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_cofactors
+                else:
+                    flask_pmd += self.parametrize_other_cofactors
             elif comp_name == "lipids":
-                flask_pmd += self.parametrize_lipids
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_lipids
+                else:
+                    flask_pmd += self.parametrize_lipids
             elif comp_name == "nucleic":
-                flask_pmd += self.parametrize_nucleic
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_nucleic
+                else:
+                    flask_pmd += self.parametrize_nucleic
             elif comp_name == "other_nucleic":
-                flask_pmd += self.parametrize_other_nucleic
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_nucleic
+                else:
+                    flask_pmd += self.parametrize_other_nucleic
             else:
                 raise ValueError(
                     "The parametrization of the component {} is not supported".format(
