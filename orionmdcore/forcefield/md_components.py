@@ -53,16 +53,13 @@ import parmed
 
 from orionmdcore.forcefield import nsr_template_generator
 
-# from orionmdcore.mdengine import json_numpy
-
 import json
 
 from io import StringIO
 
-import copy
-
 import numpy as np
 
+import base64
 
 class MDComponents:
     def __init__(self, from_design_unit=None, from_molecule=None, components_title="Flask"):
@@ -373,7 +370,9 @@ class MDComponents:
 
     def __getstate__(self):
         def mol_to_json(mol):
-            return oechem.OEMolToJSON(mol, oechem.OEOFlavor_JSON_All ^ oechem.OEOFlavor_JSON_Smiles)
+            mol_bytes = oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, False, mol)
+            mol_str = base64.b64encode(mol_bytes).decode(encoding='utf-8')
+            return mol_str
 
         state = dict()
         list_comp_name = list()
@@ -471,11 +470,10 @@ class MDComponents:
         ]
 
         def mol_from_json(json_str):
-            mol = oechem.OEMol()
-            if not oechem.OEJSONToMol(mol, json_str):
-                raise ValueError("It was not possible to generate the OE Molecule from the "
-                                 "json string during the deserialization")
-            return mol
+            mol_bytes = base64.b64decode(json_str)
+            oe_mol = oechem.OEMol()
+            oechem.OEReadMolFromBytes(oe_mol, oechem.OEFormat_OEB, True, mol_bytes)
+            return oe_mol
 
         self._components = dict()
         # self._total_atoms = 0

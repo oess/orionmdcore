@@ -280,21 +280,17 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        comp_dic = components.__getstate__()
-        json_str = json.dumps(comp_dic)
-        # return json_str.encode(encoding='utf8')
+        comp_str = components.__getstate__()
+        json_str = json.dumps(comp_str)
         return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
     def deserialize(json_str_bytes):
         try:
-            # comp_dic = json.loads(gzip.decompress(a).decode(encoding='utf8'))
-            # json_str = json_str_bytes.decode()
-
             json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
-            comp_dic = json.loads(json_str)
+            comp_json_str = json.loads(json_str)
             new_md_components = MDComponents()
-            new_md_components.__setstate_new_api__(comp_dic)
+            new_md_components.__setstate_new_api__(comp_json_str)
             new_md_components._new_api_in_use = True
             return new_md_components
         except:
