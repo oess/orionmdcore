@@ -244,3 +244,8 @@ class Fields:
     lig_idx_fld = OEField("LigAtomIdx", Types.FloatVec, meta=_metaHidden)
     as_atom_idx_fld = OEField("ActiveSiteAtomIdx", Types.FloatVec, meta=_metaHidden)
     as_sc_backbone_idx_fld = OEField("ActiveSiteBackboneIdx", Types.FloatVec, meta=_metaHidden)
+
+    # HJ 2022.4.2 Instance Speed Dictionary Field
+    instance_speed_dic_fld = OEField(
+        "instance_speed_dic_fld", Types.JSONObject, meta=_metaHidden
+    )
