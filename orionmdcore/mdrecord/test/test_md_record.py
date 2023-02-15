@@ -64,6 +64,8 @@ from orionmdcore.mdengine.utils import MDState
 
 import numpy
 
+import gzip
+
 
 PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
 FILE_DIR = os.path.join(PACKAGE_DIR, "tests", "data")
@@ -252,12 +254,15 @@ class MDRecordTests(unittest.TestCase):
 
             state_fn = os.path.join(out_directory, MDFileNames.state)
 
-            with open(state_fn, "r") as f:
-                json_str = f.read()
+            # with open(state_fn, "r") as f:
+            #     json_str = f.read()
 
-            mdstate_dic = json.loads(json_str)
+            with gzip.open(state_fn, 'rt', encoding='utf8') as f:
+                state_dic = json.load(f)
+
             md_state = MDState()
-            md_state.__setstate_new_api__(mdstate_dic)
+            md_state.__setstate_new_api__(state_dic)
+            md_state._new_api_in_use = True
 
         self.assertTrue(
             numpy.all(md_state.get_positions() == self.mdrecord.get_stage_state().get_positions())
