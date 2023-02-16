@@ -69,6 +69,20 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
     tags = ["Gromacs", "OpenMM", "NPT"]
 
     description = """
+    This Cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
+    on the provided system.
+    The system must have been parametrized by the Force Field cube and the system Parmed 
+    object must be present on the input record. In addition, a system identification 
+    number must be present on the input record as well. This can be accomplished 
+    by using the “ID Setting Cube”. The NPT MD simulation is performed by the selected 
+    MD engine, currently OpenMM and Gromacs only. Restraints and constraints can be 
+    used as well. Currently implicit solvent models can be used in OpenMM only. 
+    The cube requires a record as input and produces a new record with the time evolved 
+    system. The total sampling time can be set by using the “time” cube parameter 
+    while the trajectory snapshots can be set by using the “trajectory_interval” cube 
+    parameter.
+    If the MD cycle is complete, the Cube emits the record to the "success" port and 
+    if not, it emits the record to the "cycle_out_port" port. 
     """
 
     # for Exception Handler
@@ -593,6 +607,9 @@ class IterChecker(ComputeCube):
     classification = [["Test"]]
     tags = ["Test"]
     description="""
+    This Cube checks if the MD cycle is complete. If the MD cycle is complete, 
+    it emits the record to the "true" output port and if not, it emits the record 
+    to the "false" output port. 
     """
     related = ["BooleanFieldSwitch"]
     uuid = "049765be-de4f-4c58-81a5-5bf2b5b00ff0"
@@ -615,5 +632,4 @@ class IterChecker(ComputeCube):
         elif port == "intake":
             self.false.emit(record)
 
-        
         return
