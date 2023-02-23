@@ -47,6 +47,8 @@ from orionmdcore.cubes.complexprep.utils import clash_detection
 
 from orionmdcore.forcefield import MDComponents
 
+from orionmdcore.mdrecord import MDDataRecord
+
 
 class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
     title = "Complex Preparation"
@@ -100,7 +102,8 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
         for record in self.protein_port:
 
             if record.has_value(Fields.md_components):
-                self.md_components = record.get_value(Fields.md_components)
+                md_rec = MDDataRecord(record)
+                self.md_components = md_rec.get_md_components
 
         return
 
@@ -322,7 +325,8 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                     protein_name = "prot"
 
                 new_record.set_value(Fields.protein_name, protein_name)
-                new_record.set_value(Fields.md_components, mdcomp)
+                md_new_rec = MDDataRecord(new_record)
+                md_new_rec.set_md_components(mdcomp)
 
                 self.success.emit(new_record)
 

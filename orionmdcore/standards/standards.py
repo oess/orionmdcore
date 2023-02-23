@@ -15,6 +15,7 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
+import parmed
 
 try:
     from openeye import oechem
@@ -26,7 +27,6 @@ except ImportError:
 from orionmdcore.standards.utils import (
     ParmedData,
     MDStateData,
-    DesignUnit,
     MDComponentData,
 )
 
@@ -71,7 +71,7 @@ class MDEngines:
 
 class MDFileNames:
     topology = "topology.oeb"
-    state = "state.pickle"
+    state = "state.json"
     trajectory = "trajectory.tar.gz"
     trajectory_conformers = "trajectory_confs.oeb"
     mddata = "data.tar.gz"
@@ -181,15 +181,15 @@ class Fields:
     # MD Stage Info dictionary
     stage_info = OEField("Stage_info_OPLMD", Types.JSONObject)
 
-    # Design Unit Field
-    design_unit = OEField("Design_Unit_OPLMD", DesignUnit)
+    # MD Components
+    md_components = OEField("MDComponents_OPLMD", MDComponentData, meta=_metaHidden)
 
     # Design Unit Field from Spruce
     # design_unit_from_spruce = OEField('du_single', Types.Blob)
     design_unit_from_spruce = OEField("designunit", Types.Chem.DesignUnit)
 
     # MD Components
-    md_components = OEField("MDComponents_OPLMD", MDComponentData)
+    # md_components = OEField("MDComponents_OPLMD", MDComponentData)
 
     # Collection is used to offload data from the record which must be < 100Mb
     # collection = OEField("Collection_ID_OPLMD", Types.Int, meta=_metaHidden)

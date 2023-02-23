@@ -27,6 +27,8 @@ from orionmdcore.standards import Fields
 
 from orionmdcore.forcefield import MDComponents
 
+from orionmdcore.mdrecord import MDDataRecord
+
 import orionmdcore
 
 import unittest
@@ -69,7 +71,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -91,7 +94,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -115,7 +119,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -136,7 +141,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -157,7 +163,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -179,7 +186,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -201,7 +209,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -225,7 +234,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -247,7 +257,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -271,7 +282,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -293,7 +305,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -315,7 +328,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -337,7 +351,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 
@@ -359,7 +374,8 @@ class MDComponentsTest(unittest.TestCase):
 
         record = records[0]
 
-        md_components = record.get_value(Fields.md_components)
+        md_rec = MDDataRecord(record)
+        md_components = md_rec.get_md_components
 
         print(md_components)
 

@@ -21,88 +21,137 @@ import parmed
 
 from simtk import unit
 
+from simtk.openmm import Vec3
+
 import itertools
+
+from orionmdcore.mdengine import json_numpy
+
+import numpy as np
 
 
 class MDState(object):
-    def __init__(self, parmed_structure):
+    def __init__(self, parmed_structure=None):
 
-        if not parmed_structure.positions:
-            raise RuntimeError("Atom positions are not defined")
+        if parmed_structure is not None:
+
+            if parmed_structure.coordinates is None:
+                raise RuntimeError("Atom positions are not defined")
+            else:  # numpy array in Angstroms unit
+                self.__coordinates__ = parmed_structure.coordinates
+
+            if parmed_structure.velocities is None:
+                self.__velocities__ = None
+            else:
+                # Parmed stores the velocities as a numpy array in unit of angstrom/picoseconds
+                self.__velocities__ = parmed_structure.velocities
+
+            if parmed_structure.box is None:
+                self.__box__ = None
+            else:
+                # Parmed Numpy Array [lx, ly, lz, 90, 90, 90]
+                self.__box__ = parmed_structure.box
         else:
-            # The returned object is an OpenMM Quantity with units
-            self.__positions__ = parmed_structure.positions
+            return
 
-        if parmed_structure.velocities is None:
-            self.__velocities__ = None
-        else:
-            # Parmed stores the velocities as a numpy array in unit of angstrom/picoseconds
-            self.__velocities__ = (
-                parmed_structure.velocities
-                * unit.angstrom/unit.picosecond
-            )
-            # The returned object is an OpenMM Quantity with units
+    def __getstate__(self):
+        state = dict()
 
-        if parmed_structure.box_vectors is None:
-            self.__box_vectors__ = None
-        else:
-            self.__box_vectors__ = parmed_structure.box_vectors
+        state["coordinates"] = json_numpy.dumps(self.__coordinates__)
 
-    # def __getstate__(self):
-    #     state = dict()
-    #
-    #     state["positions"] = data_utils.encodePyObj(self.__positions__)
-    #
-    #     state["box_vectors"] = (
-    #         data_utils.encodePyObj(self.__box_vectors__)
-    #         if self.__box_vectors__
-    #         else None
-    #     )
-    #
-    #     state["velocities"] = (
-    #         data_utils.encodePyObj(self.__velocities__) if self.__velocities__ else None
-    #     )
-    #
-    #     return state
-    #
-    # def __setstate__(self, state):
-    #     for state_name, state_val in state.items():
-    #
-    #         if state_name == "positions":
-    #             positions = data_utils.decodePyObj(state_val)
-    #             self.__positions__ = positions
-    #
-    #         if state_name == "box_vectors":
-    #             if state_val is not None:
-    #                 box_vec = data_utils.decodePyObj(state_val)
-    #                 self.__box_vectors__ = box_vec
-    #             else:
-    #                 self.__box_vectors__ = None
-    #
-    #         if state_name == "velocities":
-    #             if state_val is not None:
-    #                 velocities = data_utils.decodePyObj(state_val)
-    #                 self.__velocities__ = velocities
-    #             else:
-    #                 self.__velocities__ = None
+        state["box"] = (
+            json_numpy.dumps(self.__box__) if self.__box__ is not None else None
+        )
+
+        state["velocities"] = (
+            json_numpy.dumps(self.__velocities__) if self.__velocities__ is not None else None
+        )
+
+        return state
+
+    def __copy__(self):
+        new_md_state = MDState()
+        new_md_state.__coordinates__ = self.__coordinates__
+        new_md_state.__velocities__ = self.__velocities__
+        new_md_state.__box__ = self.__box__
+
+        return new_md_state
+
+    def __setstate_new_api__(self, state):
+        for state_name, state_val in state.items():
+
+            if state_name == "coordinates":
+                coordinates = json_numpy.loads(state_val)
+                self.__coordinates__ = coordinates
+
+            if state_name == "box":
+                if state_val is not None:
+                    box = json_numpy.loads(state_val)
+                    self.__box__ = box
+                else:
+                    self.__box__ = None
+
+            if state_name == "velocities":
+                if state_val is not None:
+                    velocities = json_numpy.loads(state_val)
+                    self.__velocities__ = velocities
+                else:
+                    self.__velocities__ = None
 
     def get_positions(self):
-        return self.__positions__
+
+        # OLD API TRAP
+        if '__positions__' in self.__dict__:
+            return self.__positions__
+
+        elif self.__coordinates__ is not None:
+            return [Vec3(coord[0], coord[1], coord[2]) for coord in self.__coordinates__] * unit.angstroms
+        else:
+            return None
 
     def get_oe_positions(self):
-        pos = self.__positions__.in_units_of(unit.angstrom) / unit.angstrom
-        pos = list(itertools.chain.from_iterable(pos))
-        return pos
+
+        # OLD API TRAP
+        if '__positions__' in self.__dict__:
+            return list(itertools.chain.from_iterable(self.__positions__.value_in_unit(unit.angstrom)))
+
+        if self.__coordinates__ is not None:
+            return list(itertools.chain.from_iterable(self.__coordinates__))
+        else:
+            return None
 
     def get_velocities(self):
-        return self.__velocities__
+
+        # OLD API TRAP
+        if unit.is_quantity(self.__velocities__):
+            return self.__velocities__
+
+        if self.__velocities__ is not None:
+            return self.__velocities__ * unit.angstrom / unit.picosecond
+        else:
+            return None
 
     def get_box_vectors(self):
-        return self.__box_vectors__
+
+        # OLD API TRAP
+        if '__box_vectors__' in self.__dict__:
+            return self.__box_vectors__
+
+        elif self.__box__ is not None:
+
+            av = [self.__box__[0], 0.0, 0.0]
+            bv = [0.0, self.__box__[1], 0.0]
+            cv = [0.0, 0.0, self.__box__[2]]
+
+            return (av, bv, cv) * unit.angstrom
+
+        else:
+            return None
 
     def set_positions(self, positions):
         if isinstance(positions, unit.quantity.Quantity):
-            self.__positions__ = positions
+            self.__coordinates__ = np.array([[coord[0], coord[1], coord[2]] for coord in
+                                             positions.value_in_unit(unit.angstrom)])
         else:
             raise ValueError("It was not possible to set the positions")
 
@@ -110,7 +159,8 @@ class MDState(object):
 
     def set_velocities(self, velocities):
         if isinstance(velocities, unit.quantity.Quantity):
-            self.__velocities__ = velocities
+            self.__velocities__ = np.array([[vel[0], vel[1], vel[2]] for vel in
+                                            velocities.value_in_unit(unit.angstrom / unit.picoseconds)])
         else:
             raise ValueError("It was not possible to set the velocities")
 
@@ -118,7 +168,10 @@ class MDState(object):
 
     def set_box_vectors(self, box_vectors):
         if isinstance(box_vectors, unit.quantity.Quantity):
-            self.__box_vectors__ = box_vectors
+            self.__box__ = np.array([box_vectors[0][0].value_in_unit(unit.angstrom),
+                                     box_vectors[1][1].value_in_unit(unit.angstrom),
+                                     box_vectors[2][2].value_in_unit(unit.angstrom), 90.0, 90.0, 90.0],
+                                    dtype=np.float64)
         else:
             raise ValueError("It was not possible to set the box vectors")
 

@@ -1,4 +1,4 @@
-# (C) 2022 Cadence Design Systems, Inc. (Cadence) 
+# (C) 2022 Cadence Design Systems, Inc. (Cadence)
 # All rights reserved.
 #
 # TERMS FOR USE OF SAMPLE CODE The software below ("Sample Code") is
@@ -27,10 +27,6 @@ try:
 
     from orionclient.types import Shard, ShardCollection
 
-    from orionclient.helpers.collections import (
-        try_hard_to_create_shard,
-        try_hard_to_download_shard,
-    )
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
@@ -49,7 +45,129 @@ from os import environ
 
 import os
 
+import json
+
+from orionmdcore.standards.pmd_json import (parmed_to_json,
+                                            json_to_parmed)
+
+import logging
+
 import hashlib
+
+import gzip
+
+
+old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
+old_api_error_msg = "Old API in use. Please use the MD API Conversion Cube or Floe"
+
+
+def orion_session(f):
+    def wrap(*args, **kwargs):
+
+        if in_orion():
+            session = OrionSession(
+                requests_session=get_session(
+                    retry_dict={
+                        403: 5,
+                        404: 20,
+                        409: 45,
+                        460: 15,
+                        500: 2,
+                        502: 45,
+                        503: 45,
+                        504: 45,
+                    }
+                )
+            )
+        else:
+            session = None
+
+        return f(*args, session=session, **kwargs)
+
+    return wrap
+
+
+# class ParmedData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "Parmed"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, parmed.structure.Structure)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return parmed.structure.copy(value)
+#
+#     @staticmethod
+#     def serialize(structure):
+#         struct_dict = structure.__getstate__()
+#         pkl_obj = pickle.dumps(struct_dict)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(data):
+#         new_structure = parmed.structure.Structure()
+#         new_structure.__setstate__(pickle.loads(bytes(data)))
+#         return new_structure
+
+#
+# class ParmedData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "Parmed"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, parmed.structure.Structure)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return parmed.structure.copy(value)
+#
+#     @staticmethod
+#     def serialize(structure):
+#         pmd_struct_dict = structure.__getstate__()
+#         json_str = json.dumps(pmd_struct_dict)
+#         return json_str.encode(encoding='utf8')
+#
+#     @staticmethod
+#     def deserialize(json_str_bytes):
+#         try:
+#             json_str = json_str_bytes.decode()
+#             pmd_dic = json.loads(json_str)
+#             new_structure = parmed.structure.Structure()
+#             new_structure.__setstate__(pmd_dic)
+#             return new_structure
+#         except:
+#             new_structure = parmed.structure.Structure()
+#             new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+#             return new_structure
+
+
+# class MDStateData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "MDState"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, MDState)
+#
+#     @classmethod
+#     def copy(cls, value):
+#         return copy.deepcopy(value)
+#
+#     @staticmethod
+#     def serialize(state):
+#         pkl_obj = pickle.dumps(state)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(data):
+#         new_state = pickle.loads(bytes(data))
+#         return new_state
 
 
 class ParmedData(CustomHandler):
@@ -67,15 +185,24 @@ class ParmedData(CustomHandler):
 
     @staticmethod
     def serialize(structure):
-        struct_dict = structure.__getstate__()
-        pkl_obj = pickle.dumps(struct_dict)
-        return bytes(pkl_obj)
+        json_str = parmed_to_json(structure)
+        # return json_str.encode(encoding='utf8')
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
-    def deserialize(data):
-        new_structure = parmed.structure.Structure()
-        new_structure.__setstate__(pickle.loads(bytes(data)))
-        return new_structure
+    def deserialize(json_str_bytes):
+        try:
+            # json_str = json_str_bytes.decode()
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
+            new_structure = json_to_parmed(json_str)
+            new_structure._new_api_in_use = True
+            return new_structure
+        except:
+            logging.warning(old_api_warning_msg)
+            new_structure = parmed.structure.Structure()
+            new_structure.__setstate__(pickle.loads(bytes(json_str_bytes)))
+            new_structure._new_api_in_use = False
+            return new_structure
 
 
 class MDStateData(CustomHandler):
@@ -92,14 +219,50 @@ class MDStateData(CustomHandler):
         return copy.deepcopy(value)
 
     @staticmethod
-    def serialize(state):
-        pkl_obj = pickle.dumps(state)
-        return bytes(pkl_obj)
+    def serialize(mdstate):
+        mdstate_dic = mdstate.__getstate__()
+        json_str = json.dumps(mdstate_dic)
+        # return json_str.encode(encoding='utf8')
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
-    def deserialize(data):
-        new_state = pickle.loads(bytes(data))
-        return new_state
+    def deserialize(json_str_bytes):
+        try:
+            # json_str = json_str_bytes.decode()
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
+            mdstate_dic = json.loads(json_str)
+            new_md_state = MDState()
+            new_md_state.__setstate_new_api__(mdstate_dic)
+            new_md_state._new_api_in_use = True
+            return new_md_state
+        except:
+            logging.warning(old_api_warning_msg)
+            new_state = pickle.loads(bytes(json_str_bytes))
+            new_state._new_api_in_use = False
+            return new_state
+
+# class MDComponentData(CustomHandler):
+#     @staticmethod
+#     def get_name():
+#         return "MDComponents"
+#
+#     @classmethod
+#     def validate(cls, value):
+#         return isinstance(value, MDComponents)
+#
+#     @classmethod
+#     def copy(cls, components):
+#         return copy.deepcopy(components)
+#
+#     @staticmethod
+#     def serialize(components):
+#         pkl_obj = pickle.dumps(components)
+#         return bytes(pkl_obj)
+#
+#     @staticmethod
+#     def deserialize(components):
+#         new_components = pickle.loads(bytes(components))
+#         return new_components
 
 
 class MDComponentData(CustomHandler):
@@ -117,41 +280,24 @@ class MDComponentData(CustomHandler):
 
     @staticmethod
     def serialize(components):
-        pkl_obj = pickle.dumps(components)
-        return bytes(pkl_obj)
+        comp_str = components.__getstate__()
+        json_str = json.dumps(comp_str)
+        return gzip.compress(json_str.encode(encoding='utf8'))
 
     @staticmethod
-    def deserialize(components):
-        new_components = pickle.loads(bytes(components))
-        return new_components
-
-
-class DesignUnit(CustomHandler):
-    @staticmethod
-    def get_name():
-        return "DesignUnit"
-
-    @classmethod
-    def validate(cls, value):
-        return isinstance(value, oechem.OEDesignUnit)
-
-    @classmethod
-    def copy(cls, value):
-        return copy.deepcopy(value)
-
-    @staticmethod
-    def serialize(du):
-        return oechem.OEWriteDesignUnitToBytes(du)
-
-    @staticmethod
-    def deserialize(du_bytes):
-
-        design_unit = oechem.OEDesignUnit()
-
-        if not oechem.OEReadDesignUnitFromBytes(design_unit, du_bytes):
-            raise ValueError("It was not possible to deserialize the Design Unit")
-
-        return design_unit
+    def deserialize(json_str_bytes):
+        try:
+            json_str = gzip.decompress(json_str_bytes).decode(encoding='utf8')
+            comp_json_str = json.loads(json_str)
+            new_md_components = MDComponents()
+            new_md_components.__setstate_new_api__(comp_json_str)
+            new_md_components._new_api_in_use = True
+            return new_md_components
+        except:
+            logging.warning(old_api_warning_msg)
+            new_components = pickle.loads(bytes(json_str_bytes))
+            new_components._new_api_in_use = False
+            return new_components
 
 
 def check_filename(filename):
@@ -204,7 +350,8 @@ def md5_chk_sum(fn):
     return file_hash.hexdigest()
 
 
-def upload_file(filename, orion_ui_name="OrionFile"):
+@orion_session
+def upload_file(filename, session=None, orion_ui_name="OrionFile"):
 
     # Check if file is empty
     file_size = os.path.getsize(filename)
@@ -213,22 +360,8 @@ def upload_file(filename, orion_ui_name="OrionFile"):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         max_attempt = 5
 
@@ -269,26 +402,13 @@ def upload_file(filename, orion_ui_name="OrionFile"):
     return file_id
 
 
-def download_file(file_id, filename, md5_chks=None):
+@orion_session
+def download_file(file_id, filename,  session=None, md5_chks=None):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         if md5_chk_sum is not None:
 
@@ -320,26 +440,13 @@ def download_file(file_id, filename, md5_chks=None):
     return fn_local
 
 
-def delete_file(file_id):
+@orion_session
+def delete_file(file_id, session=None):
 
     if in_orion():
 
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
+        if session is None:
+            raise ValueError("Session cannot be None")
 
         resource = session.get_resource(File, file_id)
 
@@ -351,29 +458,16 @@ def delete_file(file_id):
     return True
 
 
-def upload_data(filename, collection_id=None, shard_name=""):
+@orion_session
+def upload_data(filename, collection_id=None, shard_name="", session=None):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
 
         collection = session.get_resource(ShardCollection, collection_id)
 
@@ -384,7 +478,8 @@ def upload_data(filename, collection_id=None, shard_name=""):
         else:
             raise ValueError("Collection is not in an Open State: {}".format(collection.state))
 
-        shard = try_hard_to_create_shard(collection, filename, name=shard_name)
+        shard = Shard.create(collection, name=shard_name)
+        shard.upload_file(filename)
 
         file_id = shard.id
 
@@ -396,29 +491,16 @@ def upload_data(filename, collection_id=None, shard_name=""):
     return file_id
 
 
-def download_data(file_id, path, collection_id=None):
+@orion_session
+def download_data(file_id, path, session=None, collection_id=None):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
 
         collection = session.get_resource(ShardCollection, collection_id)
 
@@ -428,7 +510,7 @@ def download_data(file_id, path, collection_id=None):
 
         fn_local = os.path.join(path, MDFileNames.mddata)
 
-        try_hard_to_download_shard(shard, fn_local)
+        shard.download_to_file(fn_local)
 
         shard.close()
 
@@ -441,29 +523,16 @@ def download_data(file_id, path, collection_id=None):
     return fn_local
 
 
-def delete_data(file_id, collection_id=None):
+@orion_session
+def delete_data(file_id, session=None, collection_id=None):
 
     if in_orion():
 
+        if session is None:
+            raise ValueError("Session cannot be None")
+
         if collection_id is None:
             raise ValueError("The Collection ID is None")
-
-        # session = APISession
-
-        session = OrionSession(
-            requests_session=get_session(
-                retry_dict={
-                    403: 5,
-                    404: 20,
-                    409: 45,
-                    460: 15,
-                    500: 2,
-                    502: 45,
-                    503: 45,
-                    504: 45,
-                }
-            )
-        )
 
         collection = session.get_resource(ShardCollection, collection_id)
 

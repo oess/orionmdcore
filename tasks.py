@@ -105,6 +105,7 @@ def rsts(ctx):
     run('cube_doc orionmdcore.cubes docs/source')
     os.chdir(curdir)
 
+
 # create RSTs and also build HTMLs
 @task
 def docs(ctx):
@@ -116,6 +117,7 @@ def docs(ctx):
     else:
         run("make html")
     os.chdir(curdir)
+
 
 @task
 def clean(ctx):
@@ -191,6 +193,7 @@ def _clean_out_dir(dir_path):
             except Exception as e:
                 print(e)
 
+
 @task
 def update_copyright(ctx):
-	run('oecopyright --type example .')
+    run('oecopyright --type example .')
