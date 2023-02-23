@@ -174,7 +174,15 @@ def nsr_template_generator(
         elif isNTerminus:
             oespruce.OECapCTermini(oe_nsr_caps)
         else:
-            oespruce.OECapTermini(oe_nsr_caps)
+            # oespruce.OECapTermini(oe_nsr_caps)
+
+            # 2023 Feb HJ: Force capping (FXA cases)
+            builder_opts =oespruce.OECapBuilderOptions()
+            builder_opts.SetAllowTruncate(False)
+            builder_opts.SetForceCapping(True)
+            exclude_res_pred = oechem.OEIsFalseAtom()
+
+            oespruce.OECapTermini(oe_nsr_caps, exclude_res_pred, builder_opts)
 
         # Add Hydrogens after capping
         oechem.OEPlaceHydrogens(oe_nsr_caps)
