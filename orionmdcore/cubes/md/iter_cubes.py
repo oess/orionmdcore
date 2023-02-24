@@ -55,7 +55,7 @@ import os
 
 from orionmdcore.standards.utils import check_filename
 
-from orionmdcore.cubes.md.utils import str_schedule, schedule_cycles
+from orionmdcore.cubes.md.utils import str_schedule, schedule_cycles, size_dependent_schedule_cycles
 
 from snowball import GPU_INSTANCE_TYPES_SUPPORT_FOR_MD
 
@@ -374,6 +374,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                 info_dic["hmr"] = tmp_opt["hmr"]
                 info_dic["md_engine"] = tmp_opt["md_engine"]
 
+
                 # (3) save speed in instance_speed_dic 
                 instance_speed_dic[current_instance] = tmp_opt["speed_ns_per_day"]
                 record.set_value(Fields.instance_speed_dic_fld, instance_speed_dic)
@@ -383,6 +384,9 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                 info_dic["instance_type"] = opt["instance_type"]
                 info_dic["hmr"] = opt["hmr"]
                 info_dic["md_engine"] = opt["md_engine"]
+            
+            # Save flask size for cube run time
+            info_dic["num_atoms"] = flask.NumAtoms()
 
             #################################
             # 2. Schedule the current cycle #
@@ -397,7 +401,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
             
             if not record.has_field(Fields.cycle_id):
 
-                schedule = schedule_cycles(opt, info_dic)
+                schedule = size_dependent_schedule_cycles(opt, info_dic)
                 info_str = str_schedule(schedule, 0, flask_title)
                 opt["Logger"].info(info_str)
 
@@ -436,7 +440,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                 elif str(next_cycle_id) not in schedule and record.has_field(Fields.end_cycle):
                     opt["Logger"].info("Restarting Detected....")                
 
-                    schedule = schedule_cycles(opt, info_dic, start_iter_index=current_cycle_id)
+                    schedule = size_dependent_schedule_cycles(opt, info_dic, start_iter_index=current_cycle_id)
                     info_str = str_schedule(schedule, current_cycle_id, flask_title)
                     opt["Logger"].info(info_str)
 
@@ -464,7 +468,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                 # Cycle forwarding
                 else:
 
-                    schedule = schedule_cycles(opt, info_dic, start_iter_index=next_cycle_id)
+                    schedule = size_dependent_schedule_cycles(opt, info_dic, start_iter_index=next_cycle_id)
                     info_str = str_schedule(schedule, next_cycle_id, flask_title)
                     opt["Logger"].info(info_str)
 
