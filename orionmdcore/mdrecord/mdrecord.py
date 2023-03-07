@@ -75,6 +75,8 @@ from orionmdcore.standards.pmd_json import (parmed_to_json,
 
 import gzip
 
+from orionmdcore.standards._unpickler import MDOrionUnpickler
+
 
 def mdstages(f):
     @wraps(f)
@@ -1035,7 +1037,7 @@ class MDDataRecord(object):
             state_fn = os.path.join(dir_stage, "state.pickle")
             logging.warning(old_api_warning_msg)
             with open(state_fn, "rb") as f:
-                state = pickle.load(f)
+                state = MDOrionUnpickler(f).load()
             state._new_api_in_use = False
         return state
 
