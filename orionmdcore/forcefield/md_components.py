@@ -375,7 +375,7 @@ class MDComponents:
             mol_str = base64.b64encode(mol_bytes).decode(encoding='utf-8')
             return mol_str
 
-        state = dict()
+        state = {"version": 1}
         list_comp_name = list()
         for comp_name in self._components:
             state[comp_name] = mol_to_json(self._components[comp_name])
@@ -449,6 +449,8 @@ class MDComponents:
         # self._total_atoms = 0
 
         for comp_name, comp in state.items():
+            if comp_name == "version":  # unused for now
+                continue
 
             if comp_name == "components_title":
                 self._components_title = comp

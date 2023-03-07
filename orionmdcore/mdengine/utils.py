@@ -55,19 +55,12 @@ class MDState(object):
             return
 
     def __getstate__(self):
-        state = dict()
-
-        state["coordinates"] = json_numpy.dumps(self.__coordinates__)
-
-        state["box"] = (
-            json_numpy.dumps(self.__box__) if self.__box__ is not None else None
-        )
-
-        state["velocities"] = (
-            json_numpy.dumps(self.__velocities__) if self.__velocities__ is not None else None
-        )
-
-        return state
+        return {
+            "version": 1,
+            "coordinates": json_numpy.dumps(self.__coordinates__),
+            "box": json_numpy.dumps(self.__box__) if self.__box__ is not None else None,
+            "velocities": json_numpy.dumps(self.__velocities__) if self.__velocities__ is not None else None,
+        }
 
     def __copy__(self):
         new_md_state = MDState()
@@ -79,6 +72,8 @@ class MDState(object):
 
     def __setstate_new_api__(self, state):
         for state_name, state_val in state.items():
+            if state_name == "version":  # unused for now
+                continue
 
             if state_name == "coordinates":
                 coordinates = json_numpy.loads(state_val)
