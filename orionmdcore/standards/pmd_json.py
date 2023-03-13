@@ -148,6 +148,8 @@ def parmed_to_json(pmd_structure):
 
     pmd_dic_dic = pmd_structure.__getstate__()
 
+    pmd_dic_dic['links'] = pmd_structure.links
+
     json_str = json.dumps(pmd_dic_dic, cls=encoders)
 
     return json_str
@@ -370,6 +372,17 @@ def json_to_parmed(json_str):
                     raise ValueError("NOT Implemented")
 
             pmd_dic['torsion_torsion_types'] = pmd_torsion_torsion_types
+
+        if attr == 'links':
+            links_types_list = pmd_dic['links']
+            pmd_links_types = parmed.TrackedList()
+
+            # TODO MISSING IMPLEMENTATION
+            if links_types_list:
+                for tt_str in links_types_list:
+                    raise ValueError("NOT Implemented")
+
+            pmd_dic['links'] = pmd_links_types
 
         if attr == '_coordinates':
             if pmd_dic['_coordinates']:
