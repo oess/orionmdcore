@@ -21,8 +21,6 @@ try:
 
     from oeommtools import utils as oeommutils
 
-    from oeommtools import data_utils
-
     from oeommtools.utils import sanitizeOEMolecule
 
     from openeye import oespruce
@@ -31,15 +29,14 @@ except ImportError:
 
     raise ImportError(__installation__error__)
 
-
-from orionmdcore.forcefield.utils import ff_library
+from orionmdcore.mdengine import data_utils
 
 from orionmdcore.forcefield.utils import (
+    ff_library,
     ParamMolStructure,
     parametrize_component,
     clean_tags,
 )
-
 
 from simtk.openmm import app
 
