@@ -147,6 +147,7 @@ def parmed_to_json(pmd_structure):
                                     NonbondedExceptionTypeEncoder)
 
     pmd_dic_dic = pmd_structure.__getstate__()
+    pmd_dic_dic["version"] = 1  # serialization version
 
     pmd_dic_dic['links'] = pmd_structure.links
 
@@ -156,8 +157,8 @@ def parmed_to_json(pmd_structure):
 
 
 def json_to_parmed(json_str):
-
     pmd_dic = json.loads(json_str)
+    _ = pmd_dic.pop("version", None)  # unused for now
 
     for attr in pmd_dic:
         if attr == 'residues':

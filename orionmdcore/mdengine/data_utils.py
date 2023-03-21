@@ -15,9 +15,13 @@
 # PARTICULAR PURPOSE AND NONINFRINGEMENT. In no event shall Cadence be
 # liable for any damages or liability in connection with the Sample Code
 # or its use.
-from openeye import oechem
+
 import base64
 import pickle
+
+from io import BytesIO
+from openeye import oechem
+from orionmdcore.standards._unpickler import MDOrionUnpickler
 
 
 def getData(molecule, tag):
@@ -33,4 +37,5 @@ def encodePyObj(py_obj):
 def decodePyObj(data):
     """Decode the Base64 encoded Python Object/ParmEd Structure"""
     decoded_obj = base64.b64decode(data)
-    return pickle.loads(decoded_obj)
+    with BytesIO(decoded_obj) as file:
+        return MDOrionUnpickler(file).load()
