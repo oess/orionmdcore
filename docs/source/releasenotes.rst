@@ -3,6 +3,29 @@ Release Notes
 #############
 
 
+v 2.0.0 April 2023
+=================
+
+General Notes
+---------------------------------------------------------------------------------
+* 
+
+New Cubes
+--------------------------------------------------------------------------------
+* Iterative NPT Cube. This Cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
+  on the provided system. If the MD cycle is complete, the Cube emits the record to the "success" port and 
+  if not, it emits the record to the "cycle_out_port" port. 
+* Iteration Checker Cube. This Cube checks if the MD cycle is complete. If the MD cycle is complete, 
+  it emits the record to the "true" output port and if not, it emits the record 
+  to the "false" output port. 
+
+Cube Updates
+--------------------------------------------------------------------------------
+*  
+
+======================
+
+
 v 1.1.6 June 2022
 =================
 
