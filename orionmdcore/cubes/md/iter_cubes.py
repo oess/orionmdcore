@@ -63,7 +63,7 @@ from orionclient.session import in_orion
 
 
 class IterMDNptCube(RecordPortsMixin, ComputeCube):
-    title = "New NPT Cube"
+    title = "Iterative NPT Cube"
 
     classification = [["MD Simulations"]]
     tags = ["Gromacs", "OpenMM", "NPT"]
@@ -603,9 +603,9 @@ class ParallelIterMDNptCube(ParallelMixin, IterMDNptCube):
     }
 
 class IterChecker(ComputeCube):
-    title = "IterChecker"
-    classification = [["Test"]]
-    tags = ["Test"]
+    title = "Iteration Checker Cube"
+    classification = [["MD Simulations"]]
+    tags = ["Gromacs", "OpenMM"]
     description="""
     This Cube checks if the MD cycle is complete. If the MD cycle is complete, 
     it emits the record to the "true" output port and if not, it emits the record 
