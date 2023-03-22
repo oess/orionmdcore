@@ -75,7 +75,7 @@ from orionmdcore.standards.pmd_json import (parmed_to_json,
 
 import gzip
 
-from orionmdcore.standards._unpickler import MDOrionUnpickler
+from orionmdcore._unpickler import MDOrionUnpickler
 
 
 def mdstages(f):

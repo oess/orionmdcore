@@ -57,7 +57,7 @@ import hashlib
 import gzip
 
 from io import BytesIO
-from orionmdcore.standards._unpickler import MDOrionUnpickler
+from orionmdcore._unpickler import MDOrionUnpickler
 
 
 old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"

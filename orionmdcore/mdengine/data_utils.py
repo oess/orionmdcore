@@ -21,7 +21,7 @@ import pickle
 
 from io import BytesIO
 from openeye import oechem
-from orionmdcore.standards._unpickler import MDOrionUnpickler
+from orionmdcore._unpickler import MDOrionUnpickler
 
 
 def getData(molecule, tag):
