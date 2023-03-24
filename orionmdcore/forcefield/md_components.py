@@ -21,8 +21,6 @@ try:
 
     from oeommtools import utils as oeommutils
 
-    from oeommtools import data_utils
-
     from oeommtools.utils import sanitizeOEMolecule
 
     from openeye import oespruce
@@ -31,15 +29,14 @@ except ImportError:
 
     raise ImportError(__installation__error__)
 
-
-from orionmdcore.forcefield.utils import ff_library
+from orionmdcore.mdengine import data_utils
 
 from orionmdcore.forcefield.utils import (
+    ff_library,
     ParamMolStructure,
     parametrize_component,
     clean_tags,
 )
-
 
 from simtk.openmm import app
 
@@ -61,28 +58,29 @@ import numpy as np
 
 import base64
 
+
 class MDComponents:
+
+    _component_names = [
+        "protein",
+        "ligand",
+        "other_ligands",
+        "counter_ions",
+        "metals",
+        "excipients",
+        "solvent",
+        "water",
+        "cofactors",
+        "other_cofactors",
+        "lipids",
+        "nucleic",
+        "other_nucleic",
+    ]
+
     def __init__(self, from_design_unit=None, from_molecule=None, components_title="Flask"):
 
         if from_design_unit is not None and from_molecule is not None:
             raise ValueError("The MD Components can be built from a Design Unit or from a Molecule, but NOT from both")
-
-        # MD allowed components
-        self._component_names = [
-            "protein",
-            "ligand",
-            "other_ligands",
-            "counter_ions",
-            "metals",
-            "excipients",
-            "solvent",
-            "water",
-            "cofactors",
-            "other_cofactors",
-            "lipids",
-            "nucleic",
-            "other_nucleic",
-        ]
 
         # Components found in the system_representation
         self._components = dict()
@@ -374,7 +372,7 @@ class MDComponents:
             mol_str = base64.b64encode(mol_bytes).decode(encoding='utf-8')
             return mol_str
 
-        state = dict()
+        state = {"version": 1}
         list_comp_name = list()
         for comp_name in self._components:
             state[comp_name] = mol_to_json(self._components[comp_name])
@@ -402,28 +400,14 @@ class MDComponents:
         return state
 
     def __setstate__(self, state):
-
-        # MD allowed components
-        self._component_names = [
-            "protein",
-            "ligand",
-            "other_ligands",
-            "counter_ions",
-            "metals",
-            "excipients",
-            "solvent",
-            "water",
-            "cofactors",
-            "other_cofactors",
-            "lipids",
-            "nucleic",
-            "other_nucleic",
-        ]
-
         def mol_from_bytes(mol_bytes):
             mol = oechem.OEMol()
             oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
             return mol
+
+        component_mapping = {name: name for name in self._component_names}
+        component_mapping["nucleics"] = "nucleic"
+        component_mapping["other_nucleics"] = "other_nucleic"
 
         self._components = dict()
         # self._total_atoms = 0
@@ -442,33 +426,16 @@ class MDComponents:
                     self._box_vectors = None
                 continue
 
-            if comp_name not in self._component_names:
+            if comp_name not in component_mapping:
                 raise ValueError("Cannot Deserialize Component {}".format(comp_name))
 
             mol = mol_from_bytes(comp) if comp else None
 
             if mol is not None and mol.IsValid():
+                comp_name = component_mapping[comp_name]
                 self._components[comp_name] = mol
 
     def __setstate_new_api__(self, state):
-
-        # MD allowed components
-        self._component_names = [
-            "protein",
-            "ligand",
-            "other_ligands",
-            "counter_ions",
-            "metals",
-            "excipients",
-            "solvent",
-            "water",
-            "cofactors",
-            "other_cofactors",
-            "lipids",
-            "nucleic",
-            "other_nucleic",
-        ]
-
         def mol_from_json(json_str):
             mol_bytes = base64.b64decode(json_str)
             oe_mol = oechem.OEMol()
@@ -479,6 +446,8 @@ class MDComponents:
         # self._total_atoms = 0
 
         for comp_name, comp in state.items():
+            if comp_name == "version":  # unused for now
+                continue
 
             if comp_name == "components_title":
                 self._components_title = comp

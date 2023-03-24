@@ -56,6 +56,9 @@ import hashlib
 
 import gzip
 
+from io import BytesIO
+from orionmdcore._unpickler import MDOrionUnpickler
+
 
 old_api_warning_msg = "Old API in use. This will not be supported in further releases at any point"
 old_api_error_msg = "Old API in use. Please use the MD API Conversion Cube or Floe"
@@ -237,7 +240,8 @@ class MDStateData(CustomHandler):
             return new_md_state
         except:
             logging.warning(old_api_warning_msg)
-            new_state = pickle.loads(bytes(json_str_bytes))
+            with BytesIO(json_str_bytes) as file:
+                new_state = MDOrionUnpickler(file).load()
             new_state._new_api_in_use = False
             return new_state
 
@@ -295,7 +299,8 @@ class MDComponentData(CustomHandler):
             return new_md_components
         except:
             logging.warning(old_api_warning_msg)
-            new_components = pickle.loads(bytes(json_str_bytes))
+            with BytesIO(json_str_bytes) as file:
+                new_components = MDOrionUnpickler(file).load()
             new_components._new_api_in_use = False
             return new_components
 

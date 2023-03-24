@@ -147,6 +147,9 @@ def parmed_to_json(pmd_structure):
                                     NonbondedExceptionTypeEncoder)
 
     pmd_dic_dic = pmd_structure.__getstate__()
+    pmd_dic_dic["version"] = 1  # serialization version
+
+    pmd_dic_dic['links'] = pmd_structure.links
 
     json_str = json.dumps(pmd_dic_dic, cls=encoders)
 
@@ -154,15 +157,15 @@ def parmed_to_json(pmd_structure):
 
 
 def json_to_parmed(json_str):
-
     pmd_dic = json.loads(json_str)
+    _ = pmd_dic.pop("version", None)  # unused for now
 
     for attr in pmd_dic:
         if attr == 'residues':
             residues_list = pmd_dic['residues']
-            pmd_residues_list = parmed.ResidueList()
 
             if residues_list:
+                pmd_residues_list = parmed.ResidueList()
                 for res_dic in residues_list:
                     atoms_list = res_dic['atoms']
                     new_pmd_atom_list = list()
@@ -190,15 +193,16 @@ def json_to_parmed(json_str):
                     pmd_residue.__setstate__(res_dic)
                     pmd_residues_list.append(pmd_residue)
 
-            pmd_dic['residues'] = pmd_residues_list
+                pmd_dic['residues'] = pmd_residues_list
+            else:
+                pmd_dic['residues'] = parmed.ResidueList()
 
         if attr == 'bond_types':
 
             bond_types_list = pmd_dic['bond_types']
-            pmd_bond_types_list = parmed.TrackedList()
 
             if bond_types_list:
-
+                pmd_bond_types_list = parmed.TrackedList()
                 for bn_type_str in bond_types_list:
                     bn_type_dic = ast.literal_eval(bn_type_str)
 
@@ -206,102 +210,117 @@ def json_to_parmed(json_str):
                     pmd_bn_type.__dict__.update(bn_type_dic)
                     pmd_bond_types_list.append(pmd_bn_type)
 
-            pmd_dic['bond_types'] = pmd_bond_types_list
+                pmd_dic['bond_types'] = pmd_bond_types_list
+            else:
+                pmd_dic['bond_types'] = parmed.TrackedList()
 
         if attr == 'angle_types':
 
             angle_types_list = pmd_dic['angle_types']
-            pmd_angle_types_list = parmed.TrackedList()
 
             if angle_types_list:
+                pmd_angle_types_list = parmed.TrackedList()
                 for an_type_str in angle_types_list:
                     an_type_dic = ast.literal_eval(an_type_str)
                     pmd_an_type = parmed.AngleType(k=an_type_dic['k'], theteq=an_type_dic['theteq'])
                     pmd_an_type.__dict__.update(an_type_dic)
                     pmd_angle_types_list.append(pmd_an_type)
 
-            pmd_dic['angle_types'] = pmd_angle_types_list
+                pmd_dic['angle_types'] = pmd_angle_types_list
+            else:
+                pmd_dic['angle_types'] = parmed.TrackedList()
 
         if attr == 'dihedral_types':
 
             dihedral_types_list = pmd_dic['dihedral_types']
-            pmd_dihedral_types_list = parmed.TrackedList()
 
             if dihedral_types_list:
+                pmd_dihedral_types_list = parmed.TrackedList()
                 for dh_type_str in dihedral_types_list:
                     dh_type_dic = ast.literal_eval(dh_type_str)
                     pmd_dh_type = parmed.DihedralType(phi_k=dh_type_dic['phi_k'], per=dh_type_dic['per'], phase=dh_type_dic['phase'])
                     pmd_dh_type.__dict__.update(dh_type_dic)
                     pmd_dihedral_types_list.append(pmd_dh_type)
 
-            pmd_dic['dihedral_types'] = pmd_dihedral_types_list
+                pmd_dic['dihedral_types'] = pmd_dihedral_types_list
+            else:
+                pmd_dic['dihedral_types'] = parmed.TrackedList()
 
         if attr == 'urey_bradley_types':
 
             urey_bradley_types_list = pmd_dic['urey_bradley_types']
-            pmd_urey_bradley_types_list = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if urey_bradley_types_list:
+                pmd_urey_bradley_types_list = parmed.TrackedList()
                 for ub_type_str in urey_bradley_types_list:
                     raise ValueError("NOT Implemented")
-
-            pmd_dic['urey_bradley_types'] = pmd_urey_bradley_types_list
+                pmd_dic['urey_bradley_types'] = pmd_urey_bradley_types_list
+            else:
+                pmd_dic['urey_bradley_types'] = parmed.TrackedList()
 
         if attr == 'improper_types':
 
             improper_types_list = pmd_dic['improper_types']
-            pmd_improper_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if improper_types_list:
+                pmd_improper_types = parmed.TrackedList()
                 for im_type_str in improper_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['improper_types'] = pmd_improper_types
+                pmd_dic['improper_types'] = pmd_improper_types
+            else:
+                pmd_dic['improper_types'] = parmed.TrackedList()
 
         if attr == 'rb_torsion_types':
 
             rb_torsion_types_list = pmd_dic['rb_torsion_types']
-            pmd_rb_torsion_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if rb_torsion_types_list:
+                pmd_rb_torsion_types = parmed.TrackedList()
                 for rb_type_str in rb_torsion_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['rb_torsion_types'] = pmd_rb_torsion_types
+                pmd_dic['rb_torsion_types'] = pmd_rb_torsion_types
+            else:
+                pmd_dic['rb_torsion_types'] = parmed.TrackedList()
 
         if attr == 'cmap_types':
 
             cmap_types_list = pmd_dic['cmap_types']
-            pmd_cmap_types_list = parmed.TrackedList()
 
             if cmap_types_list:
+                pmd_cmap_types_list = parmed.TrackedList()
                 for cmap_dic in cmap_types_list:
                     pmd_cmap = parmed.CmapType(cmap_dic['resolution'], cmap_dic['grid']['_data'])
                     pmd_cmap_types_list.append(pmd_cmap)
 
-            pmd_dic['cmap_types'] = pmd_cmap_types_list
+                pmd_dic['cmap_types'] = pmd_cmap_types_list
+            else:
+                pmd_dic['cmap_types'] = parmed.TrackedList()
 
         if attr == 'trigonal_angle_types':
 
             trigonal_angle_types_list = pmd_dic['trigonal_angle_types']
-            pmd_trigonal_angle_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if trigonal_angle_types_list:
+                pmd_trigonal_angle_types = parmed.TrackedList()
                 for ta_type_str in trigonal_angle_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['trigonal_angle_types'] = pmd_trigonal_angle_types
+                pmd_dic['trigonal_angle_types'] = pmd_trigonal_angle_types
+            else:
+                pmd_dic['trigonal_angle_types'] = parmed.TrackedList()
 
         if attr == 'adjust_types':
 
             adjust_types_list = pmd_dic['adjust_types']
-            pmd_adjust_types_list = parmed.TrackedList()
 
             if adjust_types_list:
+                pmd_adjust_types_list = parmed.TrackedList()
                 for adj_type_dic in adjust_types_list:
                     pmd_adj_type = parmed.NonbondedExceptionType(rmin=adj_type_dic['rmin'],
                                                                  epsilon=adj_type_dic['epsilon'],
@@ -309,67 +328,92 @@ def json_to_parmed(json_str):
                     pmd_adj_type.__dict__.update(adj_type_dic)
                     pmd_adjust_types_list.append(pmd_adj_type)
 
-            pmd_dic['adjust_types'] = pmd_adjust_types_list
+                pmd_dic['adjust_types'] = pmd_adjust_types_list
+            else:
+                pmd_dic['adjust_types'] = parmed.TrackedList()
 
         if attr == 'out_of_plane_bend_types':
 
             out_of_plane_bend_types_list = pmd_dic['out_of_plane_bend_types']
-            pmd_out_of_plane_bend_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if out_of_plane_bend_types_list:
+                pmd_out_of_plane_bend_types = parmed.TrackedList()
                 for out_plane_type_str in out_of_plane_bend_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['out_of_plane_bend_types'] = pmd_out_of_plane_bend_types
+                pmd_dic['out_of_plane_bend_types'] = pmd_out_of_plane_bend_types
+            else:
+                pmd_dic['out_of_plane_bend_types'] = parmed.TrackedList()
 
         if attr == 'pi_torsion_types':
 
             pi_torsion_types_list = pmd_dic['pi_torsion_types']
-            pmd_pi_torsion_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if pi_torsion_types_list:
+                pmd_pi_torsion_types = parmed.TrackedList()
                 for pi_type_str in pi_torsion_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['pi_torsion_types'] = pmd_pi_torsion_types
+                pmd_dic['pi_torsion_types'] = pmd_pi_torsion_types
+            else:
+                pmd_dic['pi_torsion_types'] = parmed.TrackedList()
 
         if attr == 'groups':
 
             groups_list = pmd_dic['groups']
-            pmd_groups = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if groups_list:
+                pmd_groups = parmed.TrackedList()
                 for groups_str in groups_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['groups'] = pmd_groups
+                pmd_dic['groups'] = pmd_groups
+            else:
+                pmd_dic['groups'] = parmed.TrackedList()
 
         if attr == 'stretch_bend_types':
 
             stretch_bend_types_list = pmd_dic['stretch_bend_types']
-            pmd_stretch_bend_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if stretch_bend_types_list:
+                pmd_stretch_bend_types = parmed.TrackedList()
                 for stretch_str in stretch_bend_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['stretch_bend_types'] = pmd_stretch_bend_types
+                pmd_dic['stretch_bend_types'] = pmd_stretch_bend_types
+            else:
+                pmd_dic['stretch_bend_types'] = parmed.TrackedList()
 
         if attr == 'torsion_torsion_types':
 
             torsion_torsion_types_list = pmd_dic['torsion_torsion_types']
-            pmd_torsion_torsion_types = parmed.TrackedList()
 
             # TODO MISSING IMPLEMENTATION
             if torsion_torsion_types_list:
+                pmd_torsion_torsion_types = parmed.TrackedList()
                 for tt_str in torsion_torsion_types_list:
                     raise ValueError("NOT Implemented")
 
-            pmd_dic['torsion_torsion_types'] = pmd_torsion_torsion_types
+                pmd_dic['torsion_torsion_types'] = pmd_torsion_torsion_types
+            else:
+                pmd_dic['torsion_torsion_types'] = parmed.TrackedList()
+
+        if attr == 'links':
+            links_types_list = pmd_dic['links']
+
+            # TODO MISSING IMPLEMENTATION
+            if links_types_list:
+                pmd_links_types = parmed.TrackedList()
+                for tt_str in links_types_list:
+                    raise ValueError("NOT Implemented")
+
+                pmd_dic['links'] = pmd_links_types
+            else:
+                pmd_dic['links'] = parmed.TrackedList()
 
         if attr == '_coordinates':
             if pmd_dic['_coordinates']:

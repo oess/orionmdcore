@@ -38,14 +38,13 @@ try:
 
     from oeommtools import packmol
 
-    from oeommtools import data_utils as pack_utils
-
     from datarecord import Types
 
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
 
+from orionmdcore.mdengine import data_utils as pack_utils
 
 from orionmdcore.cubes.flask.utils import get_human_readable, parser_log_old_api
 
