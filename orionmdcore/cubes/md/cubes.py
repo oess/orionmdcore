@@ -1527,7 +1527,8 @@ class MDSpeedChecker(RecordPortsMixin, ComputeCube):
             # print('>>>>>>>>>>>>>>>>>>>>>>')
 
             if estimate_prod_time_in_hr >= 11:
-                e = "Estimated wall clock time for the production run exceeds 11 hrs. Please use 'Plain MD Floe' for long trajectory MD simulations." \
+                e = f"The estimated wall clock time for the production run is {estimate_prod_time_in_hr:.1f}h, which exceeds 11h. " 
+                e +="Please use 'Plain MD Floe' for long trajectory MD simulations." \
                     "The output failed dataset can be used as an input of 'Plain MD Floe'."
                 msg = "{} Cube exception: {}".format(self.title, str(e))
                 self.opt["Logger"].info(msg)
