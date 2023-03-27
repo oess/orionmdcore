@@ -2,8 +2,8 @@
 Release Notes
 #############
 
-v 2.0.1 March 2023
-==================
+v 2.0.1 April 2023
+====================
 
 General Notes
 ---------------------------------------------------------------------------------
@@ -19,27 +19,6 @@ General Notes
 
 New Cubes
 --------------------------------------------------------------------------------
-
-
-Cube Updates
---------------------------------------------------------------------------------
-* The MDAPIDatasetConverterCube has been updated to support the conversion from old
-  pickle datasets to the new JSON serializer/deserializer
-* The ComplexPrepCube has been updated to raise a fatal error if the protein cannot
-  been found.
-
-======================
-
-
-v 2.0.0 April 2023
-====================
-
-General Notes
----------------------------------------------------------------------------------
-* 
-
-New Cubes
---------------------------------------------------------------------------------
 * Iterative NPT Cube. This Cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
   on the provided system. If the MD cycle is complete, the Cube emits the record to the "success" port and 
   if not, it emits the record to the "cycle_out_port" port. 
@@ -49,7 +28,11 @@ New Cubes
 
 Cube Updates
 --------------------------------------------------------------------------------
-*  
+
+* The MDAPIDatasetConverterCube has been updated to support the conversion from old
+  pickle datasets to the new JSON serializer/deserializer
+* The ComplexPrepCube has been updated to raise a fatal error if the protein cannot
+  been found.
 
 ======================
 
