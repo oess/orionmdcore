@@ -8,12 +8,12 @@ v 2.0.1 April 2023
 General Notes
 ---------------------------------------------------------------------------------
 * Since the first MD pkg release we have been using Pickle to serialize and deserialize MD custom objects
-  passed along the OpenEye data records. A main side effects of pickling them is that
+  passed along the OpenEye data records. A main side effect of pickling them is that
   the class objects API is embedded inside the produced datasets, therefore updating the object APIs,
   could generate issues. To overcome the problem, all the MD custom objects are now using
   JSON serialization and deserialization which does not have this side effect. To avoid
-  compatibility problems, in this release  both serializers (pickle and JSON) are supported however,
-  the support to pickle will be dropped in future releases and only the JSON serializer will be kept.
+  compatibility problems, in this release both serializers (pickle and JSON) are supported however,
+  the support for pickle will be dropped in future releases and only the JSON serializer will be kept.
   The MDAPIDatasetConverterCube can be used to convert old datasets into new datasets where the
   JSON serializer/deserializer is used.
 
