@@ -7,23 +7,23 @@ v 2.0.1 April 2023
 
 General Notes
 ---------------------------------------------------------------------------------
-* Since the first MD pkg release we have been using Pickle to serialize and deserialize MD custom objects
+* Since the first MD pkg release, we have been using Pickle to serialize and deserialize MD custom objects
   passed along the OpenEye data records. A main side effect of pickling them is that
-  the class objects API is embedded inside the produced datasets, therefore updating the object APIs,
+  the class objects API is embedded inside the produced dataset. Therefore, updating the object APIs
   could generate issues. To overcome the problem, all the MD custom objects are now using
-  JSON serialization and deserialization which does not have this side effect. To avoid
-  compatibility problems, in this release both serializers (pickle and JSON) are supported however,
-  the support for pickle will be dropped in future releases and only the JSON serializer will be kept.
+  JSON serialization and deserialization, which does not have this side effect. To avoid
+  compatibility problems, in this release both serializers (pickle and JSON) are supported. However,
+  the support for pickle will be dropped in future releases, and only the JSON serializer will be kept.
   The MDAPIDatasetConverterCube can be used to convert old datasets into new datasets where the
   JSON serializer/deserializer is used.
 
 New Cubes
 --------------------------------------------------------------------------------
-* Iterative NPT Cube. This Cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
-  on the provided system. If the MD cycle is complete, the Cube emits the record to the "success" port and 
+* Iterative NPT Cube. This cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
+  on the provided system. If the MD cycle is complete, the cube emits the record to the "success" port and
   if not, it emits the record to the "cycle_out_port" port. 
-* Iteration Checker Cube. This Cube checks if the MD cycle is complete. If the MD cycle is complete, 
-  it emits the record to the "true" output port and if not, it emits the record 
+* Iteration Checker Cube. This cube checks if the MD cycle is complete. If the MD cycle is complete,
+  it emits the record to the "true" output port, and if not, it emits the record
   to the "false" output port. 
 
 Cube Updates
@@ -35,10 +35,8 @@ Cube Updates
   been found.
 
 ======================
-
-
 v 1.1.6 June 2022
-=================
+======================
 
 General Notes
 ---------------------------------------------------------------------------------
