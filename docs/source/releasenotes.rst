@@ -34,7 +34,6 @@ Cube Updates
 * The ComplexPrepCube has been updated to raise a fatal error if the protein cannot
   been found.
 
-======================
 v 1.1.6 June 2022
 ======================
 
@@ -53,9 +52,6 @@ Cube Updates
 --------------------------------------------------------------------------------
 * All Cubes have been updated for improved exception handling.
 
-======================
-
-
 v 1.1.5 April 2022
 =================
 
@@ -73,9 +69,6 @@ New Cubes
 Cube Updates
 --------------------------------------------------------------------------------
 * All the MD Cubes are by default pinning g3 spot instances to improve reliability.
-
-======================
-
 
 v 1.1.2 December 2021
 =================
