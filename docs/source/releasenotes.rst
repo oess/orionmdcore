@@ -14,24 +14,24 @@ General Notes
   JSON serialization and deserialization, which does not have this side effect. To avoid
   compatibility problems, in this release both serializers (pickle and JSON) are supported. However,
   the support for pickle will be dropped in future releases, and only the JSON serializer will be kept.
-  The MDAPIDatasetConverterCube can be used to convert old datasets into new datasets where the
+  The :ref:`MDAPIDatasetConverterCube <cube_MDAPIDatasetConverterCube>` can be used to convert old datasets into new datasets where the
   JSON serializer/deserializer is used.
 
 New Cubes
 --------------------------------------------------------------------------------
-* Iterative NPT Cube. This cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
+* :ref:`Iterative NPT Cube <cube_IterMDNptCube>`. This cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
   on the provided system. If the MD cycle is complete, the cube emits the record to the "success" port and
   if not, it emits the record to the "cycle_out_port" port. 
-* Iteration Checker Cube. This cube checks if the MD cycle is complete. If the MD cycle is complete,
+* :ref:`Iteration Checker Cube <cube_IterChecker>`. This cube checks if the MD cycle is complete. If the MD cycle is complete,
   it emits the record to the "true" output port, and if not, it emits the record
   to the "false" output port. 
 
 Cube Updates
 --------------------------------------------------------------------------------
 
-* The MDAPIDatasetConverterCube has been updated to support the conversion from old
+* The :ref:`MDAPIDatasetConverterCube <cube_MDAPIDatasetConverterCube>` has been updated to support the conversion from old
   pickle datasets to the new JSON serializer/deserializer
-* The ComplexPrepCube has been updated to raise a fatal error if the protein cannot
+* The :ref:`ComplexPrepCube <cube_ComplexPrepCube>` has been updated to raise a fatal error if the protein cannot
   been found.
 
 v 1.1.6 June 2022
