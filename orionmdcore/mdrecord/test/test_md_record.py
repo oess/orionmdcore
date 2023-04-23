@@ -40,9 +40,15 @@ from tempfile import TemporaryDirectory
 
 import tarfile
 
-import pickle
+import json
 
 from orionmdcore.mdrecord import MDDataRecord
+
+from orionmdcore.mdengine.utils import MDState
+
+import numpy
+
+import gzip
 
 
 PACKAGE_DIR = os.path.dirname(os.path.dirname(orionmdcore.__file__))
@@ -232,18 +238,26 @@ class MDRecordTests(unittest.TestCase):
 
             state_fn = os.path.join(out_directory, MDFileNames.state)
 
-            with open(state_fn, "rb") as f:
-                md_state = pickle.load(f)
+            # with open(state_fn, "r") as f:
+            #     json_str = f.read()
 
-        self.assertEqual(
-            md_state.get_positions(), self.mdrecord.get_stage_state().get_positions()
+            with gzip.open(state_fn, 'rt', encoding='utf8') as f:
+                state_dic = json.load(f)
+
+            md_state = MDState()
+            md_state.__setstate_new_api__(state_dic)
+            md_state._new_api_in_use = True
+
+        self.assertTrue(
+            numpy.all(md_state.get_positions() == self.mdrecord.get_stage_state().get_positions())
         )
-        self.assertEqual(
-            md_state.get_velocities(), self.mdrecord.get_stage_state().get_velocities()
+
+        self.assertTrue(
+            numpy.all(md_state.get_velocities() == self.mdrecord.get_stage_state().get_velocities())
         )
-        self.assertEqual(
-            md_state.get_box_vectors(),
-            self.mdrecord.get_stage_state().get_box_vectors(),
+
+        self.assertTrue(
+            numpy.all(md_state.get_box_vectors() == self.mdrecord.get_stage_state().get_box_vectors())
         )
 
     @pytest.mark.travis

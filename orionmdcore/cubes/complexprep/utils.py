@@ -19,11 +19,11 @@
 
 try:
     from oeommtools import utils as oeommutils
-    from oeommtools import data_utils
 except ImportError:
     from orionmdcore import __installation__error__
     raise ImportError(__installation__error__)
 
+from orionmdcore.mdengine import data_utils
 
 from simtk.openmm import app
 

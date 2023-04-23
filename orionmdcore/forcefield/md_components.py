@@ -21,8 +21,6 @@ try:
 
     from oeommtools import utils as oeommutils
 
-    from oeommtools import data_utils
-
     from oeommtools.utils import sanitizeOEMolecule
 
     from openeye import oespruce
@@ -31,51 +29,58 @@ except ImportError:
 
     raise ImportError(__installation__error__)
 
-
-from orionmdcore.forcefield.utils import ff_library
+from orionmdcore.mdengine import data_utils
 
 from orionmdcore.forcefield.utils import (
+    ff_library,
     ParamMolStructure,
     parametrize_component,
     clean_tags,
 )
 
-
 from simtk.openmm import app
+
+from simtk import unit
+
+import simtk
+
+from simtk.openmm import Vec3
 
 import parmed
 
 from orionmdcore.forcefield import nsr_template_generator
 
-from io import StringIO
+import json
 
-import copy
+from io import StringIO
 
 import numpy as np
 
+import base64
+
 
 class MDComponents:
+
+    _component_names = [
+        "protein",
+        "ligand",
+        "other_ligands",
+        "counter_ions",
+        "metals",
+        "excipients",
+        "solvent",
+        "water",
+        "cofactors",
+        "other_cofactors",
+        "lipids",
+        "nucleic",
+        "other_nucleic",
+    ]
+
     def __init__(self, from_design_unit=None, from_molecule=None, components_title="Flask"):
 
         if from_design_unit is not None and from_molecule is not None:
             raise ValueError("The MD Components can be built from a Design Unit or from a Molecule, but NOT from both")
-
-        # MD allowed components
-        self._component_names = [
-            "protein",
-            "ligand",
-            "other_ligands",
-            "counter_ions",
-            "metals",
-            "excipients",
-            "solvent",
-            "water",
-            "cofactors",
-            "other_cofactors",
-            "lipids",
-            "nucleic",
-            "other_nucleic",
-        ]
 
         # Components found in the system_representation
         self._components = dict()
@@ -168,6 +173,7 @@ class MDComponents:
 
             # Reset Comp Order
             oechem.OEPDBOrderAtoms(comp, False)
+            comp.Sweep()
 
             if comp_id == oechem.OEDesignUnitComponents_Solvent:
                 # Separate Water from Spruce Solvent
@@ -258,35 +264,42 @@ class MDComponents:
             if protein.NumAtoms():
                 protein = clean_tags(protein)
                 # oechem.OEPDBOrderAtoms(protein, False)
+                # protein.Sweep()
                 self._components["protein"] = protein
             if ligand.NumAtoms():
                 ligand = clean_tags(ligand)
                 ligand = sanitizeOEMolecule(ligand)
                 # oechem.OEPDBOrderAtoms(ligand, False)
+                # ligand.Sweep()
                 self._components["ligand"] = ligand
             if water.NumAtoms():
                 water = clean_tags(water)
                 # oechem.OEPDBOrderAtoms(water, False)
+                # water.Sweep()
                 self._components["water"] = water
             if cofactors.NumAtoms():
                 cofactors = clean_tags(cofactors)
                 cofactors = sanitizeOEMolecule(cofactors)
                 # oechem.OEPDBOrderAtoms(cofactors, False)
+                # cofactors.Sweep()
                 self._components["cofactors"] = cofactors
             if lipids.NumAtoms():
                 lipids = clean_tags(lipids)
                 lipids = sanitizeOEMolecule(lipids)
                 # oechem.OEPDBOrderAtoms(lipids, False)
+                # lipids.Sweep()
                 self._components["lipids"] = lipids
             if metals.NumAtoms():
                 metals = clean_tags(metals)
                 metals = sanitizeOEMolecule(metals)
                 # oechem.OEPDBOrderAtoms(metals, False)
+                # metals.Sweep()
                 self._components["metals"] = metals
             if excipients.NumAtoms():
                 excipients = clean_tags(excipients)
                 excipients = sanitizeOEMolecule(excipients)
                 # oechem.OEPDBOrderAtoms(excipients, False)
+                # excipients.Sweep()
                 self._components["excipients"] = excipients
 
             print("Design Unit Built from Molecule")
@@ -327,19 +340,42 @@ class MDComponents:
                     oechem.OESubsetMol(partmol, comp, pred)
                     impl.SetComponent(component_id, partmol)
 
-        # This call forces a finalize design unit call on inside the DU object
+        # This call forces a finalized design unit call on inside the DU object
         oechem.OEUpdateDesignUnit(
             du, self._components["protein"], oechem.OEDesignUnitComponents_Protein
         )
 
-    def __getstate__(self):
-        def mol_to_bytes(mol):
-            return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+    # def __getstate__(self):
+    #     def mol_to_bytes(mol):
+    #         return oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, True, mol)
+    #
+    #     state = dict()
+    #     list_comp_name = list()
+    #     for comp_name in self._components:
+    #         state[comp_name] = mol_to_bytes(self._components[comp_name])
+    #         list_comp_name.append(comp_name)
+    #
+    #     for name in self._component_names:
+    #         if name not in list_comp_name:
+    #             state[name] = None
+    #
+    #     state["components_title"] = self._components_title
+    #     state["box_vectors"] = (
+    #         data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
+    #     )
+    #
+    #     return state
 
-        state = dict()
+    def __getstate__(self):
+        def mol_to_json(mol):
+            mol_bytes = oechem.OEWriteMolToBytes(oechem.OEFormat_OEB, False, mol)
+            mol_str = base64.b64encode(mol_bytes).decode(encoding='utf-8')
+            return mol_str
+
+        state = {"version": 1}
         list_comp_name = list()
         for comp_name in self._components:
-            state[comp_name] = mol_to_bytes(self._components[comp_name])
+            state[comp_name] = mol_to_json(self._components[comp_name])
             list_comp_name.append(comp_name)
 
         for name in self._component_names:
@@ -347,35 +383,31 @@ class MDComponents:
                 state[name] = None
 
         state["components_title"] = self._components_title
-        state["box_vectors"] = (
-            data_utils.encodePyObj(self._box_vectors) if self._box_vectors else None
-        )
+
+        if self.get_box_vectors is not None:
+            box_vec_list = list()
+            for ln in self.get_box_vectors:
+                box_vec_list.append((ln.value_in_unit(unit.angstroms)[0],
+                                     ln.value_in_unit(unit.angstroms)[1],
+                                     ln.value_in_unit(unit.angstroms)[2]))
+
+            box_vec = tuple(box_vec_list)
+        else:
+            box_vec = None
+
+        state["box_vectors"] = json.dumps(box_vec)
 
         return state
 
     def __setstate__(self, state):
-
-        # MD allowed components
-        self._component_names = [
-            "protein",
-            "ligand",
-            "other_ligands",
-            "counter_ions",
-            "metals",
-            "excipients",
-            "solvent",
-            "water",
-            "cofactors",
-            "other_cofactors",
-            "lipids",
-            "nucleic",
-            "other_nucleic",
-        ]
-
         def mol_from_bytes(mol_bytes):
             mol = oechem.OEMol()
             oechem.OEReadMolFromBytes(mol, oechem.OEFormat_OEB, True, mol_bytes)
             return mol
+
+        component_mapping = {name: name for name in self._component_names}
+        component_mapping["nucleics"] = "nucleic"
+        component_mapping["other_nucleics"] = "other_nucleic"
 
         self._components = dict()
         # self._total_atoms = 0
@@ -394,18 +426,64 @@ class MDComponents:
                     self._box_vectors = None
                 continue
 
-            if comp_name not in self._component_names:
+            if comp_name not in component_mapping:
                 raise ValueError("Cannot Deserialize Component {}".format(comp_name))
 
             mol = mol_from_bytes(comp) if comp else None
 
             if mol is not None and mol.IsValid():
+                comp_name = component_mapping[comp_name]
+                self._components[comp_name] = mol
+
+    def __setstate_new_api__(self, state):
+        def mol_from_json(json_str):
+            mol_bytes = base64.b64decode(json_str)
+            oe_mol = oechem.OEMol()
+            oechem.OEReadMolFromBytes(oe_mol, oechem.OEFormat_OEB, True, mol_bytes)
+            return oe_mol
+
+        self._components = dict()
+        # self._total_atoms = 0
+
+        for comp_name, comp in state.items():
+            if comp_name == "version":  # unused for now
+                continue
+
+            if comp_name == "components_title":
+                self._components_title = comp
+                continue
+
+            if comp_name == "box_vectors":
+                if comp is not None:
+                    box_vec = json.loads(comp)
+                    self._box_vectors = box_vec
+                else:
+                    self._box_vectors = None
+                continue
+
+            if comp_name not in self._component_names:
+                raise ValueError("Cannot Deserialize Component {}".format(comp_name))
+
+            mol = mol_from_json(comp) if comp else None
+
+            if mol is not None and mol.IsValid():
+
+                # # TODO DEBUGGUNG
+                # if comp_name == 'protein' or \
+                #         comp_name == 'nucleic' or \
+                #         comp_name == 'other_nucleic':
+                #     oechem.OEPDBOrderAtoms(mol, False)
+                # ########
+
                 self._components[comp_name] = mol
 
     @property
     def copy(self):
-        data = copy.deepcopy(self)
-        return data
+        new_md_comp = MDComponents()
+        new_md_comp._components = self._components
+        new_md_comp._components_title = self._components_title
+        new_md_comp._box_vectors = self._box_vectors
+        return new_md_comp
 
     @property
     def num_atoms(self):
@@ -711,13 +789,29 @@ class MDComponents:
     @property
     def get_box_vectors(self):
         if self._box_vectors is not None:
-            return self._box_vectors
+
+            # old API
+            if isinstance(self._box_vectors, simtk.unit.quantity.Quantity):
+                return self._box_vectors
+
+            else:
+                return (Vec3(self._box_vectors[0][0], self._box_vectors[0][1], self._box_vectors[0][2]),
+                            Vec3(self._box_vectors[1][0], self._box_vectors[1][1], self._box_vectors[1][2]),
+                            Vec3(self._box_vectors[2][0], self._box_vectors[2][1], self._box_vectors[2][2])) * unit.angstroms
+
         else:
-            print("WARNING: Box Vectors have not been found")
+            print("WARNING: MDComponents Box Vectors cannot be found")
             return None
 
     def set_box_vectors(self, box_vectors):
-        self._box_vectors = box_vectors
+
+        box_vec_list = list()
+        for ln in box_vectors:
+            box_vec_list.append((ln.value_in_unit(unit.angstroms)[0],
+                                 ln.value_in_unit(unit.angstroms)[1],
+                                 ln.value_in_unit(unit.angstroms)[2]))
+
+        self._box_vectors = tuple(box_vec_list)
 
     @property
     def get_title(self):
@@ -1212,36 +1306,77 @@ class ParametrizeMDComponents:
     @property
     def parametrize_components(self):
 
-        flask_pmd = parmed.Structure()
+        # flask_pmd = parmed.Structure()
+
+        flask_pmd = None
 
         for comp_name, comp in self.md_components.get_components.items():
 
             if comp_name == "protein":
-                flask_pmd += self.parametrize_protein
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_protein
+                else:
+                    flask_pmd += self.parametrize_protein
             elif comp_name == "ligand":
-                flask_pmd += self.parametrize_ligand
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_ligand
+                else:
+                    flask_pmd += self.parametrize_ligand
             elif comp_name == "other_ligands":
-                flask_pmd += self.parametrize_other_ligands
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_ligands
+                else:
+                    flask_pmd += self.parametrize_other_ligands
             elif comp_name == "counter_ions":
-                flask_pmd += self.parametrize_counter_ions
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_counter_ions
+                else:
+                    flask_pmd += self.parametrize_counter_ions
             elif comp_name == "metals":
-                flask_pmd += self.parametrize_counter_ions
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_counter_ions
+                else:
+                    flask_pmd += self.parametrize_counter_ions
             elif comp_name == "excipients":
-                flask_pmd += self.parametrize_excipients
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_excipients
+                else:
+                    flask_pmd += self.parametrize_excipients
             elif comp_name == "solvent":
-                flask_pmd += self.parametrize_solvent
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_solvent
+                else:
+                    flask_pmd += self.parametrize_solvent
             elif comp_name == "water":
-                flask_pmd += self.parametrize_water
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_water
+                else:
+                    flask_pmd += self.parametrize_water
             elif comp_name == "cofactors":
-                flask_pmd += self.parametrize_cofactors
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_cofactors
+                else:
+                    flask_pmd += self.parametrize_cofactors
             elif comp_name == "other_cofactors":
-                flask_pmd += self.parametrize_other_cofactors
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_cofactors
+                else:
+                    flask_pmd += self.parametrize_other_cofactors
             elif comp_name == "lipids":
-                flask_pmd += self.parametrize_lipids
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_lipids
+                else:
+                    flask_pmd += self.parametrize_lipids
             elif comp_name == "nucleic":
-                flask_pmd += self.parametrize_nucleic
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_nucleic
+                else:
+                    flask_pmd += self.parametrize_nucleic
             elif comp_name == "other_nucleic":
-                flask_pmd += self.parametrize_other_nucleic
+                if flask_pmd is None:
+                    flask_pmd = self.parametrize_other_nucleic
+                else:
+                    flask_pmd += self.parametrize_other_nucleic
             else:
                 raise ValueError(
                     "The parametrization of the component {} is not supported".format(

@@ -2,9 +2,40 @@
 Release Notes
 #############
 
+v 2.0.1 April 2023
+====================
+
+General Notes
+---------------------------------------------------------------------------------
+* Since the first MD pkg release, we have been using Pickle to serialize and deserialize MD custom objects
+  passed along the OpenEye data records. A main side effect of pickling them is that
+  the class objects API is embedded inside the produced dataset. Therefore, updating the object APIs
+  could generate issues. To overcome the problem, all the MD custom objects are now using
+  JSON serialization and deserialization, which does not have this side effect. To avoid
+  compatibility problems, in this release both serializers (pickle and JSON) are supported. However,
+  the support for pickle will be dropped in future releases, and only the JSON serializer will be kept.
+  The :ref:`MDAPIDatasetConverterCube <cube_MDAPIDatasetConverterCube>` can be used to convert old datasets into new datasets where the
+  JSON serializer/deserializer is used.
+
+New Cubes
+--------------------------------------------------------------------------------
+* :ref:`Iterative NPT Cube <cube_IterMDNptCube>`. This cube performs NPT MD simulations in the cyclic MD Floe (Plain MD Floe)
+  on the provided system. If the MD cycle is complete, the cube emits the record to the "success" port and
+  if not, it emits the record to the "cycle_out_port" port. 
+* :ref:`Iteration Checker Cube <cube_IterChecker>`. This cube checks if the MD cycle is complete. If the MD cycle is complete,
+  it emits the record to the "true" output port, and if not, it emits the record
+  to the "false" output port. 
+
+Cube Updates
+--------------------------------------------------------------------------------
+
+* The :ref:`MDAPIDatasetConverterCube <cube_MDAPIDatasetConverterCube>` has been updated to support the conversion from old
+  pickle datasets to the new JSON serializer/deserializer
+* The :ref:`ComplexPrepCube <cube_ComplexPrepCube>` has been updated to raise a fatal error if the protein cannot
+  been found.
 
 v 1.1.6 June 2022
-=================
+======================
 
 General Notes
 ---------------------------------------------------------------------------------
@@ -20,9 +51,6 @@ New Cubes
 Cube Updates
 --------------------------------------------------------------------------------
 * All Cubes have been updated for improved exception handling.
-
-======================
-
 
 v 1.1.5 April 2022
 =================
@@ -41,9 +69,6 @@ New Cubes
 Cube Updates
 --------------------------------------------------------------------------------
 * All the MD Cubes are by default pinning g3 spot instances to improve reliability.
-
-======================
-
 
 v 1.1.2 December 2021
 =================

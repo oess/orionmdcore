@@ -55,7 +55,11 @@ from tqdm import tqdm
 
 import click
 
+import gzip
 
+import json
+
+from orionmdcore.standards.utils import json_to_parmed
 
 @click.group(
     context_settings={
@@ -198,15 +202,30 @@ def data_trajectory_extraction(ctx, name, only):
                 protein_shard = session.get_resource(Shard(collection=collection), pmd_id)
 
                 with TemporaryDirectory() as output_directory:
-                    parmed_fn = os.path.join(output_directory, "parmed.pickle")
 
-                    protein_shard.download_to_file(parmed_fn)
+                    try:
+                        parmed_fn = os.path.join(output_directory, "parmed.json")
 
-                    with open(parmed_fn, 'rb') as f:
-                        parm_dic = pickle.load(f)
+                        protein_shard.download_to_file(parmed_fn)
 
-                    pmd_structure = parmed.structure.Structure()
-                    pmd_structure.__setstate__(parm_dic)
+                        with gzip.open(parmed_fn, 'rt', encoding='utf8') as f:
+                            pmd_json = json.load(f)
+
+                        # with open(parmed_fn, 'r') as f:
+                        #     pmd_json = json.load(f)
+                        pmd_structure = json_to_parmed(pmd_json)
+
+                    except:
+
+                        parmed_fn = os.path.join(output_directory, "parmed.pickle")
+
+                        protein_shard.download_to_file(parmed_fn)
+
+                        with open(parmed_fn, 'rb') as f:
+                            parm_dic = pickle.load(f)
+
+                        pmd_structure = parmed.structure.Structure()
+                        pmd_structure.__setstate__(parm_dic)
 
                 new_record.delete_field(OEField('Structure_Parmed_OPLMD', Types.Int))
                 new_record.set_value(Fields.pmd_structure, pmd_structure)

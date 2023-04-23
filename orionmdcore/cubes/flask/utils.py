@@ -20,7 +20,11 @@ from datarecord import OEField, Types
 from orionmdcore.mdrecord import MDDataRecord
 from orionmdcore.mdengine.utils import MDState
 from orionmdcore.forcefield import MDComponents
+from orionmdcore.standards import Fields
 from openeye import oechem
+import tempfile
+
+from orionclient.session import in_orion
 
 
 def get_human_readable(size, precision=2):
@@ -70,7 +74,7 @@ def parser_log_old_api(logs):
     return info_dic
 
 
-def convert(record):
+def api_convert_4(record):
     oetraj_rec_field = OEField("OETraj", Types.Record)
     lig_traj_field = OEField("LigTraj", Types.Chem.Mol)
     water_traj_field = OEField("WatTraj", Types.Chem.Mol)
@@ -258,3 +262,108 @@ def convert(record):
                 record.set_value(oetrajconf_rec_fd, new_conf_records)
 
     return record
+
+
+def api_converter_5(rec_in, rec_out):
+    mdrec_in = MDDataRecord(rec_in)
+
+    mdrec_out = MDDataRecord(rec_out)
+
+    if hasattr(mdrec_in, 'collection_id'):
+        mdrec_out.collection_id = mdrec_in.collection_id
+
+    for fd in rec_in.get_fields(include_meta=True):
+
+        print(">>>>>>>>>>>", fd.get_name())
+
+        if fd.get_name() == Fields.md_components.get_name():
+            md_comp = mdrec_in.get_md_components
+            if md_comp._new_api_in_use:
+                print(">>>>>\tAlready Converted to the NEW API")
+            mdrec_out.set_md_components(md_comp)
+        elif fd.get_name() == Fields.pmd_structure.get_name():
+            pmd = mdrec_in.get_parmed()
+            if pmd._new_api_in_use:
+                print(">>>>>\tAlready Converted to the NEW API")
+                mdrec_out.set_value(Fields.pmd_structure, rec_in.get_value(Fields.pmd_structure))
+            else:
+                mdrec_out.set_parmed(pmd)
+
+        elif fd.get_name() == Fields.md_stages.get_name():
+            for stg_name in mdrec_in.get_stages_names:
+
+                print(">>>>>>>>>>>", stg_name)
+
+                stage_rec = mdrec_in.get_stage_by_name(stg_name)
+
+                mdstate = mdrec_in.get_stage_state(stg_name=stg_name)
+
+                if mdstate._new_api_in_use:
+                    print(">>>>>\tAlready Converted to the NEW API")
+                    try:
+                        stages = mdrec_out.get_stages
+                        stages.append(stage_rec)
+                        mdrec_out.get_record.set_value(Fields.md_stages, stages)
+                    except:
+                        mdrec_out.get_record.set_value(Fields.md_stages, [stage_rec])
+
+                    continue
+
+                stage_type = stage_rec.get_value(Fields.stage_type)
+                topology = mdrec_in.get_stage_topology(stg_name=stg_name)
+
+                pmd = mdrec_in.get_parmed(sync_stage_name=stg_name)
+                mdstate = MDState(pmd)
+
+                md_data = stage_rec.get_value(Fields.mddata)
+
+                if isinstance(md_data, str):
+                    data_fn = 'x' + stage_rec.get_value(Fields.mddata)
+                else:
+                    data_fn = 'xtmp_' + next(tempfile._get_candidate_names())
+
+                logs = mdrec_in.get_stage_logs(stg_name=stg_name)
+                info = mdrec_in.get_stage_info(stg_name=stg_name)
+
+                if not mdrec_out.add_new_stage(stg_name,
+                                               stage_type,
+                                               topology,
+                                               mdstate,
+                                               data_fn,
+                                               append=True,
+                                               log=logs,
+                                               info=info):
+                    raise ValueError("Failed to Add stage: {}".format(stg_name))
+
+                trj_fn = stage_rec.get_value(Fields.trajectory)
+
+                if trj_fn:
+                    trj_field = stage_rec.get_field(Fields.trajectory.get_name(), include_meta=True)
+                    edit_stage_rec = mdrec_out.get_stage_by_name(stg_name)
+                    edit_stage_rec.set_value(trj_field, trj_fn)
+                    stages = mdrec_out.get_stages
+                    stages[-1] = edit_stage_rec
+                    mdrec_out.get_record.set_value(Fields.md_stages, stages)
+
+        elif fd.get_type() == oechem.Types.Record:
+            rec_tmp_in = rec_in.get_value(fd)
+            rec_tmp_out = oechem.OERecord()
+
+            gac_tmp = api_converter_5(rec_tmp_in, rec_tmp_out)
+
+            rec_out.set_value(fd, gac_tmp)
+
+        elif fd.get_type() == oechem.Types.RecordVec:
+            rec_list = rec_in.get_value(fd)
+            out_rec_list = list()
+            for rec_tmp in rec_list:
+                new_rec = oechem.OERecord()
+                o_tmp_rec = api_converter_5(rec_tmp, new_rec)
+                out_rec_list.append(o_tmp_rec)
+            rec_out.set_value(fd, out_rec_list)
+
+        else:
+            rec_out.set_value(fd, rec_in.get_value(fd))
+
+    return rec_out
+

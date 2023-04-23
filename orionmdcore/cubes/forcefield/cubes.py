@@ -127,7 +127,9 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                 # raise ValueError("MD Components Field is missing")
                 raise ValueError('The record does not have field {}'.format(Fields.md_components.get_name()))
 
-            md_components = record.get_value(Fields.md_components)
+            md_rec = MDDataRecord(record)
+            md_components = md_rec.get_md_components
+
             flask, map_comp = md_components.create_flask
 
             opt["Logger"].info(md_components.get_info)
@@ -223,7 +225,8 @@ class ForceFieldCube(RecordPortsMixin, ComputeCube):
                 md_components.set_component_by_name(comp_name, comp)
 
             # Update the components after setting the charges
-            record.set_value(Fields.md_components, md_components)
+            md_rec = MDDataRecord(record)
+            md_rec.set_md_components(md_components)
 
             # Check if it is possible to create the OpenMM Flask
             if is_periodic:

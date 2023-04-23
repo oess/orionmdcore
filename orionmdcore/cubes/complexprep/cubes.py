@@ -47,6 +47,8 @@ from orionmdcore.cubes.complexprep.utils import clash_detection
 
 from orionmdcore.forcefield import MDComponents
 
+from orionmdcore.mdrecord import MDDataRecord
+
 
 class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
     title = "Complex Preparation"
@@ -100,14 +102,12 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
         for record in self.protein_port:
 
             if record.has_value(Fields.md_components):
-                self.md_components = record.get_value(Fields.md_components)
+                md_rec = MDDataRecord(record)
+                self.md_components = md_rec.get_md_components
 
         return
 
     def process(self, record, port):
-
-        # Initialize ligand_title for exception handling
-        ligand_title = ""
 
         try:
             opt = dict(self.opt)
@@ -115,7 +115,6 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
             if port == "intake":
 
                 if not record.has_value(Fields.primary_molecule):
-                    # raise ValueError("Missing the ligand primary molecule field")
                     raise ValueError('The record does not have field {}'.format(Fields.primary_molecule.get_name()))
 
                 ligand = record.get_value(Fields.primary_molecule)
@@ -142,34 +141,20 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                                 )
                             )
                         else:
-                            # raise ValueError(
-                            #     "It was not possible to detect the Protein Component "
-                            #     "from the protein nor from the ligand ports"
-                            # )
-                            raise ValueError(
+                            raise IOError(
                                 "Protein has not been found on either the protein port "
                                 "nor the ligand port"
                         )
                     else:
-                        # raise ValueError(
-                        #     "Protein has not been found on either the protein port "
-                        #     "nor the ligand port. no protein to complex with ligand {}".format(
-                        #         ligand.GetTitle()
-                        #     )
-                        # )
-                        raise ValueError(
+                        raise IOError(
                             "Protein has not been found on either the protein port "
                             "nor the ligand port"
                         )
+
                 else:
                     md_components = self.md_components
 
                 if ligand.NumConfs() > 1:
-                    # raise ValueError(
-                    #     "The ligand {} has multiple conformers: {}".format(
-                    #         ligand.GetTitle(), ligand.GetNumConfs()
-                    #     )
-                    # )
                     raise ValueError(
                         "The ligand has multiple conformers"
                     )
@@ -210,11 +195,6 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
 
                         if not opt["ignore_protein_ligand_clashes"]:
                             if len(protein_severe_clashes[0]) >= 2:
-                                # raise ValueError(
-                                #     "Severe clashes detected between the protein and the ligand: {}\n{}".format(
-                                #         ligand_title, protein_severe_clashes[1]
-                                #     )
-                                # )
                                 raise ValueError(
                                     "Severe clashes detected between the protein and the ligand"
                                 )
@@ -245,11 +225,6 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                         ) = clash_detection(ligand, comp)
 
                         if len(cofactor_severe_clashes[0]) >= 1:
-                            # raise ValueError(
-                            #     "Severe clashes detected between the cofactors and the ligand: {}\n{}".format(
-                            #         ligand_title, cofactor_severe_clashes[1]
-                            #     )
-                            # )
                             raise ValueError(
                                 "Severe clashes detected between the cofactors and the ligand"
                             )
@@ -299,11 +274,6 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                 smi_ligand = oechem.OECreateSmiString(ligand)
 
                 if smi_ligand != smi_lig_check:
-                    # raise ValueError(
-                    #     "Ligand IsoSmiles String check failure: {} vs {}".format(
-                    #         smi_lig_check, smi_ligand
-                    #     )
-                    # )
                     raise ValueError(
                         "Ligand IsoSmiles String check failed"
                     )
@@ -322,9 +292,20 @@ class ComplexPrepCube(RecordPortsMixin, ExceptHandlerMixin, ComputeCube):
                     protein_name = "prot"
 
                 new_record.set_value(Fields.protein_name, protein_name)
-                new_record.set_value(Fields.md_components, mdcomp)
+                md_new_rec = MDDataRecord(new_record)
+                md_new_rec.set_md_components(mdcomp)
 
                 self.success.emit(new_record)
+
+        except IOError as e:
+            msg = "{} Cube Fatal: {}".format(self.title, str(e))
+            self.opt["Logger"].error(msg)
+            self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
+            self.fatal.emit(record)
+            raise IOError(msg)
 
         except Exception as e:
             msg = "{} Cube exception: {}".format(self.title, str(e))
