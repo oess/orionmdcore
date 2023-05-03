@@ -225,7 +225,12 @@ def determine_cube_run_time(record_info_dic, min=0.25, max=1.0, infimum=80000, s
     else: 
         return run_time_raw
 
-def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, start_iter_index=0):
+
+def round_down_to_multiple(number, multiple):
+    from math import floor
+    return multiple * floor(number / multiple)
+
+def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, size_dependent_schedule=True, start_iter_index=0):
 
     speed_ns_per_day = record_info_dic["speed_ns_per_day"]
     hmr = record_info_dic["hmr"]
@@ -239,11 +244,15 @@ def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, start_iter_i
         else:
             time_step = 2 * unit.femtoseconds
 
-    # Flexible adjustment of cube run time based on the flask size
-    if cube_param_dic["cube_max_run_time"] ==1: 
-        cube_run_time = determine_cube_run_time(record_info_dic) * unit.hours
+    if size_dependent_schedule: 
+        # Flexible adjustment of cube run time based on the flask size
+        if cube_param_dic["cube_max_run_time"] ==1: 
+            cube_run_time = determine_cube_run_time(record_info_dic) * unit.hours
+        else: 
+            cube_run_time = cube_param_dic["cube_max_run_time"] * unit.hours
     else: 
         cube_run_time = cube_param_dic["cube_max_run_time"] * unit.hours
+
     time = cube_param_dic["time"] * unit.nanoseconds
     time_ns = time.in_units_of(unit.nanoseconds)
     total_steps = math.ceil(time_ns / time_step)
@@ -256,12 +265,15 @@ def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, start_iter_i
     )
     running_time_per_cycle_in_ns = running_time_per_cycle.in_units_of(unit.nanoseconds)
 
-    md_steps_per_cycle = int(running_time_per_cycle_in_ns / time_step)
+    running_time_per_cycle_in_ns_rounded = round_down_to_multiple(running_time_per_cycle_in_ns.value_in_unit(unit.nanoseconds), trajectory_interval_ns.value_in_unit(unit.nanosecond)) 
+    running_time_per_cycle_in_ns_rounded *= unit.nanoseconds
 
-    cycles = int(time_ns / running_time_per_cycle_in_ns)
+    md_steps_per_cycle = int(running_time_per_cycle_in_ns_rounded / time_step)
+
+    cycles = int(time_ns / running_time_per_cycle_in_ns_rounded)
     cycle_rem = time_ns.value_in_unit(
         unit.nanoseconds
-    ) % running_time_per_cycle_in_ns.value_in_unit(unit.nanoseconds)
+    ) % running_time_per_cycle_in_ns_rounded.value_in_unit(unit.nanoseconds)
 
     trajectory_steps = int(
         round(
