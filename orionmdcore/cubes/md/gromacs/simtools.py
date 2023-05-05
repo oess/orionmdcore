@@ -25,8 +25,12 @@ except ImportError:
 
 from simtk import unit
 
-from simtk.openmm import app
-from simtk.openmm import Platform
+try:
+    from simtk.openmm import app
+    from simtk.openmm import Platform
+except ImportError:
+    from openmm import app
+    from openmm import Platform
 
 import simtk
 

@@ -31,9 +31,14 @@ import numpy as np
 
 from sys import stdout
 
-from simtk import unit, openmm
+from simtk import unit
 
-from simtk.openmm import app
+import openmm
+
+try:
+    from simtk.openmm import app
+except ImportError:
+    from openmm import app
 
 from platform import uname
 
@@ -54,8 +59,6 @@ try:
     have_gzip = True
 except:
     have_gzip = False
-
-import simtk.openmm as mm
 
 import math
 
@@ -1170,7 +1173,7 @@ class StateDataReporterName(object):
                     dof += 3
             dof -= system.getNumConstraints()
             if any(
-                type(system.getForce(i)) == mm.CMMotionRemover
+                type(system.getForce(i)) == openmm.CMMotionRemover
                 for i in range(system.getNumForces())
             ):
                 dof -= 3

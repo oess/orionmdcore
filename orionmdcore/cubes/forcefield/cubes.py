@@ -43,7 +43,10 @@ from orionmdcore.standards.utils import check_filename
 
 from orionmdcore.mdengine.utils import MDState
 
-from simtk.openmm import app
+try:
+    from simtk.openmm import app
+except ImportError:
+    from openmm import app
 
 from simtk import unit
 

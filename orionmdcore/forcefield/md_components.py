@@ -38,13 +38,16 @@ from orionmdcore.forcefield.utils import (
     clean_tags,
 )
 
-from simtk.openmm import app
+try:
+    from simtk.openmm import app
+    from simtk.openmm import Vec3
+except ImportError:
+    from openmm import app
+    from openmm import Vec3
 
 from simtk import unit
 
 import simtk
-
-from simtk.openmm import Vec3
 
 import parmed
 

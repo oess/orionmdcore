@@ -25,7 +25,10 @@ except ImportError:
 
 from orionmdcore.mdengine import data_utils
 
-from simtk.openmm import app
+try:
+    from simtk.openmm import app
+except ImportError:
+    from openmm import app
 
 import numpy as np
 

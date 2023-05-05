@@ -35,7 +35,10 @@ from io import StringIO
 
 from lxml import etree
 
-from simtk.openmm.app.forcefield import NonbondedGenerator
+try:
+    from simtk.openmm.app.forcefield import NonbondedGenerator
+except ImportError:
+    from openmm.app.forcefield import NonbondedGenerator
 
 
 def nsr_template_generator(
@@ -50,10 +53,10 @@ def nsr_template_generator(
     -----------
     protein: OEMol molecule
         The protein with the NSR to parametrize
-    omm_topology: simtk.openmm.app.topology.Topology
+    omm_topology: openmm.app.topology.Topology
         The openmm protein topology in sync with the oe protein molecule
 
-    omm_forcefield: simtk.openmm.app.forcefield.ForceField
+    omm_forcefield: openmm.app.forcefield.ForceField
         The OpenMM ForceField used to parametrize the protein
 
     openff: string

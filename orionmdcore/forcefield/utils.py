@@ -37,9 +37,12 @@ import os
 
 import shutil
 
-from simtk.openmm.app import AmberInpcrdFile, AmberPrmtopFile
-
-from simtk.openmm import app
+try:
+    from simtk.openmm.app import AmberInpcrdFile, AmberPrmtopFile
+    from simtk.openmm import app
+except ImportError:
+    from openmm.app import AmberInpcrdFile, AmberPrmtopFile
+    from openmm import app
 
 from openff.toolkit.typing.engines.smirnoff import ForceField
 

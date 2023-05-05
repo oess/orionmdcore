@@ -35,9 +35,14 @@ import pytest
 
 from orionmdcore.cubes.md import MDMinimizeCube, MDNvtCube, MDNptCube
 
-from simtk import unit, openmm
+from simtk import unit
 
-from simtk.openmm import app
+import openmm
+
+try:
+    from simtk.openmm import app
+except ImportError:
+    from openmm import app
 
 import orionmdcore
 

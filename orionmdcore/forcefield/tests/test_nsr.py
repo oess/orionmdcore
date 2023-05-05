@@ -28,9 +28,11 @@ from orionmdcore.forcefield import nsr_template_generator
 
 from orionmdcore.forcefield.ff_library import Default
 
-
-from simtk.openmm.app import ForceField
-
+try:
+    from simtk.openmm.app import ForceField
+except ImportError:
+    from openmm.app import ForceField
+    
 from io import StringIO
 
 import unittest
