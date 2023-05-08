@@ -38,6 +38,7 @@ from orionmdcore.standards.standards import (
     MDEngines,
     MDStageNames,
     Fields,
+    MDFileNames
 )
 
 from orionmdcore.mdrecord.mdrecord import MDDataRecord
@@ -61,6 +62,19 @@ from snowball import GPU_INSTANCE_TYPES_SUPPORT_FOR_MD
 
 from orionclient.session import in_orion
 
+import mdtraj
+
+import glob
+
+import gzip
+
+import tarfile
+
+from tempfile import TemporaryDirectory
+
+import json
+
+import tempfile
 
 class IterMDNptCube(RecordPortsMixin, ComputeCube):
     title = "Iterative NPT Cube"
@@ -548,27 +562,44 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                     if k in opt:
                         info_dic[k] = opt[k]
 
-                try:
-                    mdrecord.add_new_stage(
-                        opt["CubeTitle"],
-                        MDStageTypes.NPT,
-                        flask,
-                        new_mdstate,
-                        data_fn,
-                        append=opt["save_md_stage"],
-                        log=opt["str_logger"],
-                        info=info_dic,
-                        trajectory_fn=trajectory_fn,
-                        trajectory_engine=trajectory_engine,
-                        trajectory_orion_ui=trajectory_orion_ui,
-                    )
-                    # reset cube_parameters_update
-                    new_dic = {
-                        "time": time_remain
-                    }
-                    record.set_value(Fields.cube_parameters_update, new_dic)
-                except: 
-                    raise ValueError("Problems adding in the new NPT Stage")
+                max_attempt = 5
+
+                for try_count in range(0, max_attempt):
+                
+                    print("....Attempt {} to add new stage: {}".format(try_count + 1, opt["CubeTitle"]))
+                    success = False
+
+                    try: 
+                        mdrecord.add_new_stage(
+                            opt["CubeTitle"],
+                            MDStageTypes.NPT,
+                            flask,
+                            new_mdstate,
+                            data_fn,
+                            append=opt["save_md_stage"],
+                            log=opt["str_logger"],
+                            info=info_dic,
+                            trajectory_fn=trajectory_fn,
+                            trajectory_engine=trajectory_engine,
+                            trajectory_orion_ui=trajectory_orion_ui,
+                        )
+                        # reset cube_parameters_update
+                        new_dic = {
+                            "time": time_remain
+                        }
+                        record.set_value(Fields.cube_parameters_update, new_dic)
+                        success=True
+
+                    except Exception as e:
+                        if mdrecord.has_stage_name(stg_name=opt["CubeTitle"]):
+                            mdrecord.delete_stage_by_name(stg_name=opt["CubeTitle"])
+
+                    if success:
+                        print("....Done adding new stage {}".format(opt["CubeTitle"]))
+                        break
+
+                if try_count == max_attempt - 1:
+                    raise ValueError("Failed to add new stage: {}".format(opt["CubeTitle"]))
 
                 self.cycle_out_port.emit(mdrecord.get_record)
 
@@ -606,7 +637,7 @@ class ParallelIterMDNptCube(ParallelMixin, IterMDNptCube):
         "item_count": {"default": 1},  # 1 molecule at a time
     }
 
-class IterChecker(ComputeCube):
+class IterChecker(RecordPortsMixin, ComputeCube):
     title = "Iteration Checker Cube"
     classification = [["MD Simulations"]]
     tags = ["Gromacs", "OpenMM"]
@@ -618,22 +649,236 @@ class IterChecker(ComputeCube):
     related = ["BooleanFieldSwitch"]
     uuid = "049765be-de4f-4c58-81a5-5bf2b5b00ff0"
 
+    # for Exception Handler
+    log_field = LogFieldParam()
+
+    # Override defaults for some parameters
+    parameter_overrides = {
+        "memory_mb": {"default": 32000},
+        "disk_space": {"default": 100000},
+        "spot_policy": {"default": "Prohibited"},
+        "prefetch_count": {"default": 1},  # 1 molecule at a time
+        "item_count": {"default": 1}  # 1 molecule at a time
+    }
+    
     cycle_in_port = RecordInputPort("cycle_in_port")
     intake = RecordInputPort("intake")
 
     true = RecordOutputPort()    
     false = RecordOutputPort()
 
-    recover_out_port = RecordOutputPort(
-        "recover_out_port",
-    )
+    recover_out_port = RecordOutputPort("recover_out_port")
 
+    def begin(self):
+        self.opt = vars(self.args)
+        self.opt["Logger"] = self.log
+
+        return
+    
     def process(self, record, port):
-        if port == "cycle_in_port":
-            self.true.emit(record)
-            self.recover_out_port.emit(record)
+        
+        try:
+            opt = dict(self.opt)
+            opt["CubeTitle"] = self.title 
             
-        elif port == "intake":
-            self.false.emit(record)
+            if port == "cycle_in_port":
+                self.true.emit(record)
+                self.recover_out_port.emit(record)
+                
+            elif port == "intake":                
+                # mdrecord = MDDataRecord(record)
+                
+                # # 1. Get topology, mdstate, info_dic and log from the last state
+                # last_flask = mdrecord.get_stage_topology(stg_name="last")
+                # last_mdstate = mdrecord.get_stage_state(stg_name="last")
+                # last_info_dic = mdrecord.get_stage_info(stg_name="last")
+                # last_stage_log = mdrecord.get_stage_logs(stg_name="last")
+
+                # system_title = mdrecord.get_title
+                # system_id = mdrecord.get_flask_id
+                # suffix = "comb"
+
+                # # 2. set filenames
+                # cwd = mdrecord.cwd
+                # out_directory = cwd
+                # out_fn = check_filename(
+                #         out_directory
+                #         + "_"
+                #         + system_title + "_"
+                #         + str(system_id)
+                #         + "-"
+                #         + suffix
+                # )
+                # data_fn = out_fn + ".tar.gz"
+                # tar_fn = out_fn + "_" + "traj.tar.gz"
+
+                # # 3. get trajectory_engine and trajectory_orion_ui
+                # if last_info_dic["md_engine"] == MDEngines.OpenMM:
+                #     trajectory_engine = MDEngines.OpenMM
+                #     traj_ext = '.h5'
+                # else:
+                #     trajectory_engine = MDEngines.Gromacs
+                #     traj_ext = '.gromacs'
+                # if last_info_dic["trajectory_interval"] or last_info_dic["trajectory_frames"]:
+                #     trajectory_orion_ui = system_title + "_" + str(system_id) + "-" + suffix +'_traj' + traj_ext + ".tar.gz"
+                # else:  # Empty Trajectory
+                #     tar_fn = None
+                #     trajectory_engine = None
+                #     trajectory_orion_ui = system_title + "_" + str(system_id) + "-" + suffix + ".tar.gz"
+
+                # stage_names = [stg_name for stg_name in mdrecord.get_stages_names if
+                #                 'Production' in stg_name or 'cycle_' in stg_name]
+                
+                # # 4. Combine trajectories into one
+                # all_traj_lst = list()
+                # log_fn_lst = list()
+                # edr_fn_lst = list()
+                # tpr_fn_lst = list()
+                # for idx, stg_name in enumerate(stage_names):
+                #     trj_fn = mdrecord.get_stage_trajectory(stg_name=stg_name)
+                #     void, traj_ext = os.path.splitext(trj_fn)
+                #     traj_dir = os.path.dirname(trj_fn)
+
+                #     if traj_ext == '.h5':
+                #         all_traj = mdtraj.load(trj_fn)
+                #     elif traj_ext == '.trr':
+                #         # from the last state
+                #         gro_fn = glob.glob(os.path.join(traj_dir, '*.gro'))[0]
+                #         pdb_fn = glob.glob(os.path.join(traj_dir, '*.pdb'))[0]
+                #         mdp_fn = glob.glob(os.path.join(traj_dir, '*.mdp'))[0] # md param file
+                #         top_fn = glob.glob(os.path.join(traj_dir, '*.top'))[0] # topology file
+                #         tpr_fn = glob.glob(os.path.join(traj_dir, '*.tpr'))[0] # input file
+                #         log_fn = glob.glob(os.path.join(traj_dir, '*.log'))[0] # log file
+                #         edr_fn = glob.glob(os.path.join(traj_dir, '*.edr'))[0] # energy file
+
+                #         log_fn_lst.append(log_fn)
+                #         edr_fn_lst.append(edr_fn)
+                #         tpr_fn_lst.append(tpr_fn)
+                #         all_traj = mdtraj.load(trj_fn, top=pdb_fn)
+
+                #     all_traj_lst.append(all_traj)
+
+                # # 5. Write tar_fn
+                # comb_traj = mdtraj.join(all_traj_lst)
+                # if traj_ext == '.h5':
+                #     omm_trj_fn = os.path.join(out_directory, "trajectory_comb.h5")
+                #     comb_traj.save_hdf5(omm_trj_fn)
+
+                #     with tarfile.open(tar_fn, mode="w") as archive:
+                #             archive.add(
+                #                 omm_trj_fn,
+                #                 arcname=os.path.basename(omm_trj_fn),
+                #             )
+
+                #     # Check trajectory file
+                #     with tempfile.TemporaryDirectory() as tmp_dir:
+                #         try:
+                #             with tarfile.open(tar_fn) as tar:
+                #                 tar.extractall(path=tmp_dir)
+                #             tmp_trj_fn = os.path.join(tmp_dir, os.path.basename(omm_trj_fn))
+                #             mdtraj.load(tmp_trj_fn)
+                #         except:
+                #             raise ValueError("Trajectory Check Error")
+                        
+                # elif traj_ext == '.trr':
+
+                #     # Gromacs file names
+                #     outfname = check_filename(system_title + "_" + str(system_id) + "-" + suffix)
+
+                #     grm_top_fn = os.path.join(out_directory, outfname + ".top")
+                #     grm_gro_fn = os.path.join(out_directory, outfname + ".gro")
+                #     grm_pdb_fn = os.path.join(out_directory, outfname + ".pdb")
+                #     grm_mdp_fn = os.path.join(out_directory, outfname + ".mdp")
+                #     grm_trj_fn = os.path.join(out_directory, outfname + ".trr")
+
+                #     # grm_tpr_fn = os.path.join(out_directory, outfname + ".tpr")
+                #     # grm_def_fn = os.path.join(out_directory, outfname + "_run")
+                #     # grm_log_fn = grm_def_fn + ".log"
+                #     # grm_edr_fn = os.path.join(out_directory, outfname + "_run.edr")
+
+                #     comb_traj.save_trr(grm_trj_fn)
+
+                #     with tarfile.open(tar_fn, mode="w") as archive:
+
+                #         archive.add(
+                #             gro_fn,
+                #             arcname=os.path.basename(grm_gro_fn),
+                #         )
+                #         archive.add(
+                #             pdb_fn,
+                #             arcname=os.path.basename(grm_pdb_fn),
+                #         )
+                #         archive.add(
+                #             top_fn,
+                #             arcname=os.path.basename(grm_top_fn),
+                #         )
+                #         archive.add(
+                #             grm_trj_fn,
+                #             arcname=os.path.basename(grm_trj_fn),
+                #         )
+                #         for edr_fn in edr_fn_lst:
+                #             archive.add(
+                #                 edr_fn,
+                #                 arcname=os.path.basename(edr_fn),
+                #             )
+                #         for log_fn in log_fn_lst:
+                #             archive.add(
+                #                 log_fn,
+                #                 arcname=os.path.basename(log_fn),
+                #             )
+                #         for tpr_fn in tpr_fn_lst:
+                #             archive.add(
+                #                 tpr_fn,
+                #                 arcname=os.path.basename(tpr_fn),
+                #             )
+                #         archive.add(
+                #             mdp_fn, arcname=os.path.basename(grm_mdp_fn)
+                #         )
+
+                #     # Check trajectory file
+                #     with tempfile.TemporaryDirectory() as tmp_dir:
+                #         try:
+                #             with tarfile.open(tar_fn) as tar:
+                #                 tar.extractall(path=tmp_dir)
+
+                #             tmp_trj_fn = os.path.join(tmp_dir, os.path.basename(grm_trj_fn))
+                #             tmp_top_fn = os.path.join(tmp_dir, os.path.basename(grm_pdb_fn))
+                #             mdtraj.load(tmp_trj_fn, top=tmp_top_fn)
+                #         except:
+                #             raise ValueError("Trajectory Check Error")
+                            
+                # # delete the stages 
+                # for stg_name in stage_names:
+                #     opt["Logger"].info("[{}] Deleting stage: {}".format(opt["CubeTitle"], stg_name))
+                #     mdrecord.delete_stage_by_name(stg_name=stg_name)
+
+                # # add one new stage
+                # stage_name="Production"
+                # opt["Logger"].info("[{}] Adding new combined stage: {}".format(opt["CubeTitle"], stage_name))
+
+                # mdrecord.add_new_stage(
+                #     stage_name=stage_name,
+                #     stage_type=MDStageTypes.NPT,
+                #     topology=last_flask,
+                #     mdstate=last_mdstate,
+                #     data_fn=data_fn, 
+                #     append=last_info_dic["save_md_stage"],
+                #     log=last_stage_log,
+                #     info=last_info_dic,
+                #     trajectory_fn=tar_fn,
+                #     trajectory_engine=trajectory_engine,
+                #     trajectory_orion_ui=trajectory_orion_ui,
+                # )
+
+                self.false.emit(record)
+
+        except Exception as e:
+            msg = "{} Cube exception: {}".format(self.title, str(e))
+            self.opt["Logger"].info(msg)
+            self.log.error(traceback.format_exc())
+            # Write field for Exception Handler
+            record.set_value(self.args.log_field, str(msg))
+            # Return failed mol
+            self.failure.emit(record)
 
         return

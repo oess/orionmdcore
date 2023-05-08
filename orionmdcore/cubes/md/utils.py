@@ -227,12 +227,22 @@ def determine_cube_run_time(record_info_dic, min=0.25, max=1.0, infimum=80000, s
 
 
 def round_down_to_multiple(number, multiple):
+    # from math import floor
+    # return multiple * floor(number / multiple)
+
     max_frac_digits = 100
     for i in range(max_frac_digits):
         if round(multiple, -int(math.floor(math.log10(multiple))) + i) == multiple:
             frac_digits = -int(math.floor(math.log10(multiple))) + i
             break
     answer = round(round(number / multiple) * multiple, frac_digits)
+
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(f"running_time_per_cycle_in_ns: {number:.15f}")
+    print(f"trajectory_interval_ns: {multiple:.15f}")
+    print(f"round down: {answer:.15f}")
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
+    
     return answer
 
 def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, size_dependent_schedule=True, start_iter_index=0):
