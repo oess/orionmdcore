@@ -374,17 +374,25 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile"):
 
             print("....Attempt {} to upload the file {}".format(try_count + 1, filename))
 
-            file_upload = File.upload(session, orion_ui_name, filename)
+            try:
+                file_upload = File.upload(session, orion_ui_name, filename)
 
-            resource = session.get_resource(File, file_upload.id)
-            tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
-            resource.download_to_file(tmp_fn)
+                resource = session.get_resource(File, file_upload.id)
+                tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
+                resource.download_to_file(tmp_fn)
 
-            if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
+                    success=True
+
+            except Exception as e:
+                success=False
+                
+            if os.path.exists(tmp_fn):
+                os.remove(tmp_fn)
+
+            if success: 
                 print("....Done uploading the file {}".format(filename))
                 break
-
-            os.remove(tmp_fn)
 
         if try_count == max_attempt - 1:
             raise ValueError("Failed to Upload the file: {}".format(filename))
