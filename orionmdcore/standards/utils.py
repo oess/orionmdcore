@@ -356,7 +356,7 @@ def md5_chk_sum(fn):
 
 
 @orion_session
-def upload_file(filename, session=None, orion_ui_name="OrionFile"):
+def upload_file(filename, session=None, orion_ui_name="OrionFile", return_id_only=True):
 
     # Check if file is empty
     file_size = os.path.getsize(filename)
@@ -412,8 +412,14 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile"):
     else:
         file_id = filename
 
-    return file_id
-
+    if return_id_only:
+        return file_id
+    
+    else: 
+        if in_orion():
+            return file_upload
+        else: 
+            return file_id
 
 @orion_session
 def download_file(file_id, filename,  session=None, md5_chks=None):

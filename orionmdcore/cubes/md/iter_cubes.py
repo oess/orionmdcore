@@ -763,15 +763,43 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                 if traj_ext == '.h5':
                     omm_trj_fn = os.path.join(out_directory, "trajectory_comb.h5")
                     # combine h5 files into one
-                    d_struct = {} #Here we will store the database structure
-                    for idx, i in enumerate(trj_fn_lst):
-                        f = h5py.File(i,'r+')
-                        d_struct[idx] = list(f.keys())
+
+                    def combine_h5(h5_fnm_lst, out_h5_fnm):
+                        import h5py
+                        import numpy as np
+
+                        data_dict = dict()
+                        attrs_dict = dict()
+                        for trj_fn in h5_fnm_lst:
+                            f = h5py.File(trj_fn, 'r')
+                            fdata = dict()
+                            for key in f:
+                                fdata[key] = f[key][...]
+                                if key not in attrs_dict:
+                                    attrs_dict[key] = dict(f[key].attrs)
+                            f.close()
+                            data_dict[trj_fn] = fdata
+
+                        data = None
+                        for f in data_dict:
+                            if not data:
+                                data = data_dict[f]
+                            else:
+                                for key in data_dict[f]:
+                                    data[key] = np.append(data[key], data_dict[f][key], axis=0)
+
+                        f = h5py.File(out_h5_fnm, 'w')
+                        for key in data:
+                            f.create_dataset(key, data[key].shape, dtype=data[key].dtype,
+                                            compression='gzip')[...] = data[key]
+                            for attr in attrs_dict[key].keys():
+                                print(attr, attrs_dict[key][attr])
+                                f[key].attrs[attr] = attrs_dict[key][attr]
                         f.close()
 
-                    for idx, i in enumerate(trj_fn_lst):
-                        for j  in d_struct[idx]:
-                            os.system('h5copy -i %s -o %s -s %s -d %s' % (i, omm_trj_fn, j, j))
+                        return
+                    
+                    combine_h5(trj_fn_lst, omm_trj_fn)
 
                     with tarfile.open(tar_fn, mode="w") as archive:
                             archive.add(
@@ -802,7 +830,7 @@ class IterChecker(RecordPortsMixin, ComputeCube):
 
                     # combine trr files into one
                     trrs_to_comb = " ".join(str(trr_fn) for trr_fn in trj_fn_lst)
-                    os.system('gmx trjcat -f %s -o %s' % (trrs_to_comb, grm_trj_fn))
+                    os.system('gmx trjcat -f %s -o %s -cat yes' % (trrs_to_comb, grm_trj_fn))
 
                     with tarfile.open(tar_fn, mode="w") as archive:
 
@@ -860,21 +888,40 @@ class IterChecker(RecordPortsMixin, ComputeCube):
 
                 # add one new stage
                 stage_name="Production"
-                opt["Logger"].info("[{}] Adding new combined stage: {}".format(opt["CubeTitle"], stage_name))
+                opt["Logger"].info("[{}] Adding a combined stage: {}".format(opt["CubeTitle"], stage_name))
 
-                mdrecord.add_new_stage(
-                    stage_name=stage_name,
-                    stage_type=MDStageTypes.NPT,
-                    topology=last_flask,
-                    mdstate=last_mdstate,
-                    data_fn=data_fn, 
-                    append=last_info_dic["save_md_stage"],
-                    log=last_stage_log,
-                    info=last_info_dic,
-                    trajectory_fn=tar_fn,
-                    trajectory_engine=trajectory_engine,
-                    trajectory_orion_ui=trajectory_orion_ui,
-                )
+                max_attempt = 5
+
+                for try_count in range(0, max_attempt):
+                
+                    print("....Attempt {} to add a combined stage: {}".format(try_count + 1, opt["CubeTitle"]))
+                    
+                    try:                     
+                        mdrecord.add_new_stage(
+                            stage_name=stage_name,
+                            stage_type=MDStageTypes.NPT,
+                            topology=last_flask,
+                            mdstate=last_mdstate,
+                            data_fn=data_fn, 
+                            append=last_info_dic["save_md_stage"],
+                            log=last_stage_log,
+                            info=last_info_dic,
+                            trajectory_fn=tar_fn,
+                            trajectory_engine=trajectory_engine,
+                            trajectory_orion_ui=trajectory_orion_ui,
+                        )
+                        success=True
+
+                    except Exception as e:
+                        if mdrecord.has_stage_name(stg_name=stage_name):
+                            mdrecord.delete_stage_by_name(stg_name=stage_name)
+
+                    if success:
+                        print("....Done adding a combined stage {}".format(stage_name))
+                        break
+
+                if try_count == max_attempt - 1:
+                    raise ValueError("Failed to add a combined stage: {}".format(stage_name))
 
                 self.false.emit(record)
 
