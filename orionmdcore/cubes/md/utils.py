@@ -236,12 +236,6 @@ def round_down_to_multiple(number, multiple):
             frac_digits = -int(math.floor(math.log10(multiple))) + i
             break
     answer = round(round(number / multiple) * multiple, frac_digits)
-
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print(f"running_time_per_cycle_in_ns: {number:.15f}")
-    print(f"trajectory_interval_ns: {multiple:.15f}")
-    print(f"round down: {answer:.15f}")
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>")
     
     return answer
 
@@ -280,19 +274,19 @@ def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, size_depende
     )
     running_time_per_cycle_in_ns = running_time_per_cycle.in_units_of(unit.nanoseconds)
 
-    running_time_per_cycle_in_ns_rounded = round_down_to_multiple(running_time_per_cycle_in_ns.value_in_unit(unit.nanoseconds), trajectory_interval_ns.value_in_unit(unit.nanosecond)) 
+    running_time_per_cycle_in_ns_rounded = round_down_to_multiple(running_time_per_cycle_in_ns.value_in_unit(unit.nanoseconds), trajectory_interval_ns.value_in_unit(unit.nanoseconds)) 
     running_time_per_cycle_in_ns_rounded *= unit.nanoseconds
 
-    md_steps_per_cycle = int(running_time_per_cycle_in_ns_rounded / time_step)
+    md_steps_per_cycle = int(running_time_per_cycle_in_ns_rounded.value_in_unit(unit.nanoseconds) / (time_step.value_in_unit(unit.femtoseconds)*1e-6))
 
-    cycles = int(time_ns / running_time_per_cycle_in_ns_rounded)
+    cycles = int(time_ns.value_in_unit(unit.nanoseconds) / running_time_per_cycle_in_ns_rounded.value_in_unit(unit.nanoseconds))
     cycle_rem = time_ns.value_in_unit(
         unit.nanoseconds
     ) % running_time_per_cycle_in_ns_rounded.value_in_unit(unit.nanoseconds)
 
     trajectory_steps = int(
         round(
-            trajectory_interval_ns.value_in_unit(unit.nanosecond)
+            trajectory_interval_ns.value_in_unit(unit.nanoseconds)
             / (time_step.value_in_unit(unit.nanoseconds))
         )
     )
@@ -307,7 +301,7 @@ def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, size_depende
         frame_per_cycle = int(total_steps / trajectory_steps)
 
         schedule[start_iter_index] = (
-            time_step_to_time.value_in_unit(unit.nanosecond),
+            time_step_to_time.value_in_unit(unit.nanoseconds),
             frame_per_cycle,
         )
     else:
