@@ -356,7 +356,7 @@ def md5_chk_sum(fn):
 
 
 @orion_session
-def upload_file(filename, session=None, orion_ui_name="OrionFile", return_id_only=True):
+def upload_file(filename, session=None, orion_ui_name="OrionFile", resource_tag="Trajectory", return_id_only=True):
 
     # Check if file is empty
     file_size = os.path.getsize(filename)
@@ -397,12 +397,13 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile", return_id_onl
         if try_count == max_attempt - 1:
             raise ValueError("Failed to Upload the file: {}".format(filename))
 
-        session.tag_resource(file_upload, "Trajectory")
+        if resource_tag is not None:
+            session.tag_resource(file_upload, resource_tag)
 
-        job_id = environ.get("ORION_JOB_ID")
+            job_id = environ.get("ORION_JOB_ID")
 
-        if job_id:
-            session.tag_resource(file_upload, "Job {}".format(job_id))
+            if job_id:
+                session.tag_resource(file_upload, "Job {}".format(job_id))
 
         file_id = file_upload.id
 
