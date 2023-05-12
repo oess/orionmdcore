@@ -374,11 +374,11 @@ def upload_file(filename, session=None, orion_ui_name="OrionFile", resource_tag=
 
             print("....Attempt {} to upload the file {}".format(try_count + 1, filename))
 
+            tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
+
             try:
                 file_upload = File.upload(session, orion_ui_name, filename)
-
                 resource = session.get_resource(File, file_upload.id)
-                tmp_fn = os.path.join(os.path.dirname(filename), "tmp_download_{}".format(try_count))
                 resource.download_to_file(tmp_fn)
 
                 if md5_chk_sum(filename) == md5_chk_sum(tmp_fn):
