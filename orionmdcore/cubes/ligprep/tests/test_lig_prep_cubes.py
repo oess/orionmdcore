@@ -53,7 +53,6 @@ class LigChargeTester(unittest.TestCase):
         self.runner = CubeTestRunner(self.cube)
         self.runner.start()
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_success(self):
         print("Testing cube:", self.cube.name)

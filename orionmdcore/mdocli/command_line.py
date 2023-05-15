@@ -61,6 +61,7 @@ import json
 
 from orionmdcore.standards.utils import json_to_parmed
 
+
 @click.group(
     context_settings={
         "help_option_names": ("-h", "--help")
@@ -87,7 +88,7 @@ def main(ctx, profile):
 
 @main.group()
 @click.argument('filename', type=click.Path(exists=True))
-@click.option("--id", help="Record ID number", multiple=True, default="all")
+@click.option("--id", help="Record ID number", multiple=True, default=['all'])
 @click.pass_context
 def dataset(ctx, filename, id):
     """Records Extraction"""
@@ -102,16 +103,17 @@ def dataset(ctx, filename, id):
         records.append(rec)
     ifs.close()
 
-    if id == ('a', 'l', 'l'):
+    if id[0] == 'all':
         ctx.obj['records'] = records
     else:
 
         list_rec = []
         for idx in id:
+
             if int(idx) < len(records):
                 list_rec.append(records[int(idx)])
             else:
-                raise ValueError("Wrong record number selection: {} > max = {}".format(int(id), len(records)))
+                raise ValueError("Wrong record number selection: {} > max = {}".format(id, len(records)))
 
         ctx.obj['records'] = list_rec
 
@@ -119,7 +121,7 @@ def dataset(ctx, filename, id):
 @dataset.command("makelocal")
 @click.option("--name", help="Edit the trajectory file name", default="local.oedb")
 @click.option("--only", help="Make local only selected items. Items available are: stages, parmed or protein_confs",
-              default="a", multiple=True)
+               multiple=True, default=['a'])
 @click.pass_context
 def data_trajectory_extraction(ctx, name, only):
 

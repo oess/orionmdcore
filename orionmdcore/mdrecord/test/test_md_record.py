@@ -78,106 +78,88 @@ class MDRecordTests(unittest.TestCase):
 
         os.chdir(FILE_DIR)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_primary(self):
         mol = self.mdrecord.get_value(Fields.primary_molecule)
         self.assertEqual(mol.NumAtoms(), self.mdrecord.get_primary.NumAtoms())
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_primary(self):
         mol = self.mdrecord.get_value(Fields.primary_molecule)
         self.assertTrue(self.mdrecord.set_primary(mol))
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_flask(self):
         mol = self.mdrecord.get_value(Fields.flask)
         self.assertEqual(mol.NumAtoms(), self.mdrecord.get_flask.NumAtoms())
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_flask(self):
         mol = self.mdrecord.get_value(Fields.flask)
         self.assertTrue(self.mdrecord.set_flask(mol))
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_flaskid(self):
         id = self.mdrecord.get_value(Fields.flaskid)
         self.assertEqual(id, 0)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_flaskid(self):
         self.assertTrue(self.mdrecord.has_flask_id)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_flaskid(self):
         self.mdrecord.set_flask_id(5)
         self.assertEqual(self.mdrecord.get_flask_id, 5)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_lig_id(self):
         id = self.mdrecord.get_value(Fields.ligid)
         self.assertEqual(id, 0)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_lig_id(self):
         self.assertTrue(self.mdrecord.has_lig_id)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_lig_id(self):
         self.mdrecord.set_lig_id(5)
         self.assertEqual(self.mdrecord.get_lig_id, 5)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_conf_id(self):
         id = self.mdrecord.get_value(Fields.confid)
         self.assertEqual(id, 0)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_conf_id(self):
         self.assertTrue(self.mdrecord.has_conf_id)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_conf_id(self):
         self.mdrecord.set_conf_id(5)
         self.assertEqual(self.mdrecord.get_conf_id, 5)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_title(self):
         title = self.mdrecord.get_value(Fields.title)
         self.assertEqual(title, "pPRT_ltoluene")
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_tile(self):
         self.assertTrue(self.mdrecord.has_title)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_title(self):
         self.mdrecord.set_title("Pippo")
         self.assertEqual(self.mdrecord.get_title, "Pippo")
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_last_stage(self):
         last_stage = self.mdrecord.get_last_stage
         self.assertEqual(last_stage.get_value(Fields.stage_name), "Production")
         self.assertEqual(last_stage.get_value(Fields.stage_type), "NPT")
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_by_name(self):
         last_stage = self.mdrecord.get_stage_by_name()
@@ -207,13 +189,11 @@ class MDRecordTests(unittest.TestCase):
     #     self.assertEqual(len(new_mdrecord.get_stages), 2)
 
     # TODO THIS IS GOING TO DELETE FILES LOCALLY KEEP DISABLED
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_stage_name(self):
         self.assertTrue(self.mdrecord.has_stage_name("Production"))
         self.assertFalse(self.mdrecord.has_stage_name("Error"))
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_by_idx(self):
         with self.assertRaises(ValueError):
@@ -223,7 +203,6 @@ class MDRecordTests(unittest.TestCase):
             "Flask Parametrization",
         )
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_state(self):
 
@@ -260,7 +239,6 @@ class MDRecordTests(unittest.TestCase):
             numpy.all(md_state.get_box_vectors() == self.mdrecord.get_stage_state().get_box_vectors())
         )
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_topology(self):
 
@@ -285,7 +263,6 @@ class MDRecordTests(unittest.TestCase):
         for mol_at, top_at in zip(topology_mol.GetAtoms(), topology.GetAtoms()):
             self.assertEqual(mol_at.GetAtomicNum(), top_at.GetAtomicNum())
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_logs(self):
         last_stage = self.mdrecord.get_last_stage
@@ -300,12 +277,10 @@ class MDRecordTests(unittest.TestCase):
             info, self.mdrecord.get_stage_logs(stg_name="Flask Minimization")
         )
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stage_trajectory(self):
         self.assertTrue(os.path.isfile(self.mdrecord.get_stage_trajectory()))
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_add_new_stage(self):
         new_record = OERecord(self.record)
@@ -331,25 +306,21 @@ class MDRecordTests(unittest.TestCase):
         self.assertEqual(new_last_stage.get_value(Fields.stage_name), "Testing")
         self.assertEqual(new_last_stage.get_value(Fields.stage_type), MDStageTypes.FEC)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stages(self):
         stages = self.mdrecord.get_stages
         self.assertEqual(len(stages), 3)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_stages_names(self):
         ls_names = ["Flask Parametrization", "Flask Minimization", "Production"]
         stg_names = self.mdrecord.get_stages_names
         self.assertEqual(stg_names, ls_names)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_stages(self):
         self.assertTrue(self.mdrecord.has_stages)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_get_parmed(self):
         pmd = self.mdrecord.get_parmed(sync_stage_name="last")
@@ -359,7 +330,6 @@ class MDRecordTests(unittest.TestCase):
         self.assertEqual((len(pmd.angles)), 14069)
         self.assertEqual((len(pmd.dihedrals)), 8028)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_parmed(self):
         new_record = OERecord(self.record)
@@ -373,12 +343,10 @@ class MDRecordTests(unittest.TestCase):
         new_mdrecord.set_parmed(pmd, sync_stage_name="last")
         self.assertTrue(new_mdrecord.has_parmed)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_has_parmed(self):
         self.assertTrue(self.mdrecord.has_parmed)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_delete_parmed(self):
         new_record = OERecord(self.record)
@@ -387,7 +355,6 @@ class MDRecordTests(unittest.TestCase):
         new_mdrecord.delete_parmed
         self.assertFalse(new_mdrecord.has_parmed)
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_protein_traj(self):
 
@@ -401,7 +368,6 @@ class MDRecordTests(unittest.TestCase):
 
         self.assertEqual(prot_mol.NumAtoms(), mdprot.NumAtoms())
 
-    @pytest.mark.travis
     @pytest.mark.local
     def test_set_protein_traj(self):
         oetraj_record = self.record.get_value(OEField("OETraj", Types.Record))
