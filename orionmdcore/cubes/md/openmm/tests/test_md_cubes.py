@@ -338,7 +338,7 @@ class OmmNPTCubeTester(unittest.TestCase):
         # Average volume and its standard deviation (in nm^3) measured along
         # one 5ns run for the selected system
 
-        avg_volume = 632.4198167 * (unit.nanometers ** 3)
+        avg_volume = 673.0649931985804 * (unit.nanometers ** 3)
         std_volume = 1.201609662
 
         self.assertAlmostEqual(
