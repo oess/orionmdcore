@@ -325,9 +325,11 @@ def size_dependent_schedule_cycles(cube_param_dic, record_info_dic, size_depende
             )
             for i in range(start_iter_index, cycles+start_iter_index)
         }
-        schedule[cycles+start_iter_index] = (
-            last_time.value_in_unit(unit.nanosecond),
-            frame_per_cycle_dic[cycles+start_iter_index],
-        )
+        
+        if last_time.value_in_unit(unit.nanoseconds) != 0:
+            schedule[cycles+start_iter_index] = (
+                last_time.value_in_unit(unit.nanosecond),
+                frame_per_cycle_dic[cycles+start_iter_index],
+            )
 
     return schedule
