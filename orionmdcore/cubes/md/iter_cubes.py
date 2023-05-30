@@ -756,7 +756,7 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                 cwd = mdrecord.cwd
                 out_directory = cwd
                 out_fn = check_filename(
-                        out_directory
+                        os.path.basename(out_directory)
                         + "_"
                         + system_title + "_"
                         + str(system_id)

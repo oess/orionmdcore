@@ -1,6 +1,6 @@
 package:
   name: orionmdcore
-  version: '2.1.0b21'
+  version: '2.1.0b22'
 
 source:
   path: ../../
