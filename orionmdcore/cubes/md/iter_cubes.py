@@ -78,6 +78,10 @@ import tempfile
 
 import h5py
 
+from simtk import unit
+
+import math
+
 
 class IterMDNptCube(RecordPortsMixin, ComputeCube):
     title = "Iterative NPT Cube"
@@ -197,6 +201,13 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
         If 0 the trajectory file will not be generated""",
     )
 
+    force_trajectory_interval = parameters.BooleanParameter(
+        "force_trajectory_interval",
+        title="Force trajectory interval",
+        default=False,
+        help_text="If False, trajectory interval will be set to 0.01 for simulations longer than 10 ns.",
+    )
+
     reporter_interval = parameters.DecimalParameter(
         "reporter_interval",
         title="Reporter interval",
@@ -209,6 +220,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
         "trajectory_frames",
         title="Trajectory frames",
         default=0,
+        max_value=10000,
         help_text="""The total number of trajectory frames. If it is 
             set to zero and the trajectory interval parameter is set 
             to zero no trajectory is generated. If it is different from zero 
@@ -278,6 +290,42 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
         try:
             opt = dict(self.opt)
             opt["CubeTitle"] = self.title    
+
+            # Check number of frames and reset trajectory interval or trajectory frames.
+            if not record.has_field(Fields.cycle_id):
+                    
+                def set_traj_interval(time, trajectory_frames):
+                    trajectory_interval = round(time/trajectory_frames, 3)
+                    if trajectory_interval < 0.004: 
+                        trajectory_interval = 0.004
+                    return trajectory_interval
+                
+                # Case 1. trajectory_interval==0, and trajectory_frames!=0
+                if opt["trajectory_interval"] == 0 and opt["trajectory_frames"] != 0:
+
+                    trajectory_interval = set_traj_interval(opt["time"], opt["trajectory_frames"])
+                    opt["trajectory_interval"] = trajectory_interval
+
+                    opt["Logger"].info(
+                    "[{}] Setting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                    )
+                # Case 2. trajectory_interval!=0 and force_trajectory_interval is False
+                elif opt["force_trajectory_interval"] is False: 
+                    if opt["time"] >= 10: 
+                        if opt["time"]/opt["trajectory_interval"] < 10000:
+                            opt["trajectory_interval"] = 0.01
+                            opt["Logger"].info(
+                            "[{}] Resetting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                            )
+                        else: 
+                            trajectory_frames = 10000
+                            trajectory_interval = set_traj_interval(opt["time"], trajectory_frames)
+
+                            opt["trajectory_interval"] = trajectory_interval
+
+                            opt["Logger"].info(
+                            "[{}] Resetting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                            )
 
             # Update Cube Parameters
             update_cube_parameters_in_place(record, opt)
@@ -382,6 +430,8 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
 
                 tmp_opt["time"] = opt["speed_check_time"]
                 tmp_opt["suffix"] = "tmp_run"
+                tmp_opt["trajectory_interval"] = 0.0
+                tmp_opt["restraints"] = ""
                 new_mdstate = md_simulation(mdstate, parmed_structure, tmp_opt)
 
                 # (2) gen info_dic
@@ -588,7 +638,8 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                         )
                         # reset cube_parameters_update
                         new_dic = {
-                            "time": time_remain
+                            "time": time_remain,
+                            "trajectory_interval": opt["trajectory_interval"],
                         }
                         record.set_value(Fields.cube_parameters_update, new_dic)
                         success=True

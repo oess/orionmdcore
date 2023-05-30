@@ -213,7 +213,40 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=False, opt=None):
             raise (RuntimeError("omega returned error code %d" % status))
 
         return molcopy
+    
+    def generate_macrocycle_conformers(molecule, max_confs=800, strictStereo=False, ewindow=15.0, rms_threshold=1.0,
+                            strictTypes=True):
 
+        molcopy = oechem.OEMol(molecule)
+
+        opts = oeomega.OEMacrocycleOmegaOptions()
+
+        dg_opts = oeomega.OEMacrocycleBuilderOptions()
+        dg_opts.SetDielectricConst(80.0)
+        dg_opts.SetRefTolerance(0.001)
+        dg_opts.SetSkipRefinement(True)
+
+        opts.SetMacrocycleBuilderOptions(dg_opts)
+
+        slice_opts = oeomega.OESliceEnsembleOptions()
+        slice_opts.SetMaxTerminalHeavy(25)
+        slice_opts.SetEnergyWindow(ewindow)
+        slice_opts.SetRMSThreshold(rms_threshold)
+        slice_opts.SetMaxConfs(max_confs)
+
+        opts.SetSliceEnsembleOptions(slice_opts)
+
+        opts.SetIterCycleSize(100)
+        opts.SetMaxIter(2000)
+        mcomega = oeomega.OEMacrocycleOmega(opts)
+
+        ret_code = mcomega.Build(molcopy)
+        if not ret_code == oeomega.OEOmegaReturnCode_Success:
+            raise (RuntimeError("omega returned error code %d" % ret_code))
+
+        # HJ: Hasn't set canonical order to False. 
+        return molcopy
+    
     mol_copy_charged = oechem.OEMol(molecule)
 
     # The passed molecule could have already conformers. If the conformer number
@@ -221,7 +254,11 @@ def assignELF10charges(molecule, max_confs=800, strictStereo=False, opt=None):
     # be generated
     if not mol_copy_charged.GetMaxConfIdx() > 200:
         # Generate up to max_confs conformers
-        mol_copy_charged = generate_conformers(mol_copy_charged, max_confs=max_confs, strictStereo=strictStereo)
+        if not oeomega.OEIsMacrocycle(mol_copy_charged):
+            mol_copy_charged = generate_conformers(mol_copy_charged, max_confs=max_confs, strictStereo=strictStereo)
+        else: 
+            print("Generating macrocycle conformers.")
+            mol_copy_charged = generate_macrocycle_conformers(mol_copy_charged, max_confs=max_confs, strictStereo=strictStereo)
 
     # Assign MMFF Atom types
     if not oechem.OEMMFFAtomTypes(mol_copy_charged):
