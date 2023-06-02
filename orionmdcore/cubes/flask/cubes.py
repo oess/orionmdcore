@@ -419,12 +419,13 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
         "verbose", default=False, help_text="Output Packmol log"
     )
 
-    geometry = parameters.StringParameter(
-        "geometry",
-        default="box",
-        choices=["box", "sphere", "rectangle"],
-        help_text="Geometry selection: box or sphere. Sphere cannot be used as periodic system "
-        "along with MD simulation",
+    box_shape = parameters.StringParameter(
+        "Box Shape",
+        default="cubic",
+        choices=["cubic", "rectanglular"],
+        help_text="Periodic box shape selection: cubic or rectanglular",
+        # help_text="Geometry selection: box or sphere. Sphere cannot be used as periodic system "
+        # "along with MD simulation",
     )
 
     close_solvent = parameters.BooleanParameter(
@@ -462,6 +463,12 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
 
         try:
             opt = dict(self.opt)
+
+            # Setting geometry given the box shape
+            if opt["box_shape"] == "cubic":
+                opt["geometry"] = "box"
+            elif opt["box_shape"] == "rectangular":
+                opt["geometry"] = "rectangle"
 
             if not record.has_value(Fields.md_components):
                 # raise ValueError("Missing the MD Components Field")
