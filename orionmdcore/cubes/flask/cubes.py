@@ -423,8 +423,8 @@ class SolvationCube(RecordPortsMixin, ComputeCube):
         "box_shape",
         title='Periodic Box shape',
         default="cubic",
-        choices=["cubic", "rectanglular"],
-        help_text="Periodic box shape selection: cubic or rectanglular",
+        choices=["cubic", "rectangular"],
+        help_text="Periodic box shape selection: cubic or rectangular",
         # help_text="Geometry selection: box or sphere. Sphere cannot be used as periodic system "
         # "along with MD simulation",
     )
