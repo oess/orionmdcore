@@ -78,6 +78,10 @@ import tempfile
 
 import h5py
 
+from simtk import unit
+
+import math
+
 
 class IterMDNptCube(RecordPortsMixin, ComputeCube):
     title = "Iterative NPT Cube"
@@ -197,6 +201,13 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
         If 0 the trajectory file will not be generated""",
     )
 
+    force_trajectory_interval = parameters.BooleanParameter(
+        "force_trajectory_interval",
+        title="Force trajectory interval",
+        default=False,
+        help_text="If False, trajectory interval will be set to 0.01 for simulations longer than 10 ns.",
+    )
+
     reporter_interval = parameters.DecimalParameter(
         "reporter_interval",
         title="Reporter interval",
@@ -209,6 +220,7 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
         "trajectory_frames",
         title="Trajectory frames",
         default=0,
+        max_value=10000,
         help_text="""The total number of trajectory frames. If it is 
             set to zero and the trajectory interval parameter is set 
             to zero no trajectory is generated. If it is different from zero 
@@ -281,6 +293,42 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
 
             # Update Cube Parameters
             update_cube_parameters_in_place(record, opt)
+
+            # Check number of frames and reset trajectory interval or trajectory frames.
+            if not record.has_field(Fields.cycle_id) or opt["trajectory_interval"] == 0:
+                    
+                def set_traj_interval(time, trajectory_frames):
+                    trajectory_interval = round(time/trajectory_frames, 3)
+                    if trajectory_interval < 0.004: 
+                        trajectory_interval = 0.004
+                    return trajectory_interval
+                
+                # Case 1. trajectory_interval==0, and trajectory_frames!=0
+                if opt["trajectory_interval"] == 0 and opt["trajectory_frames"] != 0:
+
+                    trajectory_interval = set_traj_interval(opt["time"], opt["trajectory_frames"])
+                    opt["trajectory_interval"] = trajectory_interval
+
+                    opt["Logger"].info(
+                    "[{}] Setting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                    )
+                # Case 2. trajectory_interval!=0 and force_trajectory_interval is False
+                elif opt["force_trajectory_interval"] is False: 
+                    if opt["time"] >= 10: 
+                        if opt["time"]/opt["trajectory_interval"] < 10000:
+                            opt["trajectory_interval"] = 0.01
+                            opt["Logger"].info(
+                            "[{}] Resetting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                            )
+                        else: 
+                            trajectory_frames = 10000
+                            trajectory_interval = set_traj_interval(opt["time"], trajectory_frames)
+
+                            opt["trajectory_interval"] = trajectory_interval
+
+                            opt["Logger"].info(
+                            "[{}] Resetting the trajectory interval to {}".format(self.title, opt["trajectory_interval"])
+                            )
 
             # Logger string
             str_logger = "-" * 32 + " NPT CUBE PARAMETERS " + "-" * 32
@@ -382,6 +430,8 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
 
                 tmp_opt["time"] = opt["speed_check_time"]
                 tmp_opt["suffix"] = "tmp_run"
+                tmp_opt["trajectory_interval"] = 0.0
+                tmp_opt["restraints"] = ""
                 new_mdstate = md_simulation(mdstate, parmed_structure, tmp_opt)
 
                 # (2) gen info_dic
@@ -588,7 +638,8 @@ class IterMDNptCube(RecordPortsMixin, ComputeCube):
                         )
                         # reset cube_parameters_update
                         new_dic = {
-                            "time": time_remain
+                            "time": time_remain,
+                            "trajectory_interval": opt["trajectory_interval"],
                         }
                         record.set_value(Fields.cube_parameters_update, new_dic)
                         success=True
@@ -699,13 +750,25 @@ class IterChecker(RecordPortsMixin, ComputeCube):
 
                 system_title = mdrecord.get_title
                 system_id = mdrecord.get_flask_id
-                suffix = "comb"
+
+
+                prod_stage_names = [stg_name for stg_name in mdrecord.get_stages_names if 'Production' in stg_name]
+                if len(prod_stage_names) == 0:
+                    prod_stage_name="Production"
+                    suffix = "comb"
+                elif prod_stage_names == ["Production"]: 
+                    prod_stage_name="Production_1"
+                    suffix = "comb_1"
+                else:
+                    prod_suffix = int(prod_stage_names[-1].split("_")[-1])+1
+                    prod_stage_name="Production_"+ str(prod_suffix)
+                    suffix = "comb_"+ str(prod_suffix)
 
                 # 2. set filenames
                 cwd = mdrecord.cwd
                 out_directory = cwd
                 out_fn = check_filename(
-                        out_directory
+                        os.path.basename(out_directory)
                         + "_"
                         + system_title + "_"
                         + str(system_id)
@@ -729,9 +792,11 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                     trajectory_engine = None
                     trajectory_orion_ui = system_title + "_" + str(system_id) + "-" + suffix + ".tar.gz"
 
-                stage_names = [stg_name for stg_name in mdrecord.get_stages_names if
-                                'Production' in stg_name or 'cycle_' in stg_name]
-                
+                # stage_names = [stg_name for stg_name in mdrecord.get_stages_names if
+                #                 'Production' in stg_name or 'cycle_' in stg_name]
+
+                stage_names = [stg_name for stg_name in mdrecord.get_stages_names if 'cycle_' in stg_name]                
+
                 # 4. Combine trajectories into one
                 trj_fn_lst = list()
                 log_fn_lst = list()
@@ -770,6 +835,7 @@ class IterChecker(RecordPortsMixin, ComputeCube):
 
                 else: 
                     # Try to combine trajectory files into one single file. If fail, ignore state concatenation. 
+
                     try: 
                         # 5. Write tar_fn
                         if traj_ext == '.h5':
@@ -919,8 +985,8 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                         mdrecord.delete_stage_by_name(stg_name=stg_name)
 
                     # add one new stage
-                    stage_name="Production"
-                    opt["Logger"].info("[{}] Adding a combined stage: {}".format(opt["CubeTitle"], stage_name))
+
+                    opt["Logger"].info("[{}] Adding a combined stage: {}".format(opt["CubeTitle"], prod_stage_name))
 
                     max_attempt = 5
 
@@ -930,7 +996,7 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                         
                         try:                     
                             mdrecord.add_new_stage(
-                                stage_name=stage_name,
+                                stage_name=prod_stage_name,
                                 stage_type=MDStageTypes.NPT,
                                 topology=last_flask,
                                 mdstate=last_mdstate,
@@ -942,18 +1008,21 @@ class IterChecker(RecordPortsMixin, ComputeCube):
                                 trajectory_engine=trajectory_engine,
                                 trajectory_orion_ui=trajectory_orion_ui,
                             )
+                            # # reset cube_parameters_update
+                            # new_dic = {}
+                            # record.set_value(Fields.cube_parameters_update, new_dic)
                             success=True
 
                         except Exception as e:
-                            if mdrecord.has_stage_name(stg_name=stage_name):
-                                mdrecord.delete_stage_by_name(stg_name=stage_name)
+                            if mdrecord.has_stage_name(stg_name=prod_stage_name):
+                                mdrecord.delete_stage_by_name(stg_name=prod_stage_name)
 
                         if success:
-                            print("....Done adding a combined stage {}".format(stage_name))
+                            print("....Done adding a combined stage {}".format(prod_stage_name))
                             break
 
                     if try_count == max_attempt - 1:
-                        raise ValueError("Failed to add a combined stage: {}".format(stage_name))
+                        raise ValueError("Failed to add a combined stage: {}".format(prod_stage_name))
                     
                     self.false.emit(record)
 
