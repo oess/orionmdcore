@@ -294,6 +294,9 @@ def nsr_template_generator(
         #     print(at.GetName())
         # with oechem.oemolostream("nsr_caps.oeb") as ofs:
         #     oechem.OEWriteConstMolecule(ofs, oe_nsr_caps)
+        #
+        # raise ValueError("STOP>>>>>>")
+        # ############
 
         # Generate NSR Parametrization
         pmd = ParamMolStructure(
@@ -316,6 +319,7 @@ def nsr_template_generator(
         #     print(res.name)
         #     for at in res.atoms:
         #         print("{} {}".format(at.name, at.charge))
+
 
         for oe_res in oechem.OEGetResidues(oe_nsr_caps):
             # print(oe_res.GetName(), oe_res.GetResidueNumber(), oe_res.GetChainID())
@@ -555,7 +559,6 @@ def nsr_template_generator(
                 )
 
         # XML Cleaning
-
         new_atom_type_names = [oe_at.GetType() for oe_at in nsr_side_chain_atoms]
 
         # Removing unwanted Capping Atom Types
@@ -566,12 +569,12 @@ def nsr_template_generator(
 
         # Removing Bond forces not involving new atom types
         for element in root.xpath("/ForceField/HarmonicBondForce/Bond"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
 
-            if (type1 in new_atom_type_names) or (type2 in new_atom_type_names):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
+            if (class1 in new_atom_type_names) or (class2 in new_atom_type_names):
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
                 continue
             else:
                 element.getparent().remove(element)
@@ -579,67 +582,67 @@ def nsr_template_generator(
         # Removing Angle forces not involving new atom types
         for element in root.xpath("/ForceField/HarmonicAngleForce/Angle"):
 
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
 
             if (
-                (type1 in new_atom_type_names)
-                or (type2 in new_atom_type_names)
-                or (type3 in new_atom_type_names)
+                (class1 in new_atom_type_names)
+                or (class2 in new_atom_type_names)
+                or (class3 in new_atom_type_names)
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Proper Dihedral forces not involving new atom types
         for element in root.xpath("/ForceField/PeriodicTorsionForce/Proper"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
-            type4 = element.get("type4")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
+            class4 = element.get("class4")
 
             if (
-                (type1 in new_atom_type_names)
-                or (type2 in new_atom_type_names)
-                or (type3 in new_atom_type_names)
-                or (type4 in new_atom_type_names)
+                (class1 in new_atom_type_names)
+                or (class2 in new_atom_type_names)
+                or (class3 in new_atom_type_names)
+                or (class4 in new_atom_type_names)
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
-                element.set("type4", type4.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
+                element.set("class4", class4.replace("_Backbone", ""))
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Improper Dihedral forces not involving new atom types
         for element in root.xpath("/ForceField/PeriodicTorsionForce/Improper"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
-            type4 = element.get("type4")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
+            class4 = element.get("class4")
 
             if (
-                type1 in new_atom_type_names
-                or type2 in new_atom_type_names
-                or type3 in new_atom_type_names
-                or type4 in new_atom_type_names
+                class1 in new_atom_type_names
+                or class2 in new_atom_type_names
+                or class3 in new_atom_type_names
+                or class4 in new_atom_type_names
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
-                element.set("type4", type4.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
+                element.set("class4", class4.replace("_Backbone", ""))
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Non-Bonded forces not involving new atom types
         for element in root.xpath("/ForceField/NonbondedForce/Atom"):
-            xml_type = element.get("type")
+            xml_type = element.get("class")
             if xml_type not in new_atom_type_names:
                 element.getparent().remove(element)
 
@@ -669,8 +672,10 @@ def nsr_template_generator(
             root, pretty_print=True, encoding="utf-8"
         ).decode()
 
+        # TODO
         # with open(nsr_name+".xml", 'w') as f:
         #     f.write(ffxml_contents)
+        #####
 
         ffmxl_template_list.append(ffxml_contents)
 
