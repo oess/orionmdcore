@@ -258,6 +258,7 @@ class MDComponents:
                 cofactors,
                 lipids,
                 metals,
+                counter_ions,
                 excipients,
             ) = oeommutils.split(molecules, ligand_res_name="LIG")
 
@@ -304,6 +305,12 @@ class MDComponents:
                 # oechem.OEPDBOrderAtoms(excipients, False)
                 # excipients.Sweep()
                 self._components["excipients"] = excipients
+            if counter_ions.NumAtoms():
+                counter_ions = clean_tags(counter_ions)
+                counter_ions = sanitizeOEMolecule(counter_ions)
+                # oechem.OEPDBOrderAtoms(counter_ions, False)
+                # counter_ions.Sweep()
+                self._components["counter_ions"] = counter_ions
 
             print("Design Unit Built from Molecule")
 

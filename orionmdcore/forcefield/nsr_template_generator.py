@@ -294,6 +294,9 @@ def nsr_template_generator(
         #     print(at.GetName())
         # with oechem.oemolostream("nsr_caps.oeb") as ofs:
         #     oechem.OEWriteConstMolecule(ofs, oe_nsr_caps)
+        #
+        # raise ValueError("STOP>>>>>>")
+        # ############
 
         # Generate NSR Parametrization
         pmd = ParamMolStructure(
@@ -316,6 +319,7 @@ def nsr_template_generator(
         #     print(res.name)
         #     for at in res.atoms:
         #         print("{} {}".format(at.name, at.charge))
+
 
         for oe_res in oechem.OEGetResidues(oe_nsr_caps):
             # print(oe_res.GetName(), oe_res.GetResidueNumber(), oe_res.GetChainID())
@@ -385,9 +389,9 @@ def nsr_template_generator(
             if oe_at in nsr_side_chain_atoms:
 
                 if pmd_at.type not in new_atom_type_dic:
-                    type = nsr_name + "_" + oe_at.GetName() + "_" + str(count)
+                    nw_type = nsr_name + "_" + oe_at.GetName() + "_" + str(count)
                     atom_type = parmed.parameters.AtomType(
-                        type, count, pmd_at.mass, pmd_at.atomic_number
+                        nw_type, count, pmd_at.mass, pmd_at.atomic_number
                     )
                     atom_type.set_lj_params(
                         pmd_at.epsilon, pmd_at.rmin, pmd_at.epsilon_14, pmd_at.rmin_14
@@ -407,46 +411,46 @@ def nsr_template_generator(
 
             elif oe_at in nsr_backbone_atoms:
                 if oe_at.GetAtomicNum() == oechem.OEElemNo_N:
-                    type = protein_ff_backbone_atype["N"]
+                    nw_type = protein_ff_backbone_atype["N"]
                     params = protein_ff_backbone_parameters["N"]
                 elif oe_at.GetAtomicNum() == oechem.OEElemNo_C:
                     if [nbr for nbr in oe_at.GetAtoms(oechem.OEIsOxygen())]:
-                        type = protein_ff_backbone_atype["C"]
+                        nw_type = protein_ff_backbone_atype["C"]
                         params = protein_ff_backbone_parameters["C"]
                     else:
-                        type = protein_ff_backbone_atype["CA"]
+                        nw_type = protein_ff_backbone_atype["CA"]
                         params = protein_ff_backbone_parameters["CA"]
 
                 elif oe_at.GetAtomicNum() == oechem.OEElemNo_O:
-                    type = protein_ff_backbone_atype["O"]
+                    nw_type = protein_ff_backbone_atype["O"]
                     params = protein_ff_backbone_parameters["O"]
                 else:  # Hydrogen
                     if [nbr for nbr in oe_at.GetAtoms(oechem.OEIsNitrogen())]:
                         if isNTerminus:
-                            type = protein_ff_backbone_atype["H1"]
+                            nw_type = protein_ff_backbone_atype["H1"]
                             params = protein_ff_backbone_parameters["H1"]
                         else:
-                            type = protein_ff_backbone_atype["H"]
+                            nw_type = protein_ff_backbone_atype["H"]
                             params = protein_ff_backbone_parameters["H"]
                     else:
-                        type = protein_ff_backbone_atype["HA"]
+                        nw_type = protein_ff_backbone_atype["HA"]
                         params = protein_ff_backbone_parameters["HA"]
 
-                type += "_Backbone"
+                nw_type += "_Backbone"
                 atom_type = parmed.parameters.AtomType(
-                    type, count, pmd_at.mass, pmd_at.atomic_number
+                    nw_type, count, pmd_at.mass, pmd_at.atomic_number
                 )
                 atom_type.set_lj_params(
                     pmd_at.epsilon, pmd_at.rmin, pmd_at.epsilon_14, pmd_at.rmin_14
                 )
 
-                if type == protein_ff_backbone_atype["C"] + "_Backbone":
+                if nw_type == protein_ff_backbone_atype["C"] + "_Backbone":
                     C_ACE_N_NME_type_dic["C"] = atom_type
-                if type == protein_ff_backbone_atype["N"] + "_Backbone":
+                if nw_type == protein_ff_backbone_atype["N"] + "_Backbone":
                     C_ACE_N_NME_type_dic["N"] = atom_type
 
                 pmd_at.atom_type = atom_type
-                pmd_at.type = type
+                pmd_at.type = nw_type
                 oe_at.SetType(pmd_at.type)
                 oe_at.SetPartialCharge(params["charge"])
                 nsr_partial_charge += oe_at.GetPartialCharge()
@@ -456,16 +460,16 @@ def nsr_template_generator(
 
             if oe_at in C_ACE_or_N_NME_atoms:
                 if oe_at.GetAtomicNum() == oechem.OEElemNo_N:
-                    type = protein_ff_backbone_atype["N"]
+                    nw_type = protein_ff_backbone_atype["N"]
                     params = protein_ff_backbone_parameters["N"]
                     atom_type = C_ACE_N_NME_type_dic["N"]
                 else:
-                    type = protein_ff_backbone_atype["C"]
+                    nw_type = protein_ff_backbone_atype["C"]
                     params = protein_ff_backbone_parameters["C"]
                     atom_type = C_ACE_N_NME_type_dic["C"]
 
                 pmd_at.atom_type = atom_type
-                pmd_at.type = type
+                pmd_at.type = nw_type
                 oe_at.SetType(pmd_at.type)
                 oe_at.SetPartialCharge(params["charge"])
 
@@ -555,7 +559,6 @@ def nsr_template_generator(
                 )
 
         # XML Cleaning
-
         new_atom_type_names = [oe_at.GetType() for oe_at in nsr_side_chain_atoms]
 
         # Removing unwanted Capping Atom Types
@@ -566,12 +569,27 @@ def nsr_template_generator(
 
         # Removing Bond forces not involving new atom types
         for element in root.xpath("/ForceField/HarmonicBondForce/Bond"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
 
-            if (type1 in new_atom_type_names) or (type2 in new_atom_type_names):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+
+            if (class1 in new_atom_type_names) or (class2 in new_atom_type_names):
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+
+                new_attr_dic = dict()
+                for k,v in element.attrib.items():
+                    if k=='class1':
+                        new_attr_dic['type1']= v
+                    elif k=='class2':
+                        new_attr_dic['type2'] = v
+                    else:
+                        new_attr_dic[k] = v
+
+                element.clear()
+                for k,v in new_attr_dic.items():
+                    element.attrib[k] = v
+
                 continue
             else:
                 element.getparent().remove(element)
@@ -579,69 +597,132 @@ def nsr_template_generator(
         # Removing Angle forces not involving new atom types
         for element in root.xpath("/ForceField/HarmonicAngleForce/Angle"):
 
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
 
             if (
-                (type1 in new_atom_type_names)
-                or (type2 in new_atom_type_names)
-                or (type3 in new_atom_type_names)
+                (class1 in new_atom_type_names)
+                or (class2 in new_atom_type_names)
+                or (class3 in new_atom_type_names)
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
+
+                new_attr_dic = dict()
+                for k, v in element.attrib.items():
+                    if k == 'class1':
+                        new_attr_dic['type1'] = v
+                    elif k == 'class2':
+                        new_attr_dic['type2'] = v
+                    elif k == 'class3':
+                        new_attr_dic['type3'] = v
+                    else:
+                        new_attr_dic[k] = v
+
+                element.clear()
+                for k, v in new_attr_dic.items():
+                    element.attrib[k] = v
+
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Proper Dihedral forces not involving new atom types
         for element in root.xpath("/ForceField/PeriodicTorsionForce/Proper"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
-            type4 = element.get("type4")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
+            class4 = element.get("class4")
 
             if (
-                (type1 in new_atom_type_names)
-                or (type2 in new_atom_type_names)
-                or (type3 in new_atom_type_names)
-                or (type4 in new_atom_type_names)
+                (class1 in new_atom_type_names)
+                or (class2 in new_atom_type_names)
+                or (class3 in new_atom_type_names)
+                or (class4 in new_atom_type_names)
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
-                element.set("type4", type4.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
+                element.set("class4", class4.replace("_Backbone", ""))
+
+                new_attr_dic = dict()
+                for k, v in element.attrib.items():
+                    if k == 'class1':
+                        new_attr_dic['type1'] = v
+                    elif k == 'class2':
+                        new_attr_dic['type2'] = v
+                    elif k == 'class3':
+                        new_attr_dic['type3'] = v
+                    elif k == 'class4':
+                        new_attr_dic['type4'] = v
+                    else:
+                        new_attr_dic[k] = v
+
+                element.clear()
+                for k, v in new_attr_dic.items():
+                    element.attrib[k] = v
+
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Improper Dihedral forces not involving new atom types
         for element in root.xpath("/ForceField/PeriodicTorsionForce/Improper"):
-            type1 = element.get("type1")
-            type2 = element.get("type2")
-            type3 = element.get("type3")
-            type4 = element.get("type4")
+            class1 = element.get("class1")
+            class2 = element.get("class2")
+            class3 = element.get("class3")
+            class4 = element.get("class4")
 
             if (
-                type1 in new_atom_type_names
-                or type2 in new_atom_type_names
-                or type3 in new_atom_type_names
-                or type4 in new_atom_type_names
+                class1 in new_atom_type_names
+                or class2 in new_atom_type_names
+                or class3 in new_atom_type_names
+                or class4 in new_atom_type_names
             ):
-                element.set("type1", type1.replace("_Backbone", ""))
-                element.set("type2", type2.replace("_Backbone", ""))
-                element.set("type3", type3.replace("_Backbone", ""))
-                element.set("type4", type4.replace("_Backbone", ""))
+                element.set("class1", class1.replace("_Backbone", ""))
+                element.set("class2", class2.replace("_Backbone", ""))
+                element.set("class3", class3.replace("_Backbone", ""))
+                element.set("class4", class4.replace("_Backbone", ""))
+
+                new_attr_dic = dict()
+                for k, v in element.attrib.items():
+                    if k == 'class1':
+                        new_attr_dic['type1'] = v
+                    elif k == 'class2':
+                        new_attr_dic['type2'] = v
+                    elif k == 'class3':
+                        new_attr_dic['type3'] = v
+                    elif k == 'class4':
+                        new_attr_dic['type4'] = v
+                    else:
+                        new_attr_dic[k] = v
+
+                element.clear()
+                for k, v in new_attr_dic.items():
+                    element.attrib[k] = v
+
                 continue
             else:
                 element.getparent().remove(element)
 
         # Removing Non-Bonded forces not involving new atom types
         for element in root.xpath("/ForceField/NonbondedForce/Atom"):
-            xml_type = element.get("type")
+            xml_type = element.get("class")
             if xml_type not in new_atom_type_names:
                 element.getparent().remove(element)
+
+            new_attr_dic = dict()
+            for k, v in element.attrib.items():
+                if k == 'class':
+                    new_attr_dic['type'] = v
+                else:
+                    new_attr_dic[k] = v
+
+            element.clear()
+            for k, v in new_attr_dic.items():
+                element.attrib[k] = v
 
         # Changing 14-Scaling Parameters
         for element in root.xpath("/ForceField/NonbondedForce"):
@@ -669,8 +750,10 @@ def nsr_template_generator(
             root, pretty_print=True, encoding="utf-8"
         ).decode()
 
+        ## TODO
         # with open(nsr_name+".xml", 'w') as f:
         #     f.write(ffxml_contents)
+        ####
 
         ffmxl_template_list.append(ffxml_contents)
 
